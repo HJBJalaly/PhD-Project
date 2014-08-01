@@ -56,13 +56,13 @@ for i=1:length(Time)
 
      Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
 %      Torque = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
-%      IntU2=IntU2+Torque(:,i)'*Torque(:,i);
-%      IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3]);    % This is Wrong
-%      IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3]);             % So Does This
+     IntU2=IntU2+Torque(:,i)'*Torque(:,i);
+     IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3]);    % This is Wrong
+     IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3]);             % 
     
 end
 
 IntU2=sum(sum(Torque.^2));
 IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3])));
-IntUdq=sum(abs(sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)));
-Cost=sum(Select.*[ IntU2 IntAbsUdq IntUdq])*Tres;
+IntUdq=(Torque.*[D1q1;D1q2;D1q3]);
+Cost=sum(Select.*[ IntU2 IntAbsUdq IntUdq^2])*Tres;

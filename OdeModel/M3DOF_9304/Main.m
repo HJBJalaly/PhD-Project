@@ -168,7 +168,7 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %%  Generate Initial value for Optimization
 
-Degree=7;
+Degree=6;
 
 Time=time(Middle:end)-1;
 Q1=q1(Middle:end);
@@ -235,7 +235,7 @@ TolFun_Data=1e-8;
 TolX_Data=1e-8;
 TolCon_Data=1e-8;
 
-Select=[0  0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Select=[0 1 0]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
 
 CostFun=@(Coef)TorqueCost(Coef,Time,Degree,Tres,Select,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonCons=@(Coef)NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
@@ -244,9 +244,9 @@ NonCons=@(Coef)NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
     FmisCon_SQP(CostFun,NonCons,Initial,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data);
 
 
-[Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,Error_X0]=...
+[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,Error_X0]=...
                         ShowTime(Initial,Time,Tres,Degree,XEF,YEF,m,L,g,0);
-[Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,Error_Opt]=...
+[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,Error_Opt]=...
                         ShowTime(x,Time,Tres,Degree,XEF,YEF,m,L,g,1);
 
 DegreeStr=sprintf('\n   Degree:     %d\n   Cost Type:  %s\n',Degree,SeletcStr{find(Select)});

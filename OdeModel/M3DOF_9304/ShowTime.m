@@ -1,4 +1,4 @@
-function [Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,Error]=ShowTime(Coef,time,Tres,Degree,Xef,Yef,m,L,g,ShowFlag)
+function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,Error]=ShowTime(Coef,time,Tres,Degree,Xef,Yef,m,L,g,ShowFlag)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
@@ -121,10 +121,14 @@ for i=1:length(time)
 
 
     Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
-    IntU2=IntU2+Torque(:,i)'*Torque(:,i)*Tres;
-    IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
-    IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
+%     IntU2=IntU2+Torque(:,i)'*Torque(:,i)*Tres;
+%     IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
+%     IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
 end
+
+IntU2=sum(sum(Torque.^2))*Tres;
+IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3])))*Tres;
+IntUdq=sum(abs(sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)))*Tres;
 
 if(ShowFlag)
     
