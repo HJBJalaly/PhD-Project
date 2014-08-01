@@ -168,7 +168,7 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %%  Generate Initial value for Optimization
 
-Degree=8;
+Degree=7;
 
 Time=time(Middle:end)-1;
 Q1=q1(Middle:end);
@@ -235,7 +235,7 @@ TolFun_Data=1e-8;
 TolX_Data=1e-8;
 TolCon_Data=1e-8;
 
-Select=[1 0 0 ]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Select=[0  0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
 
 CostFun=@(Coef)TorqueCost(Coef,Time,Degree,Tres,Select,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonCons=@(Coef)NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
