@@ -1,4 +1,4 @@
-function Cost=TorqueCost(Coef,Time,Degree,Tres,Select,g,mL1,mL2,mL3,LL1,LL2,LL3)
+function Cost=TorqueCost(Coef,Time,Degree,Tres,Select,Weight,g,mL1,mL2,mL3,LL1,LL2,LL3)
 
 % Torque=zeros(3,length(Time));
 IntU2=0;
@@ -62,7 +62,7 @@ for i=1:length(Time)
     
 end
 
-IntU2=sum(sum(Torque.^2));
-IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3])));
-IntUdq=sum(abs(sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)));
+IntU2=sum(sum(Torque.^2,2).*Weight);
+IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight);
+IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight);
 Cost=sum(Select.*[ IntU2 IntAbsUdq IntUdq])*Tres;

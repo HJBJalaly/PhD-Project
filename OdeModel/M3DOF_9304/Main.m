@@ -229,32 +229,37 @@ LL3=L;
 
 %% Optimization
 
+tic
 MaxFunEvals_Data=1000*Degree;
 MaxIter_Data=1000;
 TolFun_Data=1e-8;
 TolX_Data=1e-8;
 TolCon_Data=1e-8;
+Algorithm='sqp';
+% Algorithm='interior-point';
 
-Select=[0 1 0]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Weight=[ 1 1 1]';
 
-CostFun=@(Coef)TorqueCost(Coef,Time,Degree,Tres,Select,g,mL1,mL2,mL3,LL1,LL2,LL3);
+CostFun=@(Coef)TorqueCost(Coef,Time,Degree,Tres,Select,Weight,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonCons=@(Coef)NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-    FmisCon_SQP(CostFun,NonCons,Initial,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data);
+    FmisCon_SQP(CostFun,NonCons,Initial,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
-[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,Error_X0]=...
-                        ShowTime(Initial,Time,Tres,Degree,XEF,YEF,m,L,g,0);
-[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,Error_Opt]=...
-                        ShowTime(x,Time,Tres,Degree,XEF,YEF,m,L,g,1);
+[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,RMSError_X0]=...
+                        ShowTime(Initial,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,0);
+[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,RMSError_Opt]=...
+                        ShowTime(x,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,1);
 
 DegreeStr=sprintf('\n   Degree:     %d\n   Cost Type:  %s\n',Degree,SeletcStr{find(Select)});
-Title=sprintf('% 24s % 12s % 12s % 12s','IntU2','IntAbsUdq','IntUdq','Error');
-Result_X0 =sprintf('Initial:    % 12.2e % 12.2e % 12.2e % 12.2e',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,Error_X0);
-Result_Opt=sprintf('Optimized:  % 12.2e % 12.2e % 12.2e % 12.2e\n',IntU2_Opt,IntAbsUdq_Opt,IntUdq_Opt,Error_Opt);
+Title=sprintf('% 24s % 12s % 12s % 12s','IntU2','IntAbsUdq','IntUdq','RMS Err');
+Result_X0 =sprintf('Initial:    % 12.2e % 12.2e % 12.2e % 12.2e',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,RMSError_X0);
+Result_Opt=sprintf('Optimized:  % 12.2e % 12.2e % 12.2e % 12.2e\n',IntU2_Opt,IntAbsUdq_Opt,IntUdq_Opt,RMSError_Opt);
 display(output.message)
 disp(DegreeStr)
 disp(Title)
 disp(Result_X0)
 disp(Result_Opt)
+toc

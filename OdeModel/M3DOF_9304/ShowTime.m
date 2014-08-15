@@ -1,4 +1,4 @@
-function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,Error]=ShowTime(Coef,time,Tres,Degree,Xef,Yef,m,L,g,ShowFlag)
+function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,RMS]=ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
@@ -39,7 +39,8 @@ Pos=[Xef;Yef];
 
 RPos=L*[cos(Q1)+cos(Q1+Q2)+cos(Q1+Q2+Q3);
         sin(Q1)+sin(Q1+Q2)+sin(Q1+Q2+Q3)];
-Error=sum(sum((RPos-Pos).^2))*Tres;
+
+RMS=sqrt(sum(sum((RPos-Pos).^2))*Tres/(time(end)-time(1)));
 
 if(ShowFlag)
     
@@ -49,8 +50,8 @@ if(ShowFlag)
         hold on
         plot(RPos(1,:),RPos(2,:),'linewidth',2,'linestyle','-','color','r')
         hold off
-        xlabel('x (m)')
-        ylabel('y (m)')
+        xlabel('x (m)','fontsize',12)
+        ylabel('y (m)','fontsize',12)
 
     
     
@@ -65,20 +66,20 @@ if(ShowFlag)
         plot(time,Q1)
         title('Jonits Trajectory','FontWeight','bold')
         grid on
-        xlabel('time (s)')
-        ylabel('q_1 (rad)')
+        xlabel('time (s)','fontsize',12)
+        ylabel('q_1 (rad)','fontsize',14)
 
         subplot(3,1,2)
         plot(time,Q2)
         grid on
-        xlabel('time (s)')
-        ylabel('q_2 (rad)')
+        xlabel('time (s)','fontsize',12)
+        ylabel('q_2 (rad)','fontsize',14)
 
         subplot(3,1,3)
         plot(time,Q3)
         grid on
-        xlabel('time (s)')
-        ylabel('q_3 (rad)')
+        xlabel('time (s)','fontsize',12)
+        ylabel('q_3 (rad)','fontsize',14)
 
 end
 %% Torque
@@ -126,9 +127,9 @@ for i=1:length(time)
 %     IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
 end
 
-IntU2=sum(sum(Torque.^2))*Tres;
-IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3])))*Tres;
-IntUdq=sum(abs(sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)))*Tres;
+IntU2=sum(sum(Torque.^2,2).*Weight)*Tres;
+IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres;
+IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres;
 
 if(ShowFlag)
     
@@ -136,8 +137,8 @@ if(ShowFlag)
         plot(time,Torque)
         title('Torque','FontWeight','bold')
         legend('\tau_1','\tau_2','\tau_3')
-        xlabel('time (s)')
-        ylabel('\tau')
+        xlabel('time (s)','fontsize',12)
+        ylabel('\tau','fontsize',14)
         grid on
 
     figure('name','Torque vs Angle')
@@ -146,8 +147,8 @@ if(ShowFlag)
         title('Torque Angle Profile','FontWeight','bold')
         hold on
         plot(Q1(1),Torque(1,1),'linewidth',2,'linestyle','none','marker','*','markersize',6)
-        xlabel('q_1 (rad)')
-        ylabel('\tau_1')
+        xlabel('q_1 (rad)','fontsize',12)
+        ylabel('\tau_1','fontsize',14)
         hold off
         grid on
 
@@ -155,8 +156,8 @@ if(ShowFlag)
         plot(Q2,Torque(2,:))
         hold on
         plot(Q2(1),Torque(2,1),'linewidth',2,'linestyle','none','marker','*','markersize',6)
-        xlabel('q_2 (rad)')
-        ylabel('\tau_2')
+        xlabel('q_2 (rad)','fontsize',12)
+        ylabel('\tau_2','fontsize',14)
         hold off
         grid on
 
@@ -164,8 +165,8 @@ if(ShowFlag)
         plot(Q3,Torque(3,:))
         hold on
         plot(Q3(1),Torque(3,1),'linewidth',2,'linestyle','none','marker','*','markersize',6)
-        xlabel('q_3 (rad)')
-        ylabel('\tau_3')
+        xlabel('q_3 (rad)','fontsize',12)
+        ylabel('\tau_3','fontsize',14)
         hold off
         grid on
 
