@@ -263,3 +263,39 @@ disp(Title)
 disp(Result_X0)
 disp(Result_Opt)
 toc
+
+
+%% Make Nonlinear Spring
+
+ThetaStep=deg2rad(.5);
+ThetaS=min(Q_Opt(1, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(1, 1: floor(size(Q_Opt,2)/2)));
+ThetaShift=ThetaS-min(Q_Opt(1, 1: floor(size(Q_Opt,2)/2)));
+
+tau=interp1(Q_Opt(1, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(1, 1: floor(size(Q_Opt,2)/2)),ThetaS);
+TauMin=abs(min(tau));
+tauShift=tau+TauMin*1.25;
+
+%%
+
+k0=10000;
+R0=2;
+q00=2;
+
+nvars=3;
+lb=[0 0 0];
+PopInitRange=[100 1e-2 1e-2; 10000 10 10];
+PopulationSize=200;
+InitialPopulation=[k0*rand(PopulationSize,1) R0*rand(PopulationSize,1) q00*rand(PopulationSize,1)];
+CostParam=@(Param)FindBestParamCost(Param,ThetaStep,ThetaShift,tauShift);
+
+[ParamA,fval,exitflag,output,population,score] = ...
+    Ga_FindParamOfNonLinearSpring(CostParam,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
+disp(output.message)
+
+k=ParamA(1);
+R=ParamA(2);
+q0=ParamA(3);
+
+NonLinearSpring(ThetaStep,ThetaShift,tauShift,k,R,q0)
+
+

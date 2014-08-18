@@ -1,0 +1,32 @@
+function Cost = FindBestParamCost(Param,ThetaStep,ThetaS,tau)
+% Param
+% ThetaStep : in rad
+% Theta: in rad with constant diff
+% tau: in N.m
+
+if(any(isinf( Param)))
+    1;
+end
+
+k=Param(1);
+R=Param(2);
+q0=Param(3);
+
+sum=0;
+for i=1:length(ThetaS)
+    J(i)=tau(i)/sqrt(2*k*sum+(k*q0)^2);
+    sum=sum+tau(i)*(ThetaStep);
+end
+
+DJ=differential(J,ThetaS,(ThetaStep));
+
+r= sqrt( J.^2 + (DJ.^2 .* (R^2 - J.^2))./((DJ+sqrt(R^2-J.^2)).^2) );
+
+Cost= q0+R+100*(max(r)-min(r)) + 1e6*(~(isreal(r)))+ 5e6*(~(isreal(R)))+ 5e5*(~(isreal(k)))+ 2e5*(~(isreal(q0)))+ 8e5*any(Param<0);
+
+if(isinf( Cost))
+    1;
+end
+
+end
+

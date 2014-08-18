@@ -63,20 +63,20 @@ if(ShowFlag)
     
     figure('name','compare trajectory')
         subplot(3,1,1)
-        plot(time,Q1)
+        plot(time,Q1,'linewidth',2)
         title('Jonits Trajectory','FontWeight','bold')
         grid on
         xlabel('time (s)','fontsize',12)
         ylabel('q_1 (rad)','fontsize',14)
 
         subplot(3,1,2)
-        plot(time,Q2)
+        plot(time,Q2,'linewidth',2)
         grid on
         xlabel('time (s)','fontsize',12)
         ylabel('q_2 (rad)','fontsize',14)
 
         subplot(3,1,3)
-        plot(time,Q3)
+        plot(time,Q3,'linewidth',2)
         grid on
         xlabel('time (s)','fontsize',12)
         ylabel('q_3 (rad)','fontsize',14)
@@ -134,41 +134,77 @@ IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres;
 if(ShowFlag)
     
     figure('name','Torque vs Time')
-        plot(time,Torque)
+        plot(time,Torque,'linewidth',2)
         title('Torque','FontWeight','bold')
         legend('\tau_1','\tau_2','\tau_3')
-        xlabel('time (s)','fontsize',12)
+        xlabel('time (s)','fontsize',14)
         ylabel('\tau','fontsize',14)
         grid on
 
     figure('name','Torque vs Angle')
-        subplot(3,1,1)
-        plot(Q1,Torque(1,:))
+        subplot(3,1,1,'FontWeight','bold','FontSize',12)
+        plot(Q1,Torque(1,:),'linewidth',2)
         title('Torque Angle Profile','FontWeight','bold')
         hold on
-        plot(Q1(1),Torque(1,1),'linewidth',2,'linestyle','none','marker','*','markersize',6)
+        plot(Q1(1),Torque(1,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
+        plot(Q1(10),Torque(1,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         xlabel('q_1 (rad)','fontsize',12)
         ylabel('\tau_1','fontsize',14)
         hold off
         grid on
+        set(gca,'YMinorGrid','on')
 
-        subplot(3,1,2)
-        plot(Q2,Torque(2,:))
+
+        subplot(3,1,2,'FontWeight','bold','FontSize',12)
+        plot(Q2,Torque(2,:),'linewidth',2)
         hold on
-        plot(Q2(1),Torque(2,1),'linewidth',2,'linestyle','none','marker','*','markersize',6)
+        plot(Q2(1),Torque(2,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
+        plot(Q2(10),Torque(2,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         xlabel('q_2 (rad)','fontsize',12)
         ylabel('\tau_2','fontsize',14)
         hold off
         grid on
+        set(gca,'YMinorGrid','on')
 
-        subplot(3,1,3)
-        plot(Q3,Torque(3,:))
+
+        subplot(3,1,3,'FontWeight','bold','FontSize',12)
+        plot(Q3,Torque(3,:),'linewidth',2)
         hold on
-        plot(Q3(1),Torque(3,1),'linewidth',2,'linestyle','none','marker','*','markersize',6)
+        plot(Q3(1),Torque(3,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
+        plot(Q3(10),Torque(3,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         xlabel('q_3 (rad)','fontsize',12)
         ylabel('\tau_3','fontsize',14)
         hold off
         grid on
+        set(gca,'YMinorGrid','on')
+
+
+        
+    figure('name','Torque*\dot{q} vs time')
+        subplot(3,1,1,'FontWeight','bold','FontSize',12)
+        plot(time,Torque(1,:).*D1Q1,'linewidth',2)
+        title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
+        xlabel('time','fontsize',12)
+        ylabel('${\tau_1 * \dot q_1}$', 'interpreter','latex','fontsize',12)
+        grid on
+        set(gca,'YMinorGrid','on')
+
+
+        subplot(3,1,2,'FontWeight','bold','FontSize',12)
+        plot(time,Torque(2,:).*D1Q2,'linewidth',2)
+        xlabel('time','fontsize',12)
+        ylabel('${\tau_2 * \dot q_2}$', 'interpreter','latex','fontsize',12)
+        grid on
+        set(gca,'YMinorGrid','on')
+
+
+        subplot(3,1,3,'FontWeight','bold','FontSize',12)
+        plot(time,Torque(3,:).*D1Q3,'linewidth',2)
+        xlabel('time','fontsize',12)
+        ylabel('${\tau_3 * \dot q_3}$', 'interpreter','latex','fontsize',12)
+        grid on
+        set(gca,'YMinorGrid','on')
+
 
 end
 
