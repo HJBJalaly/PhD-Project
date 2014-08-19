@@ -31,3 +31,37 @@
         ylabel('\tau_3','fontsize',14)
         hold off
         grid on
+
+        
+%%
+
+
+
+ThetaStep=deg2rad( 1);
+ThetaS=deg2rad(0:1:270);
+
+
+tau=0.21*(ThetaS-0.75*pi).*(ThetaS-0.25*pi).*(ThetaS-1.25*pi)+2.5;
+
+k0=1000;
+R0=1;
+q00=1;  % for cubic
+
+nvars=3;
+lb=[0 0 0];
+PopInitRange=[10 5e-2 5e-2; 1000 1 1];
+PopulationSize=200;
+InitialPopulation=[k0*rand(PopulationSize,1) R0*rand(PopulationSize,1) q00*rand(PopulationSize,1)];
+CostParam=@(Param)FindBestParamCost(Param,ThetaStep,ThetaS,tau);
+
+[ParamA,fval,exitflag,output,population,score] = ...
+    Ga_FindParamOfNonLinearSpring(CostParam,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
+disp(output.message)
+
+k=ParamA(1);
+R=ParamA(2);
+q0=ParamA(3);
+
+NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0)
+
+

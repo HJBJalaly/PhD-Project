@@ -1,12 +1,12 @@
 function NonLinearSpring()
 clear
 home
-close all
+% close all
 
 
 %% Parameters and Torque Profile
 
-k=137;
+k=1*137;
 R=130e-3;
 
 ThetaStep=.05;
@@ -14,16 +14,17 @@ ThetaS=deg2rad(0:ThetaStep:270);
 
 
 k=150;
-R=175e-3;
-q0=300e-3;  % for sinuid
-tau=2*sin(ThetaS/3*4)+3;
+% R=175e-3;
+% q0=300e-3;  % for sinuid
+% tau=2*sin(ThetaS/3*4)+3;
 
 
 % q0=130e-3;  % for cubic
 % tau=0.21*(ThetaS-0.75*pi).*(ThetaS-0.25*pi).*(ThetaS-1.25*pi)+2.5;
 
-% q0=190e-3;  % for constant
-% tau=2*ones(size(ThetaS));
+k=2*170;
+q0=190e-3;  % for constant
+tau=4*ones(size(ThetaS));
   
 % q0=99e-3;  % for exp
 % tau=2*(1-exp(-ThetaS))+1;        
@@ -90,7 +91,7 @@ DeltaTau=max(Tauc)-min(Tauc);
 
 set(gcf,'Units','points', 'Position', [100, 300,100+ Xp,100+ 2*Yp])
 
-for i=1:(1/ThetaStep):length(ThetaS)
+for i=1:10:length(ThetaS)
     subplot(2,2,[1,3])
     % fake point for ajdust size of polar
     polar(0, R*1.1*100)

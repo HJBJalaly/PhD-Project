@@ -62,16 +62,16 @@ A=1;
 Tres=0.005;
 time=0:Tres:2*f;
 
-% Circle motion
-Xef=A*cos(2*pi/f*time)+1.5;
-Yef=A*sin(2*pi/f*time)+1;
-DXef=-(2*pi/f)*A*sin(2*pi/f*time);
-DYef= (2*pi/f)*A*cos(2*pi/f*time);
-D2Xef=-(2*pi/f)^2*A*cos(2*pi/f*time);
-D2Yef=-(2*pi/f)^2*A*sin(2*pi/f*time);
-q1=deg2rad(0);
-q2=deg2rad(8.031);
-q3=deg2rad(51.317);
+% % Circle motion
+% Xef=A*cos(2*pi/f*time)+1.5;
+% Yef=A*sin(2*pi/f*time)+1;
+% DXef=-(2*pi/f)*A*sin(2*pi/f*time);
+% DYef= (2*pi/f)*A*cos(2*pi/f*time);
+% D2Xef=-(2*pi/f)^2*A*cos(2*pi/f*time);
+% D2Yef=-(2*pi/f)^2*A*sin(2*pi/f*time);
+% q1=deg2rad(0);
+% q2=deg2rad(8.031);
+% q3=deg2rad(51.317);
 
 % Line motion
 Xef=A*cos(2*pi/(1*f)*time);
@@ -267,35 +267,42 @@ toc
 
 %% Make Nonlinear Spring
 
-ThetaStep=deg2rad(.5);
-ThetaS=min(Q_Opt(1, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(1, 1: floor(size(Q_Opt,2)/2)));
-ThetaShift=ThetaS-min(Q_Opt(1, 1: floor(size(Q_Opt,2)/2)));
+Joint=2;
 
-tau=interp1(Q_Opt(1, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(1, 1: floor(size(Q_Opt,2)/2)),ThetaS);
+ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
+ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+ThetaShiftScale = ThetaShift* floor(deg2rad(270) /  max(ThetaShift));
+tau=interp1(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),ThetaS);
 TauMin=abs(min(tau));
-tauShift=tau+TauMin*1.25;
+tauShift=tau+TauMin*1.5;
+tauShiftScale=(tauShift)/10;
+
+
+
 
 %%
 
-k0=10000;
-R0=2;
-q00=2;
+k0=1000;
+R0=1;
+q00=1;
 
 nvars=3;
-lb=[0 0 0];
-PopInitRange=[100 1e-2 1e-2; 10000 10 10];
-PopulationSize=200;
+lb=[50 5e-2 5e-2];
+PopInitRange=[lb; k0 R0 q00];
+PopulationSize=1000;
 InitialPopulation=[k0*rand(PopulationSize,1) R0*rand(PopulationSize,1) q00*rand(PopulationSize,1)];
-CostParam=@(Param)FindBestParamCost(Param,ThetaStep,ThetaShift,tauShift);
+CostParam=@(Param)FindBestParamCost(Param,ThetaStep,ThetaShiftScale,tauShiftScale);
 
 [ParamA,fval,exitflag,output,population,score] = ...
     Ga_FindParamOfNonLinearSpring(CostParam,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
 disp(output.message)
 
+%%
 k=ParamA(1);
 R=ParamA(2);
 q0=ParamA(3);
 
-NonLinearSpring(ThetaStep,ThetaShift,tauShift,k,R,q0)
+NonLinearSpring(ThetaStep,ThetaShiftScale,tauShiftScale,k,R,q0,.5)
 
 

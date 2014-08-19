@@ -9,8 +9,8 @@ options = gaoptimset(options,'PopInitRange', PopInitRange_Data);
 options = gaoptimset(options,'PopulationSize', PopulationSize_Data);
 options = gaoptimset(options,'InitialPopulation', InitialPopulation_Data);
 options = gaoptimset(options,'CreationFcn', @gacreationlinearfeasible);
-options = gaoptimset(options,'MutationFcn', {  @mutationuniform 0.49774 });
+options = gaoptimset(options,'MutationFcn', {  @mutationuniform 0.25 });
 options = gaoptimset(options,'Display', 'off');
 options = gaoptimset(options,'PlotFcns', {  @gaplotbestf @gaplotbestindiv });
 [x,fval,exitflag,output,population,score] = ...
-ga(CostParam,nvars,[],[],[],[],lb,[],[],[],options);
+            ga(CostParam,nvars,[],[],[],[],lb,[],[],[],options);

@@ -1,4 +1,4 @@
-function NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0)
+function NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0,Tpause)
 % Param
 % ThetaStep : in rad
 % Theta: in rad with constant diff
@@ -96,7 +96,8 @@ DeltaTau=max(Tauc)-min(Tauc);
 
 set(gcf,'Units','points', 'Position', [100, 300,100+ Xp,100+ 2*Yp])
 
-for i=1:1:length(ThetaS)
+for i=1:10:length(ThetaS)
+    pause(Tpause)
     subplot(2,2,[1,3])
     % fake point for ajdust size of polar
     polar(0, R*1.1*100)
