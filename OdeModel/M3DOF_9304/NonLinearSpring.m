@@ -90,53 +90,55 @@ Yp=150;
 set(gcf,'Units','points', 'Position', [100, 10,100+ Xp,100+ Yp])
 
 
-figure
-DeltaF=max(F)-min(F);
-DeltaTau=max(Tauc)-min(Tauc);
+if(Tpause>-1)
+    figure
+    DeltaF=max(F)-min(F);
+    DeltaTau=max(Tauc)-min(Tauc);
 
-set(gcf,'Units','points', 'Position', [100, 300,100+ Xp,100+ 2*Yp])
+    set(gcf,'Units','points', 'Position', [100, 300,100+ Xp,100+ 2*Yp])
 
-for i=1:10:length(ThetaS)
-    pause(Tpause)
-    subplot(2,2,[1,3])
-    % fake point for ajdust size of polar
-    polar(0, R*1.1*100)
-    hold on
-    % spool
-    h2=polar([ThetaR ThetaR(1)]+(ThetaS(i)),[r r(1)]*100);
-    set(h2,'linewidth',3,'color','b')
-    hold all
-    % raduis line
-    h3=polar([ThetaR(i)+ThetaS(i) 0],[ r(i) 0]*100,'-.');
-    set(h3,'linewidth',2,'color','g')
-    % tangent line
-    h1=polar([ThetaR(1:i)+ThetaS(i) 0],[r(1:i) R]*100);
-    set(h1,'linewidth',2,'color','r')
-    % path of tagency point
-    h4=polar(ThetaS(1:i)+ThetaR(1:i),r(1:i)*100,'--') ;
-    set(h4,'linewidth',1,'color','m')
-    hold off
-    
-    subplot(2,2,2)
-    plot(rad2deg(ThetaS(1:i)),F(1:i),'-.')
-    hold on
-    plot(rad2deg(ThetaS(i)),F(i),'Marker','*','LineStyle','none')
-    xlabel('\theta_s (deg)')
-    ylabel('F_s_p_r_i_n_g (N)')
-    hold off
-    axis([0 rad2deg(ThetaS(end)) min(F)-0.1*DeltaF max(F)+0.1*DeltaF])
-    grid on
+    for i=1:10:length(ThetaS)
+        pause(Tpause)
+        subplot(2,2,[1,3])
+        % fake point for ajdust size of polar
+        polar(0, R*1.1*100)
+        hold on
+        % spool
+        h2=polar([ThetaR ThetaR(1)]+(ThetaS(i)),[r r(1)]*100);
+        set(h2,'linewidth',3,'color','b')
+        hold all
+        % raduis line
+        h3=polar([ThetaR(i)+ThetaS(i) 0],[ r(i) 0]*100,'-.');
+        set(h3,'linewidth',2,'color','g')
+        % tangent line
+        h1=polar([ThetaR(1:i)+ThetaS(i) 0],[r(1:i) R]*100);
+        set(h1,'linewidth',2,'color','r')
+        % path of tagency point
+        h4=polar(ThetaS(1:i)+ThetaR(1:i),r(1:i)*100,'--') ;
+        set(h4,'linewidth',1,'color','m')
+        hold off
 
-    
-    subplot(2,2,4)
-    plot(rad2deg(ThetaS(1:i)),Tauc(1:i),'LineStyle','-.','linewidth',2)
-    hold on
-    plot(rad2deg(ThetaS(i)),Tauc(i),'Marker','*','LineStyle','none')
-    plot(rad2deg(ThetaS),tau,'g')
-    xlabel('\theta_s (deg)')
-    ylabel('\tau (N.m)')
-    hold off
-    axis([0 rad2deg(ThetaS(end)) min(Tauc)-0.1*DeltaTau max(Tauc)+0.1*DeltaTau])
-    grid on
-    drawnow
+        subplot(2,2,2)
+        plot(rad2deg(ThetaS(1:i)),F(1:i),'-.')
+        hold on
+        plot(rad2deg(ThetaS(i)),F(i),'Marker','*','LineStyle','none')
+        xlabel('\theta_s (deg)')
+        ylabel('F_s_p_r_i_n_g (N)')
+        hold off
+        axis([0 rad2deg(ThetaS(end)) min(F)-0.1*DeltaF max(F)+0.1*DeltaF])
+        grid on
+
+
+        subplot(2,2,4)
+        plot(rad2deg(ThetaS(1:i)),Tauc(1:i),'LineStyle','-.','linewidth',2)
+        hold on
+        plot(rad2deg(ThetaS(i)),Tauc(i),'Marker','*','LineStyle','none')
+        plot(rad2deg(ThetaS),tau,'g')
+        xlabel('\theta_s (deg)')
+        ylabel('\tau (N.m)')
+        hold off
+        axis([0 rad2deg(ThetaS(end)) min(Tauc)-0.1*DeltaTau max(Tauc)+0.1*DeltaTau])
+        grid on
+        drawnow
+    end
 end

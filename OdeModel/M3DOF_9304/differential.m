@@ -20,6 +20,7 @@ for i=1+2:size(q,2)-2
     
 end
 Dq(:,end-1)=(q(:,end)-q(:,end-2))/(diff(Time([end-2,end])));      % 3 point differentiation
+Dq(:,end-1)=(q(:,end-1)-q(:,end-2))/(diff(Time([end-2,end-1])));      % 3 point differentiation
 
 
 for i=1:size(q,1)

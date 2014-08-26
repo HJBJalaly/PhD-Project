@@ -34,7 +34,7 @@ RPos=L*[cos(q1)+cos(q1+q2)+cos(q1+q2+q3);
         sin(q1)+sin(q1+q2)+sin(q1+q2+q3)];
 
     
-Cneq=sum(sum((RPos-Pos).^2))*Tres-.0003;
+Cneq=sum(sum((RPos-Pos).^2))*Tres-.0002;
 Ceq=[RPos(:,1)-Pos(:,1);
 %      RPos(:,end)-Pos(:,end);
      q1(1)-q1(end);

@@ -59,6 +59,7 @@ home
 
 f=1;
 A=1;
+phi=pi;
 Tres=0.005;
 time=0:Tres:2*f;
 
@@ -74,11 +75,11 @@ time=0:Tres:2*f;
 % q3=deg2rad(51.317);
 
 % Line motion
-Xef=A*cos(2*pi/(1*f)*time);
+Xef=A*cos(2*pi/(1*f)*time+phi);
 Yef=2.5*ones(size(time));
-DXef=-(2*pi/f)*A*sin(2*pi/(1*f)*time);
+DXef=-(2*pi/f)*A*sin(2*pi/(1*f)*time+phi);
 DYef= 2*zeros(size(time));
-D2Xef=-(2*pi/f)^2*A*cos(2*pi/(1*f)*time);
+D2Xef=-(2*pi/f)^2*A*cos(2*pi/(1*f)*time+phi);
 D2Yef= 2*zeros(size(time));
 q1=deg2rad( 41.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
 q2=deg2rad(18.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
@@ -238,7 +239,7 @@ TolCon_Data=1e-8;
 Algorithm='sqp';
 % Algorithm='interior-point';
 
-Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Select=[ 0  0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
 Weight=[ 1 1 1]';
 
 CostFun=@(Coef)TorqueCost(Coef,Time,Degree,Tres,Select,Weight,g,mL1,mL2,mL3,LL1,LL2,LL3);
@@ -265,21 +266,50 @@ disp(Result_Opt)
 toc
 
 
-%% Make Nonlinear Spring
+%% Scale and shift profile
 
-Joint=2;
+Joint=1;
 
 ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
 ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
 ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
 ThetaShiftScale = ThetaShift* floor(deg2rad(270) /  max(ThetaShift));
+ThetaStepscale  = ThetaStep* floor(deg2rad(270) /  max(ThetaShift));
+
 tau=interp1(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),ThetaS);
 TauMin=abs(min(tau));
-tauShift=tau+TauMin*1.5;
+tauShift=tau+TauMin*2;
 tauShiftScale=(tauShift)/10;
 
+Range=[5:25]; % range of fiting
+SubRange1=[1:Range(1)]; % for first :  range of outlayer
+% SubRange1=[Range(end)+1:length(tau)]; % for end :  range of outlayer
 
+SubRange2=[Range(1)+1:length(tau)]; % for first : unchanged value
+% SubRange2=[1:Range(end)]; % for end : unchanged value
 
+Curve=fit( ThetaShiftScale(Range)', tauShiftScale(Range)', 'poly2');
+NewTau=feval(Curve,ThetaShiftScale(SubRange1))';
+tauShiftScaleVar= [NewTau tauShiftScale(SubRange2)]; % for first
+% tauShiftScaleVar= [tauShiftScale(SubRange2) NewTau];  % for end
+
+figure
+plot(ThetaShiftScale,tauShiftScale)
+hold all
+plot(ThetaShiftScale,tauShiftScaleVar)
+hold off
+
+tauVar1=(tauShiftScaleVar*10)-TauMin*2;
+figure
+plot(Q_Opt(Joint,:),Torque_Opt(Joint,:),'linewidth',2)
+hold on
+plot(ThetaS,tauVar,'linewidth',2,'color','r')
+grid on
+legend('Optimal Active Profile','Feasible Passive Profile')
+hold off
+xlabel('q (rad)')
+ylabel('\tau')
+title(['Joint ',num2str(Joint)])
 
 %%
 
@@ -290,19 +320,20 @@ q00=1;
 nvars=3;
 lb=[50 5e-2 5e-2];
 PopInitRange=[lb; k0 R0 q00];
-PopulationSize=1000;
+PopulationSize=500;
 InitialPopulation=[k0*rand(PopulationSize,1) R0*rand(PopulationSize,1) q00*rand(PopulationSize,1)];
-CostParam=@(Param)FindBestParamCost(Param,ThetaStep,ThetaShiftScale,tauShiftScale);
+CostParam=@(Param)FindBestParamCost(Param,ThetaStepscale,ThetaShiftScale,tauShiftScaleVar);
 
 [ParamA,fval,exitflag,output,population,score] = ...
     Ga_FindParamOfNonLinearSpring(CostParam,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
 disp(output.message)
 
 %%
+% ParamA=[kg+600,Rg-.85,qg0+.25]
 k=ParamA(1);
 R=ParamA(2);
 q0=ParamA(3);
 
-NonLinearSpring(ThetaStep,ThetaShiftScale,tauShiftScale,k,R,q0,.5)
+NonLinearSpring(ThetaStepscale,ThetaShiftScale,tauShiftScaleVar,k,R,q0,.1)
 
-
+%% 

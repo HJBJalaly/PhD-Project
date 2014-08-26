@@ -65,3 +65,45 @@ q0=ParamA(3);
 NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0)
 
 
+%%
+home
+x=2:0.001:3;
+y1=sqrt(-x+5)+4;
+y2=y1;%sqrt(-x+5)+4;
+X=[x, x(end:-1:1)];
+Y=[y1,y2(end:-1:1)];
+DY=diff(Y)./diff(X);
+
+Joint=2;
+
+ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
+ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+ThetaShiftScale = ThetaShift* floor(deg2rad(270) /  max(ThetaShift));
+ThetaStepscale  = ThetaStep* floor(deg2rad(270) /  max(ThetaShift));
+
+tau=interp1(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),ThetaS);
+TauMin=abs(min(tau));
+tauShift=tau+TauMin;
+tauShiftScale=(tauShift)/max(tauShift);
+
+
+
+DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+
+
+subplot(3,1,1)
+plot(Q_Opt(Joint,:),Torque_Opt(Joint,:),'linewidth',2)
+grid on
+xlabel('$q$','interpreter','latex','fontsize',14)
+ylabel('$\tau$','interpreter','latex','fontsize',28)
+subplot(3,1,2)
+plot(ThetaShiftScale,tauShiftScale,'linewidth',2)
+grid on
+xlabel('$scaled\; and\; shifted\; q$','interpreter','latex','fontsize',14)
+ylabel('$scaled\; and\; shifted\;\tau$','interpreter','latex','fontsize',28)
+subplot(3,1,3)
+plot(ThetaShiftScale(1:end-1),DTa,'linewidth',2)
+grid on
+xlabel('$q$','interpreter','latex','fontsize',14)
+ylabel('${\frac{{\partial\tau}}{\partial{q}}}$ ','interpreter','latex','fontsize',38)
