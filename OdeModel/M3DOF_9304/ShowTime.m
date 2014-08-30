@@ -1,4 +1,5 @@
-function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,RMS]=ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag)
+function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,CostSlope,RMS]=...
+                ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
@@ -44,7 +45,7 @@ RMS=sqrt(sum(sum((RPos-Pos).^2))*Tres/(time(end)-time(1)));
 
 if(ShowFlag)
     
-    figure('name','WorkSapce')
+    figure('name',['WorkSapce : ',Name])
         plot(Pos(1,:),Pos(2,:),'linewidth',2,'linestyle','-','color','b')
         title('WorkSpace','FontWeight','bold')
         hold on
@@ -54,14 +55,13 @@ if(ShowFlag)
         ylabel('y (m)','fontsize',12)
 
     
-    
     Y=[Q1',Q2',Q3'];
     AnimBot3DOF(time,Y,L);
 end
 %% Trajectory
 if(ShowFlag)
     
-    figure('name','compare trajectory')
+    figure('name',['compare trajectory : ',Name])
         subplot(3,1,1)
         plot(time,Q1,'linewidth',2)
         title('Jonits Trajectory','FontWeight','bold')
@@ -131,9 +131,31 @@ IntU2=sum(sum(Torque.^2,2).*Weight)*Tres;
 IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres;
 IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres;
 
+
+CostSlope=0;
+Qq=[Q1;Q2;Q3];
+for Joint=1:3
+    Till=floor(size(Qq,2)/1);
+    
+    ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
+    ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
+    
+    tau=Torque(Joint, 1:Till)-min(Torque(Joint, 1:Till));
+    tauShiftScale= tau /max(tau);
+    
+    DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+%     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
+%     CostSlope=CostSlope+max(DTa.^2)*Weight(Joint);
+    CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint);
+            
+
+end
+
+
+
 if(ShowFlag)
     
-    figure('name','Torque vs Time')
+    figure('name',['Torque vs Time : ',Name])
         plot(time,Torque,'linewidth',2)
         title('Torque','FontWeight','bold')
         legend('\tau_1','\tau_2','\tau_3')
@@ -141,7 +163,7 @@ if(ShowFlag)
         ylabel('\tau','fontsize',14)
         grid on
 
-    figure('name','Torque vs Angle')
+    figure('name',['Torque vs Angle : ',Name])
         subplot(3,1,1,'FontWeight','bold','FontSize',12)
         plot(Q1,Torque(1,:),'linewidth',2)
         title('Torque Angle Profile','FontWeight','bold')
@@ -180,7 +202,7 @@ if(ShowFlag)
 
 
         
-    figure('name','Torque*\dot{q} vs time')
+    figure('name',['Torque*\dot{q} vs time : ',Name])
         subplot(3,1,1,'FontWeight','bold','FontSize',12)
         plot(time,Torque(1,:).*D1Q1,'linewidth',2)
         title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
