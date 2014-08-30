@@ -8,20 +8,6 @@ clear
 close all
 home
 
-% envirment
-g=9.81*0;
-
-% parameters of robot
-m=1;
-L=1;
-
-KKmat=[50;500;100];
-
-% Desired motion
-f=1;
-A=1;
-Tres=0.01;
-time=0:Tres:4/f;
 
 %% create a sample motion with 2 active and 1 passive joints
 
@@ -54,11 +40,30 @@ time=0:Tres:4/f;
 % plot(T,q2)
 % subplot(3,1,3)
 % plot(T,q3)
-%% create a sample passive motion with 3 passive joints
 
+%% create a sample passive motion with 3 passive joints
+home
+clear
+close all
+
+% envirment
+g=9.81*0;
+
+% parameters of robot
+m=1;
+L=1;
+
+KKmat=[50;500;100];
+
+% Desired motion
+f=1;
+A=1;
+Tres=0.005;
+time=0:Tres:6/f;
+q0=deg2rad([0 -0 01]);
 
 OdeOpt= odeset('RelTol',1e-5,'AbsTol',1e-5*ones(1,7));
-InitState=deg2rad([45 0  0 ,0 0 0, 0]);
+InitState=[q0 ,0 0 0, 0];
 
 [T,Y] = ode15s(@(t,Y)SirDynSample(t,Y,g,L,m,KKmat), time,InitState,OdeOpt);
 
@@ -67,14 +72,17 @@ EnergyABS=Y(end,end)
 q1p=Y(:,1)';
 q2p=Y(:,2)';
 q3p=Y(:,3)';
-Xef=L*[cos(q1p)+cos(q1p+q2p)+cos(q1p+q2p+q3p)];
-Yef=L*[sin(q1p)+sin(q1p+q2p)+sin(q1p+q2p+q3p)];
+Xef=L*(cos(q1p)+cos(q1p+q2p)+cos(q1p+q2p+q3p));
+Yef=L*(sin(q1p)+sin(q1p+q2p)+sin(q1p+q2p+q3p));
 
 
 Pos=[Xef;Yef];
 
 
 % Joint Trajectories
+q1=q0(1);
+q2=q0(2);
+q3=q0(3);
 
 for i=1:length(time)-1
     lPos=L*[cos(q1(i))+cos(q1(i)+q2(i))+cos(q1(i)+q2(i)+q3(i));
@@ -120,12 +128,21 @@ figure('name','Joint Trajectories')
     subplot(3,1,1)
     plot(time(Middle:end),q1(Middle:end))
     grid on
+    hold all
+    plot(T(Middle:end),q1p(Middle:end))
+    hold off
     subplot(3,1,2)
     plot(time(Middle:end),q2(Middle:end))
     grid on
+    hold all
+    plot(T(Middle:end),q2p(Middle:end))
+    hold off
     subplot(3,1,3)
     plot(time(Middle:end),q3(Middle:end))
     grid on
+    hold all
+    plot(T(Middle:end),q3p(Middle:end))
+    hold off
     
 figure('name','Torque vs Time')
     plot(time(Middle:end),Torque(:,Middle:end))
@@ -151,31 +168,19 @@ Y=[q1(1:end)',q2(1:end)',q3(1:end)'];
 AnimBot3DOF(time(1:end),Y,L);
 
 
-AnimBot3DOF(T,Y,L);
-
-
-figure
-    plot(RPos(1,:),RPos(2,:),'linewidth',2,'linestyle','--','color','r')
-    xlabel('x')
-    ylabel('y')
-    hold off
-    axis equal
-    legend('Desired','Static path planing','dynamic path planing')
-
-figure
-    subplot(3,1,1)
-    plot(T,q1)
-    subplot(3,1,2)
-    plot(T,q2)
-    subplot(3,1,3)
-    plot(T,q3)
-
 
 %% create a active sample motion with 3 active joints as initial input of optimization
 home
+clear
+clc
+% envirment
+g=9.81*0;
+
+% parameters of robot
+m=1;
+L=1;
 
 % EF motion
-
 f=1;
 A=1;
 phi=0;
@@ -288,9 +293,9 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %%  Generate Initial value for Optimization
 
-Degree=6;
+Degree=8;
 
-Time=time(Middle:end)-1;
+Time=time(Middle:end)-time(end)/2;
 Q1=q1(Middle:end);
 Q2=q2(Middle:end);
 Q3=q3(Middle:end);
@@ -352,35 +357,37 @@ LL3=L;
 tic
 MaxFunEvals_Data=1000*Degree;
 MaxIter_Data=1000;
-TolFun_Data=1e-8;
-TolX_Data=1e-8;
-TolCon_Data=1e-8;
+TolFun_Data=1e-12;
+TolX_Data=1e-12;
+TolCon_Data=1e-12;
 Algorithm='sqp';
 % Algorithm='interior-point';
 
 Select=[ 0  0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
-Weight=[ 5 3 1]';
-Landa=0.99999999;
+Weight=[ 5 1 1]';
+Landa=.995;
+Rand=0.000000001;
+
 
 CostFun=@(Coef)CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
 % NonCons=@(Coef)NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
 NonCons=@(Coef)CF1_NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-    Op_FmisCon_SQP(CostFun,NonCons,Initial,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
+    Op_FmisCon_SQP(CostFun,NonCons,Initial+Rand*(randn(1,3*(Degree+1))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
 [Torque_X0,Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,CostSlope_X0,RMSError_X0]=...
-                        ShowTime(Initial,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,0,'Initial');
+                        ShowTime(Initial,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,0,0,'Initial');
 [Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,CostSlope_Opt,RMSError_Opt]=...
-                        ShowTime(x,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,1,'Optimized');
+                        ShowTime(x,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,1,1,'Optimized');
 
 TotalCost_X0  = Landa*Select*[ IntU2_X0  IntAbsUdq_X0  IntUdq_X0]'  + (1-Landa)*CostSlope_X0;
 TotalCost_Opt = Landa*Select*[ IntU2_Opt IntAbsUdq_Opt IntUdq_Opt]' + (1-Landa)*CostSlope_Opt;
                     
 DegreeStr=sprintf('\n   Degree:     %d\n   Cost Type:  %s\n',Degree,SeletcStr{find(Select)});
 Title=sprintf('% 24s % 12s % 12s % 12s % 12s % 12s','IntU2','IntAbsUdq','IntUdq','C.S.','Total','RMS Err');
-Result_X0 =sprintf('Initial:    % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
+Result_X0 =sprintf('Initial:      % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
 Result_Opt=sprintf('Optimized:  % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e\n',IntU2_Opt,IntAbsUdq_Opt,IntUdq_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt);
 display(output.message)
 disp(DegreeStr)

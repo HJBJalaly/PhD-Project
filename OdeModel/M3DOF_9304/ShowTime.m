@@ -1,5 +1,5 @@
 function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,CostSlope,RMS]=...
-                ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag,Name)
+                ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag,period,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
@@ -64,6 +64,11 @@ if(ShowFlag)
     figure('name',['compare trajectory : ',Name])
         subplot(3,1,1)
         plot(time,Q1,'linewidth',2)
+        if(period)
+            hold on
+            plot(time+time(end),Q1,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
         title('Jonits Trajectory','FontWeight','bold')
         grid on
         xlabel('time (s)','fontsize',12)
@@ -71,12 +76,22 @@ if(ShowFlag)
 
         subplot(3,1,2)
         plot(time,Q2,'linewidth',2)
+        if(period)
+            hold on
+            plot(time+time(end),Q2,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
         grid on
         xlabel('time (s)','fontsize',12)
         ylabel('q_2 (rad)','fontsize',14)
 
         subplot(3,1,3)
         plot(time,Q3,'linewidth',2)
+        if(period)
+            hold all
+            plot(time+time(end),Q3,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
         grid on
         xlabel('time (s)','fontsize',12)
         ylabel('q_3 (rad)','fontsize',14)
@@ -157,13 +172,59 @@ if(ShowFlag)
     
     figure('name',['Torque vs Time : ',Name])
         plot(time,Torque,'linewidth',2)
+        if(period)
+            hold on
+            plot(time+time(end),Torque,'linewidth',2,'linestyle','-.')
+            hold off
+        end
+        
         title('Torque','FontWeight','bold')
         legend('\tau_1','\tau_2','\tau_3')
         xlabel('time (s)','fontsize',14)
         ylabel('\tau','fontsize',14)
         grid on
+        
+    figure('name',['Torque*\dot{q} vs time : ',Name])
+        subplot(3,1,1,'FontWeight','bold','FontSize',12)
+        plot(time,Torque(1,:).*D1Q1,'linewidth',2)
+        if(period)
+            hold on
+            plot(time+time(end),Torque(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
+        title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
+        xlabel('time','fontsize',12)
+        ylabel('${\tau_1 * \dot q_1}$', 'interpreter','latex','fontsize',12)
+        grid on
+        set(gca,'YMinorGrid','on')
 
-    figure('name',['Torque vs Angle : ',Name])
+
+        subplot(3,1,2,'FontWeight','bold','FontSize',12)
+        plot(time,Torque(2,:).*D1Q2,'linewidth',2)
+        if(period)
+            hold on
+            plot(time+time(end),Torque(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
+        xlabel('time','fontsize',12)
+        ylabel('${\tau_2 * \dot q_2}$', 'interpreter','latex','fontsize',12)
+        grid on
+        set(gca,'YMinorGrid','on')
+
+
+        subplot(3,1,3,'FontWeight','bold','FontSize',12)
+        plot(time,Torque(3,:).*D1Q3,'linewidth',2)
+        if(period)
+            hold on
+            plot(time+time(end),Torque(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
+        xlabel('time','fontsize',12)
+        ylabel('${\tau_3 * \dot q_3}$', 'interpreter','latex','fontsize',12)
+        grid on
+        set(gca,'YMinorGrid','on')
+
+   figure('name',['Torque vs Angle : ',Name])
         subplot(3,1,1,'FontWeight','bold','FontSize',12)
         plot(Q1,Torque(1,:),'linewidth',2)
         title('Torque Angle Profile','FontWeight','bold')
@@ -199,34 +260,6 @@ if(ShowFlag)
         hold off
         grid on
         set(gca,'YMinorGrid','on')
-
-
-        
-    figure('name',['Torque*\dot{q} vs time : ',Name])
-        subplot(3,1,1,'FontWeight','bold','FontSize',12)
-        plot(time,Torque(1,:).*D1Q1,'linewidth',2)
-        title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
-        xlabel('time','fontsize',12)
-        ylabel('${\tau_1 * \dot q_1}$', 'interpreter','latex','fontsize',12)
-        grid on
-        set(gca,'YMinorGrid','on')
-
-
-        subplot(3,1,2,'FontWeight','bold','FontSize',12)
-        plot(time,Torque(2,:).*D1Q2,'linewidth',2)
-        xlabel('time','fontsize',12)
-        ylabel('${\tau_2 * \dot q_2}$', 'interpreter','latex','fontsize',12)
-        grid on
-        set(gca,'YMinorGrid','on')
-
-
-        subplot(3,1,3,'FontWeight','bold','FontSize',12)
-        plot(time,Torque(3,:).*D1Q3,'linewidth',2)
-        xlabel('time','fontsize',12)
-        ylabel('${\tau_3 * \dot q_3}$', 'interpreter','latex','fontsize',12)
-        grid on
-        set(gca,'YMinorGrid','on')
-
 
 end
 
