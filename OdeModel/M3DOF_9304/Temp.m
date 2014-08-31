@@ -74,34 +74,42 @@ X=[x, x(end:-1:1)];
 Y=[y1,y2(end:-1:1)];
 DY=diff(Y)./diff(X);
 
-Joint=2;
-
-ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
-ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
-ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+Joint=1;
+ThetaShift=Q_Opt(Joint, :)-min(Q_Opt(Joint, :));
 ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
-ThetaStepscale  = ThetaStep* (deg2rad(270) /  max(ThetaShift));
 
-tau=interp1(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),ThetaS);
-TauMin=abs(min(tau));
-tauShift=tau+TauMin;
-tauShiftScale=(tauShift)/max(tauShift);
+tau=Torque_Opt(Joint, :)-min(Torque_Opt(Joint, :));
+tauShiftScale= tau /max(tau);
 
-Range=5:25; % range of fiting
-SubRange1=[1:Range(1)]; % for first :  range of outlayer
-% SubRange1=[Range(end)+1:length(tau)]; % for end :  range of outlayer
-
-SubRange2=[Range(1)+1:length(tau)]; % for first : unchanged value
-% SubRange2=[1:Range(end)]; % for end : unchanged value
-
-Curve=fit( ThetaShiftScale(Range)', tauShiftScale(Range)', 'poly2');
-NewTau=feval(Curve,ThetaShiftScale(SubRange1))';
-tauShiftScaleVar= [NewTau tauShiftScale(SubRange2)]; % for first
+DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+	
 
 
-DTa=differential(tauShiftScale,ThetaShiftScale,(ThetaStepscale));
-
-DTaVar=differential(tauShiftScaleVar,ThetaShiftScale,(ThetaStepscale));
+% ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
+% ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+% ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+% ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
+% ThetaStepscale  = ThetaStep* (deg2rad(270) /  max(ThetaShift));
+% 
+% tau=interp1(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),Torque_Opt(Joint, 1: floor(size(Q_Opt,2)/2)),ThetaS);
+% TauMin=abs(min(tau));
+% tauShift=tau+TauMin;
+% tauShiftScale=(tauShift)/max(tauShift);
+% 
+% Range=5:25; % range of fiting
+% SubRange1=[1:Range(1)]; % for first :  range of outlayer
+% % SubRange1=[Range(end)+1:length(tau)]; % for end :  range of outlayer
+% 
+% SubRange2=[Range(1)+1:length(tau)]; % for first : unchanged value
+% % SubRange2=[1:Range(end)]; % for end : unchanged value
+% 
+% Curve=fit( ThetaShiftScale(Range)', tauShiftScale(Range)', 'poly2');
+% NewTau=feval(Curve,ThetaShiftScale(SubRange1))';
+% tauShiftScaleVar= [NewTau tauShiftScale(SubRange2)]; % for first
+% 
+% DTa=differential(tauShiftScale,ThetaShiftScale,(ThetaStepscale));
+% 
+% DTaVar=differential(tauShiftScaleVar,ThetaShiftScale,(ThetaStepscale));
     
 Sum(1)=tauShiftScale(1);
 % SumVar(1)=tauShiftScaleVar(1);
@@ -110,30 +118,31 @@ for i=2:length(DTa)
 %     SumVar(i)=SumVar(i-1)+(DTaVar(i))*ThetaStepscale*0;
 end
 
+figure
+    subplot(3,1,1)
+    plot(Q_Opt(Joint,:),Torque_Opt(Joint,:),'linewidth',2)
+    grid on
+    xlabel('$q$','interpreter','latex','fontsize',14)
+    ylabel('$\tau$','interpreter','latex','fontsize',28)
+    
+    subplot(3,1,2)
+    plot(ThetaShiftScale,tauShiftScale,'linewidth',2)
+    grid on
+    xlabel('$scaled\; and\; shifted\; q$','interpreter','latex','fontsize',14)
+    ylabel('$scaled\; and\; shifted\;\tau$','interpreter','latex','fontsize',14)
+    % ylim([-.5 1.5])
+%     hold all
+%     plot(ThetaShiftScale,Sum,'linewidth',2)
+%     % plot(ThetaShiftScale,SumVar,'linewidth',2)
+%     hold off
 
-subplot(3,1,1)
-plot(Q_Opt(Joint,:),Torque_Opt(Joint,:),'linewidth',2)
-grid on
-xlabel('$q$','interpreter','latex','fontsize',14)
-ylabel('$\tau$','interpreter','latex','fontsize',28)
-subplot(3,1,2)
-plot(ThetaShiftScale,tauShiftScale,'linewidth',2)
-grid on
-xlabel('$scaled\; and\; shifted\; q$','interpreter','latex','fontsize',14)
-ylabel('$scaled\; and\; shifted\;\tau$','interpreter','latex','fontsize',14)
-% ylim([-.5 1.5])
-hold all
-plot(ThetaShiftScale,Sum,'linewidth',2)
-% plot(ThetaShiftScale,SumVar,'linewidth',2)
-hold off
-
-subplot(3,1,3)
-plot(ThetaShiftScale,DTa,'linewidth',2)
-grid on
-hold on
-plot([0 5],[1 1],'color','r','linestyle','-.','linewidth',2)
-plot([0 5],[-1 -1],'color','r','linestyle','-.','linewidth',2)
-xlabel('$q$','interpreter','latex','fontsize',14)
-ylabel('${\frac{{\partial\tau}}{\partial{q}}}$ ','interpreter','latex','fontsize',38)
-hold off
-ylim([-4,1.5])
+    subplot(3,1,3)
+    plot(ThetaShiftScale(1:end-1),DTa,'linewidth',2)
+    grid on
+    hold on
+    plot([0 5],[1 1],'color','r','linestyle','-.','linewidth',2)
+    plot([0 5],[-1 -1],'color','r','linestyle','-.','linewidth',2)
+    xlabel('$q$','interpreter','latex','fontsize',14)
+    ylabel('${\frac{{\partial\tau}}{\partial{q}}}$ ','interpreter','latex','fontsize',38)
+    hold off
+%     ylim([-4,1.5])

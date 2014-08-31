@@ -367,13 +367,15 @@ Algorithm='sqp';
 
 Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
 Weight=[ 1 0 0]';
-Landa=.99;
+Landa=1;
 Rand=1e-7;
 
 
-CostFun=@(Coef)CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
-% NonCons=@(Coef)NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
-NonCons=@(Coef)CF1_NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
+% CostFun=@(Coef)CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
+% NonCons=@(Coef)CF1_NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
+
+CostFun=@(Coef)CF1_TorqueCostWithoutSlope(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
+NonCons=@(Coef)CF1_NonLinearConstraintWithSplopeLimit(Coef,Time,Tres,Degree,Weight,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
     Op_FmisCon_SQP(CostFun,NonCons,Initial+Rand*(randn(1,3*(Degree+1))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);

@@ -1,4 +1,4 @@
-function Cost=CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3)
+function Cost=CF1_TorqueCostWithoutSlope(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3)
 
 % Torque=zeros(3,length(Time));
 
@@ -52,10 +52,6 @@ for i=1:length(Time)
 
 
      Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
-%      Torque = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
-%      IntU2=IntU2+Torque(:,i)'*Torque(:,i);
-%      IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3]);    % This is Wrong
-%      IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3]);             % So Does This
     
 end
 
@@ -64,30 +60,5 @@ IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight);
 IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight);
 
 CostArea=sum(Select.*[ IntU2 IntAbsUdq IntUdq])*Tres;
-
-
-CostSlope=0;
-Qq=[Q1;Q2;Q3];
-for Joint=1:3
-    
-%     Joint=1;
-    Till=floor(size(Qq,2)/1);
-    
-    ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
-    ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
-    
-    tau=Torque(Joint, 1:Till)-min(Torque(Joint, 1:Till));
-    tauShiftScale= tau /max(tau);
-    
-    DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
-%     sum((DTa.^4).*abs(diff(ThetaShiftScale)))
-%     sum((DTa.^2).*abs(diff(ThetaShiftScale)))
-%     sum((DTa.^2).*(diff(ThetaShiftScale).^2))
-%     
-%     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
-	CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint);
-    
-
-end
-
+CostSlope=CostArea;
 Cost=((Landa)*CostArea+(1-Landa)*CostSlope)/sum(Weight);
