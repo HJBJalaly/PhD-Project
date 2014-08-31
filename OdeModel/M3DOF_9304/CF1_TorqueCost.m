@@ -100,4 +100,4 @@ for Joint=1:3
 
 end
 
-Cost=(Landa)*CostArea+(1-Landa)*CostSlope;
+Cost=((Landa)*CostArea+(1-Landa)*CostSlope)/sum(Weight);

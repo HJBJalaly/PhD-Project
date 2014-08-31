@@ -61,7 +61,7 @@ end
 %% Trajectory
 if(ShowFlag)
     
-    figure('name',['compare trajectory : ',Name])
+    figure('name',['Joints trajectory : ',Name])
         subplot(3,1,1)
         plot(time,Q1,'linewidth',2)
         if(period)
@@ -142,9 +142,9 @@ for i=1:length(time)
 %     IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
 end
 
-IntU2=sum(sum(Torque.^2,2).*Weight)*Tres;
-IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres;
-IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres;
+IntU2=sum(sum(Torque.^2,2).*Weight)*Tres/sum(Weight);
+IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
+IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres/sum(Weight);
 
 
 CostSlope=0;
@@ -161,7 +161,7 @@ for Joint=1:3
     DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
 %     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
 %     CostSlope=CostSlope+max(DTa.^2)*Weight(Joint);
-    CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint);
+    CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint)/sum(Weight);
             
 
 end

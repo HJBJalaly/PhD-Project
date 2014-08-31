@@ -293,7 +293,7 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %%  Generate Initial value for Optimization
 
-Degree=8;
+Degree=6;
 
 Time=time(Middle:end)-time(end)/2;
 Q1=q1(Middle:end);
@@ -354,6 +354,8 @@ LL3=L;
 
 %% Optimization
 
+% Initial=x;
+
 tic
 MaxFunEvals_Data=1000*Degree;
 MaxIter_Data=1000;
@@ -363,10 +365,10 @@ TolCon_Data=1e-12;
 Algorithm='sqp';
 % Algorithm='interior-point';
 
-Select=[ 0  0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
-Weight=[ 5 1 1]';
-Landa=.995;
-Rand=0.000000001;
+Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Weight=[ 1 0 0]';
+Landa=.99;
+Rand=1e-7;
 
 
 CostFun=@(Coef)CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
@@ -384,11 +386,12 @@ NonCons=@(Coef)CF1_NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
 
 TotalCost_X0  = Landa*Select*[ IntU2_X0  IntAbsUdq_X0  IntUdq_X0]'  + (1-Landa)*CostSlope_X0;
 TotalCost_Opt = Landa*Select*[ IntU2_Opt IntAbsUdq_Opt IntUdq_Opt]' + (1-Landa)*CostSlope_Opt;
-                    
+             
+
 DegreeStr=sprintf('\n   Degree:     %d\n   Cost Type:  %s\n',Degree,SeletcStr{find(Select)});
-Title=sprintf('% 24s % 12s % 12s % 12s % 12s % 12s','IntU2','IntAbsUdq','IntUdq','C.S.','Total','RMS Err');
-Result_X0 =sprintf('Initial:      % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
-Result_Opt=sprintf('Optimized:  % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e % 12.2e\n',IntU2_Opt,IntAbsUdq_Opt,IntUdq_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt);
+Title=sprintf('%24s %12s % 12s % 12s % 12s % 12s','IntU2','IntAbsUdq','IntUdq','C.S.','Total','RMS Err');
+Result_X0 =sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e % 12.2e'  ,'Initial:',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
+Result_Opt=sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e % 12.2e\n','Optimized:',IntU2_Opt,IntAbsUdq_Opt,IntUdq_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt);
 display(output.message)
 disp(DegreeStr)
 disp(Title)
@@ -425,8 +428,22 @@ tauShiftScale=(tauShift)/max(tauShift);
 % % tauShiftScaleVar= [tauShiftScale(SubRange2) NewTau];  % for end
 
 figure
-plot(ThetaShiftScale,tauShiftScale)
-hold all
+    subplot(2,1,1)
+    plot(ThetaShiftScale,tauShiftScale)
+    xlabel('ThetaShiftScale')
+    ylabel('tauShiftScale')
+    grid on
+    
+    subplot(2,1,2)
+    plot(ThetaShiftScale(1:end-1),diff(tauShiftScale)./diff(ThetaShiftScale))
+    xlabel('ThetaShiftScale')
+    ylabel('DtauShiftScale')
+    grid on
+    hold on
+    plot(ThetaShiftScale,+ones(size(ThetaShiftScale)),'r-.')
+    plot(ThetaShiftScale,-ones(size(ThetaShiftScale)),'r-.')
+    hold off
+% hold all
 % plot(ThetaShiftScale,tauShiftScaleVar)
 hold off
 
@@ -466,6 +483,6 @@ R=ParamA(2);
 q0=ParamA(3);
 
 NonLinearSpring(ThetaStepscale,ThetaShiftScale,tauShiftScale,k,R,q0,.1)
-NonLinearSpring(ThetaStep,ThetaS,tauShift,k,R,q0,.1)
+% NonLinearSpring(ThetaStep,ThetaS,tauShift,k,R,q0,.1)
 
 %% 
