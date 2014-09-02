@@ -1,9 +1,6 @@
-function [Cneq,Ceq]=CF1_NonLinearConstraintWithSplopeLimit( Coef,time,Tres,Degree,Weight,Xef,Yef,g,mL1,mL2,mL3,LL1,LL2,LL3)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+function Cost=CF1_TorqueCostWithSlopeLimit(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3)
 
-
-Pos=[Xef;Yef];
+% Torque=zeros(3,length(Time));
 
 CoefP_q1=Coef(1:(Degree+1));
 CoefP_q2=Coef((Degree+1)+1:2*(Degree+1));
@@ -17,19 +14,19 @@ D2CoefP_q1=D1CoefP_q1(1:end-1).*(Degree-1:-1:1);
 D2CoefP_q2=D1CoefP_q2(1:end-1).*(Degree-1:-1:1);
 D2CoefP_q3=D1CoefP_q3(1:end-1).*(Degree-1:-1:1);
 
-Q1=polyval(CoefP_q1,time);
-Q2=polyval(CoefP_q2,time);
-Q3=polyval(CoefP_q3,time);
+Q1=polyval(CoefP_q1,Time);
+Q2=polyval(CoefP_q2,Time);
+Q3=polyval(CoefP_q3,Time);
 
-D1Q1=polyval(D1CoefP_q1,time);
-D1Q2=polyval(D1CoefP_q2,time);
-D1Q3=polyval(D1CoefP_q3,time);
+D1Q1=polyval(D1CoefP_q1,Time);
+D1Q2=polyval(D1CoefP_q2,Time);
+D1Q3=polyval(D1CoefP_q3,Time);
 
-D2Q1=polyval(D2CoefP_q1,time);
-D2Q2=polyval(D2CoefP_q2,time);
-D2Q3=polyval(D2CoefP_q3,time);
+D2Q1=polyval(D2CoefP_q1,Time);
+D2Q2=polyval(D2CoefP_q2,Time);
+D2Q3=polyval(D2CoefP_q3,Time);
 
-for i=1:length(time)
+for i=1:length(Time)
     q1=Q1(i);
     q2=Q2(i);
     q3=Q3(i);
@@ -54,14 +51,26 @@ for i=1:length(time)
          g*mL3*LL3*cos(q1+q2+q3)/2];
 
 
-     Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;    
+     Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
+%      Torque = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
+%      IntU2=IntU2+Torque(:,i)'*Torque(:,i);
+%      IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3]);    % This is Wrong
+%      IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3]);             % So Does This
+    
 end
+
+IntU2=sum(sum(Torque.^2,2).*Weight);
+IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight);
+IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight);
+
+CostArea=sum(Select.*[ IntU2 IntAbsUdq IntUdq])*Tres;
 
 
 CostSlope=0;
 Qq=[Q1;Q2;Q3];
 for Joint=1:3
     
+%     Joint=1;
     Till=floor(size(Qq,2)/1);
     
     ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
@@ -71,30 +80,14 @@ for Joint=1:3
     tauShiftScale= tau /max(tau);
     
     DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
-	CostSlope(Joint)=max(abs(DTa))*Weight(Joint);
+%     sum((DTa.^4).*abs(diff(ThetaShiftScale)))
+%     sum((DTa.^2).*abs(diff(ThetaShiftScale)))
+%     sum((DTa.^2).*(diff(ThetaShiftScale).^2))
+%     
+%     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
+	CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint);
     
+
 end
 
-
-RPos=[LL1*cos(Q1)+LL2*cos(Q1+Q2)+LL3*cos(Q1+Q2+Q3);
-      LL1*sin(Q1)+LL2*sin(Q1+Q2)+LL3*sin(Q1+Q2+Q3)];
-
-
-Error=sum(sum((RPos-Pos).^2));  
-Cneq =  [Error*Tres     - 0.0001;
-         sum(abs(diff(sign(D1Q2))))-7];
-%         max(CostSlope)/max(Error,1) - 0.5];
-    
-Ceq  =  [RPos(:,1)-Pos(:,1);
-%          RPos(:,end)-Pos(:,end);
-         Q1(1)-Q1(end);
-         Q2(1)-Q2(end);
-         Q3(1)-Q3(end);
-         D1Q1(1)-D1Q1(end);
-         D1Q2(1)-D1Q2(end);
-         D1Q3(1)-D1Q3(end);
-         D2Q1(1)-D2Q1(end);
-         D2Q2(1)-D2Q2(end);
-         D2Q3(1)-D2Q3(end)];    
-end
-
+Cost=((Landa)*CostArea+(1-Landa)*CostSlope)/sum(Weight);
