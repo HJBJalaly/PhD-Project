@@ -351,11 +351,12 @@ LL2=L;
 LL3=L;
 
 %% Optimization
-
-%  Initial=x;
+InitialT=Initial;
+xT=x;
+% Initial=x;
 
 tic
-MaxFunEvals_Data=5000*Degree;
+MaxFunEvals_Data=3000*Degree;
 MaxIter_Data=1000;
 TolFun_Data=1e-12;
 TolX_Data=1e-12;
@@ -365,7 +366,7 @@ Algorithm='sqp';
 
 Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
 Weight=[ 10 1 0.01]';
-Landa=.8;
+Landa=.7;
 Rand=1e-3;
 
 
@@ -402,7 +403,7 @@ toc
 
 %% Scale and shift profile
 
-Joint=2;
+Joint=1;
 
 ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
 ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));

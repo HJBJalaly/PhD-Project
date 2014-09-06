@@ -1,4 +1,4 @@
-function CF1_Main()
+function CF2_Main()
 
 
 
@@ -175,15 +175,13 @@ clear
 clc
 % envirment
 g=9.81*0;
-
 % parameters of robot
 m=1;
 L=1;
-
 % EF motion
 f=1;
 A=1;
-phi=0;
+phi=pi;
 Tres=0.005;
 time=0:Tres:2*f;
 
@@ -353,11 +351,12 @@ LL2=L;
 LL3=L;
 
 %% Optimization
-
+InitialT=Initial;
+xT=x;
 % Initial=x;
 
 tic
-MaxFunEvals_Data=1000*Degree;
+MaxFunEvals_Data=3000*Degree;
 MaxIter_Data=1000;
 TolFun_Data=1e-12;
 TolX_Data=1e-12;
@@ -366,16 +365,16 @@ Algorithm='sqp';
 % Algorithm='interior-point';
 
 Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
-Weight=[ 1 0 0]';
-Landa=1;
-Rand=1e-7;
+Weight=[ 10 1 0.01]';
+Landa=.7;
+Rand=1e-3;
 
 
-% CostFun=@(Coef)CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
-% NonCons=@(Coef)CF1_NonLinearConstraint(Coef,Time,Tres,Degree,L,XEF,YEF);
+CostFun=@(Coef)CF1_TorqueCostWithSlopeLimit(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
+NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,XEF,YEF);
 
-CostFun=@(Coef)CF1_TorqueCostWithoutSlope(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
-NonCons=@(Coef)CF1_NonLinearConstraintWithSplopeLimit(Coef,Time,Tres,Degree,Weight,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
+% CostFun=@(Coef)CF1_TorqueCostWithoutSlope(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
+% NonCons=@(Coef)CF1_NonLinearConstraintWithSplopeLimit(Coef,Time,Tres,Degree,Weight,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
     Op_FmisCon_SQP(CostFun,NonCons,Initial+Rand*(randn(1,3*(Degree+1))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
@@ -404,7 +403,7 @@ toc
 
 %% Scale and shift profile
 
-Joint=2;
+Joint=1;
 
 ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
 ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
