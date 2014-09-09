@@ -291,7 +291,10 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %%  Generate Initial value for Optimization
 
-Degree=6;
+% extract passive torque from active
+
+DegreeQ=6;
+DegreeTor=3;
 
 Time=time(Middle:end)-time(end)/2;
 Q1=q1(Middle:end);
@@ -299,10 +302,14 @@ Q2=q2(Middle:end);
 Q3=q3(Middle:end);
 XEF=Xef(Middle:end);
 YEF=Yef(Middle:end);
+TorqueQ1=Torque(1,Middle:end);
+TorqueQ2=Torque(2,Middle:end);
+TorqueQ3=Torque(3,Middle:end);
 
-[CoefP_q1,CoefB_q1]= BezierCoeffinet(Time,Q1,Degree);
-[CoefP_q2,CoefB_q2]= BezierCoeffinet(Time,Q2,Degree);
-[CoefP_q3,CoefB_q3]= BezierCoeffinet(Time,Q3,Degree);
+
+[CoefP_q1,CoefB_q1]= BezierCoeffinet(Time,Q1,DegreeQ);
+[CoefP_q2,CoefB_q2]= BezierCoeffinet(Time,Q2,DegreeQ);
+[CoefP_q3,CoefB_q3]= BezierCoeffinet(Time,Q3,DegreeQ);
 
 Q1val=polyval(CoefP_q1,Time);
 Q2val=polyval(CoefP_q2,Time);
@@ -310,39 +317,81 @@ Q3val=polyval(CoefP_q3,Time);
 
 RPos=L*[cos(Q1val)+cos(Q1val+Q2val)+cos(Q1val+Q2val+Q3val);
         sin(Q1val)+sin(Q1val+Q2val)+sin(Q1val+Q2val+Q3val)];
+Iu=
+
+[CoefP_TorP1,CoefB_TorP1]= BezierCoeffinet(Q1,TorqueQ1,DegreeTor);
+[CoefP_TorP2,CoefB_TorP2]= BezierCoeffinet(Q2,TorqueQ2,DegreeTor);
+[CoefP_TorP3,CoefB_TorP3]= BezierCoeffinet(Q3,TorqueQ3,DegreeTor);
+
+TorqueQ1val=polyval(CoefP_TorP1,Q1);
+TorqueQ2val=polyval(CoefP_TorP2,Q2);
+TorqueQ3val=polyval(CoefP_TorP3,Q3);
+
 
 % show    
 close all
 figure('name','compare trajectory')
-subplot(3,1,1)
-plot(Time,Q1)
-hold all
-plot(Time,Q1val,'-.')
-hold off
-grid on
-subplot(3,1,2)
-plot(Time,Q2)
-hold all
-plot(Time,Q2val,'-.')
-hold off
-grid on
-subplot(3,1,3)
-plot(Time,Q3)
-hold all
-plot(Time,Q3val,'-.')
-hold off
-grid on
+    subplot(3,1,1)
+    plot(Time,Q1)
+    hold all
+    plot(Time,Q1val,'-.')
+    hold off
+    grid on
+    subplot(3,1,2)
+    plot(Time,Q2)
+    hold all
+    plot(Time,Q2val,'-.')
+    hold off
+    grid on
+    subplot(3,1,3)
+    plot(Time,Q3)
+    hold all
+    plot(Time,Q3val,'-.')
+    hold off
+    grid on
 
 figure('name','Path (3DoF)')
+    plot(Xef,Yef,'linewidth',2.5,'linestyle','-','color','g')
+    hold on 
+    plot(RPos(1,:),RPos(2,:),'linewidth',2,'linestyle','-.','color','b')
+    legend('Desired','Static Path Planing')
+    hold off
+    axis equal
 
-plot(Xef,Yef,'linewidth',2.5,'linestyle','-','color','g')
-hold on 
-plot(RPos(1,:),RPos(2,:),'linewidth',2,'linestyle','-.','color','b')
-legend('Desired','Static Path Planing')
-hold off
-axis equal
-
-Initial=[CoefP_q1 CoefP_q2 CoefP_q3];
+figure('name','Passive Torques')
+    subplot(3,1,1)
+    plot(Q1,TorqueQ1,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Q1,TorqueQ1val,'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_1')
+    ylabel('\tau_1')
+    legend('Desired Torque','PassiveTorque')
+    
+    subplot(3,1,2)
+    plot(Q2,TorqueQ2,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Q2,TorqueQ2val,'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_2')
+    ylabel('\tau_2')
+    legend('Desired Torque','PassiveTorque')
+    
+    subplot(3,1,3)
+    plot(Q3,TorqueQ3,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Q3,TorqueQ3val,'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_3')
+    ylabel('\tau_3')
+    legend('Desired Torque','PassiveTorque')
+    
+    
+Degree=[DegreeQ DegreeTor];
+Initial=[CoefP_q1 CoefP_q2 CoefP_q3 CoefP_TorP1 CoefP_TorP2 CoefP_TorP3];
 mL1=m;
 mL2=m;
 mL3=m;
@@ -351,12 +400,12 @@ LL2=L;
 LL3=L;
 
 %% Optimization
-InitialT=Initial;
-xT=x;
+% InitialT=Initial;
+% xT=x;
 % Initial=x;
 
 tic
-MaxFunEvals_Data=3000*Degree;
+MaxFunEvals_Data=3000*(DegreeQ+DegreeTor);
 MaxIter_Data=1000;
 TolFun_Data=1e-12;
 TolX_Data=1e-12;
@@ -364,20 +413,19 @@ TolCon_Data=1e-12;
 Algorithm='sqp';
 % Algorithm='interior-point';
 
-Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
-Weight=[ 10 1 0.01]';
-Landa=.7;
-Rand=1e-3;
+Select=[ 1 0]; SeletcStr={'IntU2','IntAbsUdq'};
+Weight=[ 1 1 1]';
+Landa=1;
+Rand=1e-30;
 
-
-CostFun=@(Coef)CF1_TorqueCostWithSlopeLimit(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
-NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,XEF,YEF);
+CostFun=@(Coef)CF2_TorqueCostWithSlopeLimit(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
+NonConstr=@(Coef)CF2_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,XEF,YEF);
 
 % CostFun=@(Coef)CF1_TorqueCostWithoutSlope(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
 % NonCons=@(Coef)CF1_NonLinearConstraintWithSplopeLimit(Coef,Time,Tres,Degree,Weight,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-    Op_FmisCon_SQP(CostFun,NonCons,Initial+Rand*(randn(1,3*(Degree+1))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
+    Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(sum(Degree)+length(Degree)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
 [Torque_X0,Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,CostSlope_X0,RMSError_X0]=...
@@ -385,14 +433,14 @@ NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,
 [Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,CostSlope_Opt,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,1,1,'Optimized');
 
-TotalCost_X0  = Landa*Select*[ IntU2_X0  IntAbsUdq_X0  IntUdq_X0]'  + (1-Landa)*CostSlope_X0;
-TotalCost_Opt = Landa*Select*[ IntU2_Opt IntAbsUdq_Opt IntUdq_Opt]' + (1-Landa)*CostSlope_Opt;
+TotalCost_X0  = Landa*Select*[ IntU2_X0  IntAbsUdq_X0  ]'  + (1-Landa)*CostSlope_X0;
+TotalCost_Opt = Landa*Select*[ IntU2_Opt IntAbsUdq_Opt ]' + (1-Landa)*CostSlope_Opt;
              
 
 DegreeStr=sprintf('\n   Degree:     %d\n   Cost Type:  %s\n',Degree,SeletcStr{find(Select)});
-Title=sprintf('%24s %12s % 12s % 12s % 12s % 12s','IntU2','IntAbsUdq','IntUdq','C.S.','Total','RMS Err');
-Result_X0 =sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e % 12.2e'  ,'Initial:',IntU2_X0,IntAbsUdq_X0,IntUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
-Result_Opt=sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e % 12.2e\n','Optimized:',IntU2_Opt,IntAbsUdq_Opt,IntUdq_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt);
+Title=sprintf('%24s %12s % 12s % 12s % 12s','IntU2','IntAbsUdq','C.S.','Total','RMS Err');
+Result_X0 =sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e ','Initial:',IntU2_X0,IntAbsUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
+Result_Opt=sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e\n','Optimized:',IntU2_Opt,IntAbsUdq_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt);
 display(output.message)
 disp(DegreeStr)
 disp(Title)

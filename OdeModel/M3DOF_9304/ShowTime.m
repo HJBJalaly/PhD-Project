@@ -1,19 +1,20 @@
-function [Torque,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,CostSlope,RMS]=...
+function [TorqueDesire,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,CostSlope,RMS]=...
                 ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag,period,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
 
 %% Regerate Trjectory from Coef
-CoefP_q1=Coef(1:(Degree+1));
-CoefP_q2=Coef((Degree+1)+1:2*(Degree+1));
-CoefP_q3=Coef(2*(Degree+1)+1:3*(Degree+1));
-D1CoefP_q1=CoefP_q1(1:end-1).*(Degree:-1:1);
-D1CoefP_q2=CoefP_q2(1:end-1).*(Degree:-1:1);
-D1CoefP_q3=CoefP_q3(1:end-1).*(Degree:-1:1);
-D2CoefP_q1=D1CoefP_q1(1:end-1).*(Degree-1:-1:1);
-D2CoefP_q2=D1CoefP_q2(1:end-1).*(Degree-1:-1:1);
-D2CoefP_q3=D1CoefP_q3(1:end-1).*(Degree-1:-1:1);
+
+CoefP_q1=Coef(1:(Degree(1)+1));
+CoefP_q2=Coef((Degree(1)+1)+1:2*(Degree(1)+1));
+CoefP_q3=Coef(2*(Degree(1)+1)+1:3*(Degree(1)+1));
+D1CoefP_q1=CoefP_q1(1:end-1).*(Degree(1):-1:1);
+D1CoefP_q2=CoefP_q2(1:end-1).*(Degree(1):-1:1);
+D1CoefP_q3=CoefP_q3(1:end-1).*(Degree(1):-1:1);
+D2CoefP_q1=D1CoefP_q1(1:end-1).*(Degree(1)-1:-1:1);
+D2CoefP_q2=D1CoefP_q2(1:end-1).*(Degree(1)-1:-1:1);
+D2CoefP_q3=D1CoefP_q3(1:end-1).*(Degree(1)-1:-1:1);
 
 Q1=polyval(CoefP_q1,time);
 Q2=polyval(CoefP_q2,time);
@@ -25,6 +26,22 @@ D2Q1=polyval(D2CoefP_q1,time);
 D2Q2=polyval(D2CoefP_q2,time);
 D2Q3=polyval(D2CoefP_q3,time);
 
+%% Regenerate Paasive Torque form Coef
+
+if(length(Degree)==2)
+    DegreeTor=Degree(2);
+    DegreeQ=Degree(1);
+    DegreePassive=3*(DegreeQ+1);
+
+    CoefP_Tor1=Coef(DegreePassive+1:DegreePassive+(DegreeTor+1));
+    CoefP_Tor2=Coef(DegreePassive+(DegreeTor+1)+1:DegreePassive+2*(DegreeTor+1));
+    CoefP_Tor3=Coef(DegreePassive+2*(DegreeTor+1)+1:DegreePassive+3*(DegreeTor+1));
+    
+    TorPasQ1=polyval(CoefP_Tor1,Q1);
+    TorPasQ2=polyval(CoefP_Tor2,Q2);
+    TorPasQ3=polyval(CoefP_Tor3,Q3);
+end
+    
 
 %% EF
 
@@ -106,7 +123,7 @@ LL1=L;
 LL2=L;
 LL3=L;
 
-Torque=zeros(3,length(time));
+TorqueDesire=zeros(3,length(time));
 IntU2=0;
 IntAbsUdq=0;
 IntUdq=0;
@@ -136,15 +153,26 @@ for i=1:length(time)
          g*mL3*LL3*cos(q1+q2+q3)/2];
 
 
-    Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
+    TorqueDesire(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
 %     IntU2=IntU2+Torque(:,i)'*Torque(:,i)*Tres;
 %     IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
 %     IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
 end
 
-IntU2=sum(sum(Torque.^2,2).*Weight)*Tres/sum(Weight);
-IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
-IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres/sum(Weight);
+if (length(Degree)==1) % for CF1
+    IntU2=sum(sum(TorqueDesire.^2,2).*Weight)*Tres/sum(Weight);
+    IntAbsUdq=sum(sum(abs(TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
+    IntUdq=sum(((sum((TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres/sum(Weight);
+
+elseif(length(Degree)==2)   % for CF2
+    TorquePassive = [TorPasQ1;TorPasQ2;TorPasQ3];
+    TorqueActive  = TorqueDesire-TorquePassive;
+
+    IntU2=sum(sum(TorqueActive.^2,2).*Weight)*Tres/sum(Weight);
+    IntAbsUdq=sum(sum(abs(TorqueActive.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
+    IntUdq=[];
+    
+end
 
 
 CostSlope=0;
@@ -154,112 +182,162 @@ for Joint=1:3
     
     ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
     ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
-    
-    tau=Torque(Joint, 1:Till)-min(Torque(Joint, 1:Till));
-    tauShiftScale= tau /max(tau);
-    
-    DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
-%     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
-%     CostSlope=CostSlope+max(DTa.^2)*Weight(Joint);
-    CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint)/sum(Weight);
-            
+        
+    if(length(Degree)==1)
+        tau=TorqueDesire(Joint, 1:Till)-min(TorqueDesire(Joint, 1:Till));
+        tauShiftScale= tau /max(tau);
+        DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+        CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint)/sum(Weight);
+        
+    elseif(length(Degree)==2)
+        [ThetaMax,indMax]=max(Qq(Joint,:));
+        [ThetaMin,indMin]=min(Qq(Joint,:));
+        ThetaS= Qq(Joint,min(indMin,indMax):max(indMin,indMax));
+        ThetaShift=ThetaS-ThetaMin;
+        ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
+
+        tau= TorquePassive(Joint,min(indMin,indMax):max(indMin,indMax));
+        tauShiftScale= tau /max(tau);
+
+        DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+        CostSlope=CostSlope+sum((DTa.^2).*abs(diff(ThetaShiftScale)))*Weight(Joint)/sum(Weight);
+
+    end
 
 end
 
-
-
 if(ShowFlag)
     
-    figure('name',['Torque vs Time : ',Name])
-        plot(time,Torque,'linewidth',2)
+    figure('name',[' Desired Torque vs Time : ',Name])
+        plot(time,TorqueDesire,'linewidth',2)
         if(period)
             hold on
-            plot(time+time(end),Torque,'linewidth',2,'linestyle','-.')
+            plot(time+time(end),TorqueDesire,'linewidth',2,'linestyle','-.')
             hold off
         end
-        
-        title('Torque','FontWeight','bold')
-        legend('\tau_1','\tau_2','\tau_3')
+        title(' Desired Torque','FontWeight','bold')
+        legend('\tau_d_1','\tau_d_2','\tau_d_3')
         xlabel('time (s)','fontsize',14)
         ylabel('\tau','fontsize',14)
         grid on
         
-    figure('name',['Torque*\dot{q} vs time : ',Name])
+    figure('name',[' Desired Torque*\dot{q} vs time : ',Name])
         subplot(3,1,1,'FontWeight','bold','FontSize',12)
-        plot(time,Torque(1,:).*D1Q1,'linewidth',2)
+        plot(time,TorqueDesire(1,:).*D1Q1,'linewidth',2)
         if(period)
             hold on
-            plot(time+time(end),Torque(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
+            plot(time+time(end),TorqueDesire(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
         xlabel('time','fontsize',12)
-        ylabel('${\tau_1 * \dot q_1}$', 'interpreter','latex','fontsize',12)
+        ylabel('${\tau_d_1 * \dot q_1}$', 'interpreter','latex','fontsize',12)
         grid on
         set(gca,'YMinorGrid','on')
 
 
         subplot(3,1,2,'FontWeight','bold','FontSize',12)
-        plot(time,Torque(2,:).*D1Q2,'linewidth',2)
+        plot(time,TorqueDesire(2,:).*D1Q2,'linewidth',2)
         if(period)
             hold on
-            plot(time+time(end),Torque(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
+            plot(time+time(end),TorqueDesire(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         xlabel('time','fontsize',12)
-        ylabel('${\tau_2 * \dot q_2}$', 'interpreter','latex','fontsize',12)
+        ylabel('${\tau_d_2 * \dot q_2}$', 'interpreter','latex','fontsize',12)
         grid on
         set(gca,'YMinorGrid','on')
 
 
         subplot(3,1,3,'FontWeight','bold','FontSize',12)
-        plot(time,Torque(3,:).*D1Q3,'linewidth',2)
+        plot(time,TorqueDesire(3,:).*D1Q3,'linewidth',2)
         if(period)
             hold on
-            plot(time+time(end),Torque(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
+            plot(time+time(end),TorqueDesire(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         xlabel('time','fontsize',12)
-        ylabel('${\tau_3 * \dot q_3}$', 'interpreter','latex','fontsize',12)
+        ylabel('${\tau_d_3 * \dot q_3}$', 'interpreter','latex','fontsize',12)
         grid on
         set(gca,'YMinorGrid','on')
 
    figure('name',['Torque vs Angle : ',Name])
-        subplot(3,1,1,'FontWeight','bold','FontSize',12)
-        plot(Q1,Torque(1,:),'linewidth',2)
-        title('Torque Angle Profile','FontWeight','bold')
-        hold on
-        plot(Q1(1),Torque(1,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
-        plot(Q1(10),Torque(1,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
+        subplot(3,length(Degree),0*(length(Degree)-1)+1,'FontWeight','bold','FontSize',12)
+        plot(Q1,TorqueDesire(1,:),'linewidth',2)
+        title('Desired/Passive Torque Angle Profile','FontWeight','bold')
         xlabel('q_1 (rad)','fontsize',12)
         ylabel('\tau_1','fontsize',14)
         hold off
         grid on
         set(gca,'YMinorGrid','on')
-
-
-        subplot(3,1,2,'FontWeight','bold','FontSize',12)
-        plot(Q2,Torque(2,:),'linewidth',2)
+        if(length(Degree)==2)
+            hold on
+            plot(Q1,TorPasQ1,'linewidth',2,'color','g','linestyle','-.')
+            hold off
+            legend('Desired Torque','Passive Torque')
+            subplot(3,2,2)
+            plot(Q1,TorqueActive(1,:),'linewidth',2,'color','r')
+            title('Actuator Torque')
+            xlabel('q_1 (rad)','fontsize',12)
+            ylabel('\tau_a_1','fontsize',14)
+            grid on
+            set(gca,'YMinorGrid','on')
+            subplot(3,2,1)
+        end
         hold on
-        plot(Q2(1),Torque(2,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
-        plot(Q2(10),Torque(2,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
+        plot(Q1(1),TorqueDesire(1,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
+        plot(Q1(10),TorqueDesire(1,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
+        hold off
+        
+        subplot(3,length(Degree),1*(length(Degree)-1)+2,'FontWeight','bold','FontSize',12)
+        plot(Q2,TorqueDesire(2,:),'linewidth',2)
+        grid on
+        set(gca,'YMinorGrid','on')
+        if(length(Degree)==2)
+            hold on
+            plot(Q2,TorPasQ2,'linewidth',2,'color','g','linestyle','-.')
+            hold off
+            legend('Desired Torque','Passive Torque')
+            subplot(3,2,4)
+            plot(Q2,TorqueActive(2,:),'linewidth',2,'color','r')
+            title('Actuator Torque')
+            xlabel('q_2 (rad)','fontsize',12)
+            ylabel('\tau_a_2','fontsize',14)
+            grid on
+            set(gca,'YMinorGrid','on')
+            subplot(3,2,3)
+        end
+        hold on
+        plot(Q2(1),TorqueDesire(2,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
+        plot(Q2(10),TorqueDesire(2,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         xlabel('q_2 (rad)','fontsize',12)
         ylabel('\tau_2','fontsize',14)
         hold off
+        
+        subplot(3,length(Degree),2*(length(Degree)-1)+3,'FontWeight','bold','FontSize',12)
+        plot(Q3,TorqueDesire(3,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
-
-
-        subplot(3,1,3,'FontWeight','bold','FontSize',12)
-        plot(Q3,Torque(3,:),'linewidth',2)
+        if(length(Degree)==2)
+            hold on
+            plot(Q3,TorPasQ3,'linewidth',2,'color','g','linestyle','-.')
+            hold off
+            legend('Desired Torque','Passive Torque')
+            subplot(3,2,6)
+            plot(Q3,TorqueActive(3,:),'linewidth',2,'color','r')
+            title('Actuator Torque')
+            xlabel('q_3 (rad)','fontsize',12)
+            ylabel('\tau_a_3','fontsize',14)
+            grid on
+            set(gca,'YMinorGrid','on')
+            subplot(3,2,5)
+        end
         hold on
-        plot(Q3(1),Torque(3,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
-        plot(Q3(10),Torque(3,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
+        plot(Q3(1),TorqueDesire(3,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
+        plot(Q3(10),TorqueDesire(3,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         xlabel('q_3 (rad)','fontsize',12)
         ylabel('\tau_3','fontsize',14)
         hold off
-        grid on
-        set(gca,'YMinorGrid','on')
 
 end
 
@@ -268,4 +346,3 @@ Q=[Q1;Q2;Q3];
 D1Q=[D1Q1;D1Q2;D1Q3];
 D2Q=[D2Q1;D2Q2;D2Q3];
 end
-

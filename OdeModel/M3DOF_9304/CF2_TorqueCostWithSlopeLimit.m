@@ -1,18 +1,26 @@
-function Cost=CF1_TorqueCost(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3)
+function Cost=CF2_TorqueCostWithSlopeLimit(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3)
 
 % Torque=zeros(3,length(Time));
+DegreeQ=Degree(1);
+DegreeTor=Degree(2);
+DegreePassive=3*(DegreeQ+1);
 
-CoefP_q1=Coef(1:(Degree+1));
-CoefP_q2=Coef((Degree+1)+1:2*(Degree+1));
-CoefP_q3=Coef(2*(Degree+1)+1:3*(Degree+1));
+CoefP_q1=Coef(1:(DegreeQ+1));
+CoefP_q2=Coef((DegreeQ+1)+1:2*(DegreeQ+1));
+CoefP_q3=Coef(2*(DegreeQ+1)+1:3*(DegreeQ+1));
 
-D1CoefP_q1=CoefP_q1(1:end-1).*(Degree:-1:1);
-D1CoefP_q2=CoefP_q2(1:end-1).*(Degree:-1:1);
-D1CoefP_q3=CoefP_q3(1:end-1).*(Degree:-1:1);
+CoefP_Tor1=Coef(DegreePassive+1:DegreePassive+(DegreeTor+1));
+CoefP_Tor2=Coef(DegreePassive+(DegreeTor+1)+1:DegreePassive+2*(DegreeTor+1));
+CoefP_Tor3=Coef(DegreePassive+2*(DegreeTor+1)+1:DegreePassive+3*(DegreeTor+1));
 
-D2CoefP_q1=D1CoefP_q1(1:end-1).*(Degree-1:-1:1);
-D2CoefP_q2=D1CoefP_q2(1:end-1).*(Degree-1:-1:1);
-D2CoefP_q3=D1CoefP_q3(1:end-1).*(Degree-1:-1:1);
+
+D1CoefP_q1=CoefP_q1(1:end-1).*(DegreeQ:-1:1);
+D1CoefP_q2=CoefP_q2(1:end-1).*(DegreeQ:-1:1);
+D1CoefP_q3=CoefP_q3(1:end-1).*(DegreeQ:-1:1);
+
+D2CoefP_q1=D1CoefP_q1(1:end-1).*(DegreeQ-1:-1:1);
+D2CoefP_q2=D1CoefP_q2(1:end-1).*(DegreeQ-1:-1:1);
+D2CoefP_q3=D1CoefP_q3(1:end-1).*(DegreeQ-1:-1:1);
 
 Q1=polyval(CoefP_q1,Time);
 Q2=polyval(CoefP_q2,Time);
@@ -25,6 +33,11 @@ D1Q3=polyval(D1CoefP_q3,Time);
 D2Q1=polyval(D2CoefP_q1,Time);
 D2Q2=polyval(D2CoefP_q2,Time);
 D2Q3=polyval(D2CoefP_q3,Time);
+
+TorPasQ1=polyval(CoefP_Tor1,Q1);
+TorPasQ2=polyval(CoefP_Tor2,Q2);
+TorPasQ3=polyval(CoefP_Tor3,Q3);
+
 
 for i=1:length(Time)
     q1=Q1(i);
@@ -51,7 +64,7 @@ for i=1:length(Time)
          g*mL3*LL3*cos(q1+q2+q3)/2];
 
 
-     Torque(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
+     TorqueDesire(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
 %      Torque = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
 %      IntU2=IntU2+Torque(:,i)'*Torque(:,i);
 %      IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3]);    % This is Wrong
@@ -59,35 +72,32 @@ for i=1:length(Time)
     
 end
 
-IntU2=sum(sum(Torque.^2,2).*Weight);
-IntAbsUdq=sum(sum(abs(Torque.*[D1Q1;D1Q2;D1Q3]),2).*Weight);
-IntUdq=sum(((sum((Torque.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight);
+TorquePassive = [TorPasQ1;TorPasQ2;TorPasQ3];
+TorqueActive  = TorqueDesire-TorquePassive;
 
-CostArea=sum(Select.*[ IntU2 IntAbsUdq IntUdq])*Tres;
+IntU2=sum(sum(TorqueActive.^2,2).*Weight);
+IntAbsUdq=sum(sum(abs(TorqueActive.*[D1Q1;D1Q2;D1Q3]),2).*Weight);
+
+CostTorque=sum(Select.*[ IntU2 IntAbsUdq])*Tres/sum(Weight);
 
 
 CostSlope=0;
 Qq=[Q1;Q2;Q3];
 for Joint=1:3
     
-%     Joint=1;
-    Till=floor(size(Qq,2)/1);
-    
-    ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
+%     Till=floor(size(Qq,2)/1);
+    [ThetaMax,indMax]=max(Qq(Joint,:));
+    [ThetaMin,indMin]=min(Qq(Joint,:));
+    ThetaS= Qq(Joint,min(indMin,indMax):max(indMin,indMax));
+    ThetaShift=ThetaS-ThetaMin;
     ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
-    
-    tau=Torque(Joint, 1:Till)-min(Torque(Joint, 1:Till));
+
+    tau= TorquePassive(Joint,min(indMin,indMax):max(indMin,indMax));
     tauShiftScale= tau /max(tau);
     
     DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
-%     sum((DTa.^4).*abs(diff(ThetaShiftScale)))
-%     sum((DTa.^2).*abs(diff(ThetaShiftScale)))
-%     sum((DTa.^2).*(diff(ThetaShiftScale).^2))
-%     
-%     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
-	CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint);
-    
+    CostSlope=CostSlope+sum((DTa.^2).*abs(diff(ThetaShiftScale)))*Weight(Joint)/sum(Weight);
 
 end
 
-Cost=((Landa)*CostArea+(1-Landa)*CostSlope)/sum(Weight);
+Cost=((Landa)*CostTorque+(1-Landa)*CostSlope)/sum(Weight);

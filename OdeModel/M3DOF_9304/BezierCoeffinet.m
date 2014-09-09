@@ -15,4 +15,3 @@ TspanNor=(Tspan-min(Tspan))/(max(Tspan)-min(Tspan));
 CoefB=double(struct2array(solve(Bezier-CoefPB)));
 
 end
-
