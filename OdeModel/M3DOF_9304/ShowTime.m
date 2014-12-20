@@ -1,47 +1,46 @@
-function [TorqueDesire,Q,D1Q,D2Q,IntU2,IntUdq,IntAbsUdq,CostSlope,RMS]=...
-                ShowTime(Coef,time,Tres,Degree,Weight,Xef,Yef,m,L,g,ShowFlag,period,Name)
+function [TorqueDesire,Q,D1Q,D2Q,BetaOptimal,IntU2,IntUdq,IntAbsUdq,CostSlope,RMS]=...
+                ShowTime(Alpha,Time,Tres,Degree,Weight,Landa,QQ,B,Xef,Yef,m,L,g,MinSinValue,ShowFlag,Period,Mode,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
 
+% ShowFlag =  Show   or  DntShow
+% Period   =  1cycle or  2Cycle
+% Mode     =  CostA  or  CastB
 %% Regerate Trjectory from Coef
 
-CoefP_q1=Coef(1:(Degree(1)+1));
-CoefP_q2=Coef((Degree(1)+1)+1:2*(Degree(1)+1));
-CoefP_q3=Coef(2*(Degree(1)+1)+1:3*(Degree(1)+1));
-D1CoefP_q1=CoefP_q1(1:end-1).*(Degree(1):-1:1);
-D1CoefP_q2=CoefP_q2(1:end-1).*(Degree(1):-1:1);
-D1CoefP_q3=CoefP_q3(1:end-1).*(Degree(1):-1:1);
-D2CoefP_q1=D1CoefP_q1(1:end-1).*(Degree(1)-1:-1:1);
-D2CoefP_q2=D1CoefP_q2(1:end-1).*(Degree(1)-1:-1:1);
-D2CoefP_q3=D1CoefP_q3(1:end-1).*(Degree(1)-1:-1:1);
-
-Q1=polyval(CoefP_q1,time);
-Q2=polyval(CoefP_q2,time);
-Q3=polyval(CoefP_q3,time);
-D1Q1=polyval(D1CoefP_q1,time);
-D1Q2=polyval(D1CoefP_q2,time);
-D1Q3=polyval(D1CoefP_q3,time);
-D2Q1=polyval(D2CoefP_q1,time);
-D2Q2=polyval(D2CoefP_q2,time);
-D2Q3=polyval(D2CoefP_q3,time);
-
-%% Regenerate Paasive Torque form Coef
-
-if(length(Degree)==2)
-    DegreeTor=Degree(2);
-    DegreeQ=Degree(1);
-    DegreePassive=3*(DegreeQ+1);
-
-    CoefP_Tor1=Coef(DegreePassive+1:DegreePassive+(DegreeTor+1));
-    CoefP_Tor2=Coef(DegreePassive+(DegreeTor+1)+1:DegreePassive+2*(DegreeTor+1));
-    CoefP_Tor3=Coef(DegreePassive+2*(DegreeTor+1)+1:DegreePassive+3*(DegreeTor+1));
-    
-    TorPasQ1=polyval(CoefP_Tor1,Q1);
-    TorPasQ2=polyval(CoefP_Tor2,Q2);
-    TorPasQ3=polyval(CoefP_Tor3,Q3);
+if(strcmp(Mode,'CostA'))
+    rQ=Degree(1);
+    SubplotNUM=1;
+elseif(strcmp(Mode,'CostB'))
+    nn=Degree(1);
+    rQ=Degree(2) ;
+    rU=Degree(3) ;
+    SubplotNUM=2;
 end
-    
+
+
+Alpha_Q1=Alpha(1:(rQ+1));
+Alpha_Q2=Alpha((rQ+1)+1:2*(rQ+1));
+Alpha_Q3=Alpha(2*(rQ+1)+1:3*(rQ+1));
+Alpha_D1Q1=Alpha_Q1(1:end-1).*(rQ:-1:1);
+Alpha_D1Q2=Alpha_Q2(1:end-1).*(rQ:-1:1);
+Alpha_D1Q3=Alpha_Q3(1:end-1).*(rQ:-1:1);
+Alpha_D2Q1=Alpha_D1Q1(1:end-1).*(rQ-1:-1:1);
+Alpha_D2Q2=Alpha_D1Q2(1:end-1).*(rQ-1:-1:1);
+Alpha_D2Q3=Alpha_D1Q3(1:end-1).*(rQ-1:-1:1);
+
+Q1=polyval(Alpha_Q1,Time);
+Q2=polyval(Alpha_Q2,Time);
+Q3=polyval(Alpha_Q3,Time);
+D1Q1=polyval(Alpha_D1Q1,Time);
+D1Q2=polyval(Alpha_D1Q2,Time);
+D1Q3=polyval(Alpha_D1Q3,Time);
+D2Q1=polyval(Alpha_D2Q1,Time);
+D2Q2=polyval(Alpha_D2Q2,Time);
+D2Q3=polyval(Alpha_D2Q3,Time);
+
+QVal=[Q1;Q2;Q3];
 
 %% EF
 
@@ -58,9 +57,9 @@ Pos=[Xef;Yef];
 RPos=L*[cos(Q1)+cos(Q1+Q2)+cos(Q1+Q2+Q3);
         sin(Q1)+sin(Q1+Q2)+sin(Q1+Q2+Q3)];
 
-RMS=sqrt(sum(sum((RPos-Pos).^2))*Tres/(time(end)-time(1)));
+RMS=sqrt(sum(sum((RPos-Pos).^2))*Tres/(Time(end)-Time(1)));
 
-if(ShowFlag)
+if(strcmp(ShowFlag,'Show'))
     
     figure('name',['WorkSapce : ',Name])
         plot(Pos(1,:),Pos(2,:),'linewidth',2,'linestyle','-','color','b')
@@ -72,18 +71,17 @@ if(ShowFlag)
         ylabel('y (m)','fontsize',12)
 
     
-    Y=[Q1',Q2',Q3'];
-    AnimBot3DOF(time,Y,L);
+    AnimBot3DOF(Time,QVal',L);
 end
 %% Trajectory
-if(ShowFlag)
+if(strcmp(ShowFlag,'Show'))
     
     figure('name',['Joints trajectory : ',Name])
         subplot(3,1,1)
-        plot(time,Q1,'linewidth',2)
-        if(period)
+        plot(Time,Q1,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold on
-            plot(time+time(end),Q1,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),Q1,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         title('Jonits Trajectory','FontWeight','bold')
@@ -92,10 +90,10 @@ if(ShowFlag)
         ylabel('q_1 (rad)','fontsize',14)
 
         subplot(3,1,2)
-        plot(time,Q2,'linewidth',2)
-        if(period)
+        plot(Time,Q2,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold on
-            plot(time+time(end),Q2,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),Q2,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         grid on
@@ -103,10 +101,10 @@ if(ShowFlag)
         ylabel('q_2 (rad)','fontsize',14)
 
         subplot(3,1,3)
-        plot(time,Q3,'linewidth',2)
-        if(period)
+        plot(Time,Q3,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold all
-            plot(time+time(end),Q3,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),Q3,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         grid on
@@ -123,12 +121,13 @@ LL1=L;
 LL2=L;
 LL3=L;
 
-TorqueDesire=zeros(3,length(time));
+TorqueDesire=zeros(3,length(Time));
 IntU2=0;
 IntAbsUdq=0;
 IntUdq=0;
+CostSlope=0;
 
-for i=1:length(time)
+for i=1:length(Time)
     q1=Q1(i);
     q2=Q2(i);
     q3=Q3(i);
@@ -154,65 +153,83 @@ for i=1:length(time)
 
 
     TorqueDesire(:,i) = MM*[D2q1;D2q2;D2q3] + CC*[D1q1;D1q2;D1q3] + GG;
-%     IntU2=IntU2+Torque(:,i)'*Torque(:,i)*Tres;
-%     IntAbsUdq=IntAbsUdq+abs(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
-%     IntUdq=IntUdq+(Torque(:,i)'*[D1q1;D1q2;D1q3])*Tres;
 end
 
-if (length(Degree)==1) % for CF1
+if (strcmp(Mode,'CostA')) % for CF1 % for CF1 % for CF1 % for CF1
+
     IntU2=sum(sum(TorqueDesire.^2,2).*Weight)*Tres/sum(Weight);
     IntAbsUdq=sum(sum(abs(TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
     IntUdq=sum(((sum((TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2)).^2).*Weight)*Tres/sum(Weight);
-
-elseif(length(Degree)==2)   % for CF2
-    TorquePassive = [TorPasQ1;TorPasQ2;TorPasQ3];
-    TorqueActive  = TorqueDesire-TorquePassive;
-
-    IntU2=sum(sum(TorqueActive.^2,2).*Weight)*Tres/sum(Weight);
-    IntAbsUdq=sum(sum(abs(TorqueActive.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
-    IntUdq=[];
-    
-end
-
-
-CostSlope=0;
-Qq=[Q1;Q2;Q3];
-for Joint=1:3
-    Till=floor(size(Qq,2)/1);
-    
-    ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
-    ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
-        
-    if(length(Degree)==1)
+    for Joint=1:3
+        Till=floor(size(QVal,2)/1);
+        ThetaShift=QVal(Joint, 1:Till)-min(QVal(Joint, 1:Till));
+        ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
         tau=TorqueDesire(Joint, 1:Till)-min(TorqueDesire(Joint, 1:Till));
         tauShiftScale= tau /max(tau);
-        DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+        DTa=diff(tauShiftScale)./diff(ThetaShiftScale)*0.75;
         CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint)/sum(Weight);
-        
-    elseif(length(Degree)==2)
-        [ThetaMax,indMax]=max(Qq(Joint,:));
-        [ThetaMin,indMin]=min(Qq(Joint,:));
-        ThetaS= Qq(Joint,min(indMin,indMax):max(indMin,indMax));
-        ThetaShift=ThetaS-ThetaMin;
-        ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
-
-        tau= TorquePassive(Joint,min(indMin,indMax):max(indMin,indMax));
-        tauShiftScale= tau /max(tau);
-
-        DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
-        CostSlope=CostSlope+sum((DTa.^2).*abs(diff(ThetaShiftScale)))*Weight(Joint)/sum(Weight);
-
     end
+    
+    BetaOptimal=[];
 
+elseif(strcmp(Mode,'CostB'))   % for CF2
+    % Omega matrix
+    Omega = B * (B'*B)^-1 *diag(Weight) * (B'*B)^-1 * B';
+    % Integral Matrix
+    Iu=0;
+    Iq=zeros(nn*(rU+1),nn*(rU+1));
+    Iuq=zeros(1,(rU+1)*nn);
+    for tt=1:length(Time)
+        QQ_conc=zeros((rU+1)*nn,nn);% \underline{\underline{\mathcal{Q}}}^{r_u}
+        for joint=1:nn
+            QQ_rU_Joint=QVal(joint,tt).^(rU:-1:0)';
+            QQ_conc(1+(joint-1)*(rU+1):(joint)*(rU+1),joint)= QQ_rU_Joint;
+        end
+        Iu = Iu + TorqueDesire(:,tt)'*Omega*TorqueDesire(:,tt);
+        Iq = Iq + QQ_conc*Omega*QQ_conc';
+        Iuq= Iuq+ TorqueDesire(:,tt)'*Omega*QQ_conc';
+    end
+    Iu=Iu*Tres;
+    Iq=Iq*Tres;
+    Iuq=Iuq*Tres;
+    Idq_conc=zeros((rU+1)*nn,(rU+1)*nn);
+    for Joint=1:nn
+        c_hat =(max(QVal(Joint,:)) - min(QVal(Joint,:)))* 2 / 3/pi;
+        d_hat = min(QVal(Joint,:));
+        for kk=1:rU+1
+            Psi(kk,:) = [zeros(1,kk-1), (c_hat^(rU+1-(kk)))* poly(-d_hat/c_hat*ones(1,rU+1-(kk)))];
+        end
+        Idq = Weight(Joint)*c_hat* Psi*QQ*Psi';
+        Idq_conc((Joint-1)*(rU+1)+1:(Joint)*(rU+1),(Joint-1)*(rU+1)+1:(Joint)*(rU+1)) = Idq;
+    end
+    
+    SVDsol=SVDBlockInvertor((Landa*Iq+(1-Landa)*Idq_conc),nn,rU+1,MinSinValue);
+%     BetaOptimal=  Landa*(Landa*Iq + (1-Landa)*Idq_conc )^-1 *Iuq';
+    BetaOptimal=  Landa*SVDsol*Iuq';
+     
+    IntU2=1/2*Iu+1/2*BetaOptimal'*Iq*BetaOptimal-Iuq*BetaOptimal;
+    CostSlope=1/2*BetaOptimal'*Idq_conc*BetaOptimal;
+%     Cost = 1/2* Landa*Iu - 1/2*Landa^2*Iuq*(Landa*Iq + (1-Landa)*Idq_conc )^-1 *Iuq'
+%     IntU2*Landa+(1-Landa)*CostSlope    
+%     Cost = 1/2* Landa*Iu - 1/2*Landa^2*Iuq*SVDsol *Iuq';
+
+     
+    TorquePassiveQ1valOptimal=polyval(BetaOptimal(1: rU+1),Q1);
+    TorquePassiveQ2valOptimal=polyval(BetaOptimal(rU+1+1: 2*(rU+1)),Q2);
+    TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
+    TorquePassiveValOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
+    TorqueActive=TorqueDesire-TorquePassiveValOptimal;
+  
 end
 
-if(ShowFlag)
+
+if(strcmp(ShowFlag,'Show'))
     
     figure('name',[' Desired Torque vs Time : ',Name])
-        plot(time,TorqueDesire,'linewidth',2)
-        if(period)
+        plot(Time,TorqueDesire,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold on
-            plot(time+time(end),TorqueDesire,'linewidth',2,'linestyle','-.')
+            plot(Time+Time(end),TorqueDesire,'linewidth',2,'linestyle','-.')
             hold off
         end
         title(' Desired Torque','FontWeight','bold')
@@ -223,10 +240,10 @@ if(ShowFlag)
         
     figure('name',[' Desired Torque*\dot{q} vs time : ',Name])
         subplot(3,1,1,'FontWeight','bold','FontSize',12)
-        plot(time,TorqueDesire(1,:).*D1Q1,'linewidth',2)
-        if(period)
+        plot(Time,TorqueDesire(1,:).*D1Q1,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold on
-            plot(time+time(end),TorqueDesire(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),TorqueDesire(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
@@ -237,10 +254,10 @@ if(ShowFlag)
 
 
         subplot(3,1,2,'FontWeight','bold','FontSize',12)
-        plot(time,TorqueDesire(2,:).*D1Q2,'linewidth',2)
-        if(period)
+        plot(Time,TorqueDesire(2,:).*D1Q2,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold on
-            plot(time+time(end),TorqueDesire(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),TorqueDesire(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         xlabel('time','fontsize',12)
@@ -250,10 +267,10 @@ if(ShowFlag)
 
 
         subplot(3,1,3,'FontWeight','bold','FontSize',12)
-        plot(time,TorqueDesire(3,:).*D1Q3,'linewidth',2)
-        if(period)
+        plot(Time,TorqueDesire(3,:).*D1Q3,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
             hold on
-            plot(time+time(end),TorqueDesire(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),TorqueDesire(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         xlabel('time','fontsize',12)
@@ -262,7 +279,7 @@ if(ShowFlag)
         set(gca,'YMinorGrid','on')
 
    figure('name',['Torque vs Angle : ',Name])
-        subplot(3,length(Degree),0*(length(Degree)-1)+1,'FontWeight','bold','FontSize',12)
+        subplot(3,SubplotNUM,0*(SubplotNUM-1)+1,'FontWeight','bold','FontSize',12)
         plot(Q1,TorqueDesire(1,:),'linewidth',2)
         title('Desired/Passive Torque Angle Profile','FontWeight','bold')
         xlabel('q_1 (rad)','fontsize',12)
@@ -270,11 +287,12 @@ if(ShowFlag)
         hold off
         grid on
         set(gca,'YMinorGrid','on')
-        if(length(Degree)==2)
+        if(strcmp(Mode,'CostB'))
             hold on
-            plot(Q1,TorPasQ1,'linewidth',2,'color','g','linestyle','-.')
+            plot(Q1,TorquePassiveQ1valOptimal,'linewidth',2,'color','g','linestyle','-.')
             hold off
-            legend('Desired Torque','Passive Torque')
+            legend('\tau_d','\tau_p','Orientation','horizontal')
+            legend BOXOFF
             subplot(3,2,2)
             plot(Q1,TorqueActive(1,:),'linewidth',2,'color','r')
             title('Actuator Torque')
@@ -289,15 +307,16 @@ if(ShowFlag)
         plot(Q1(10),TorqueDesire(1,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         hold off
         
-        subplot(3,length(Degree),1*(length(Degree)-1)+2,'FontWeight','bold','FontSize',12)
+        subplot(3,SubplotNUM,1*(SubplotNUM-1)+2,'FontWeight','bold','FontSize',12)
         plot(Q2,TorqueDesire(2,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
-        if(length(Degree)==2)
+        if(strcmp(Mode,'CostB'))
             hold on
-            plot(Q2,TorPasQ2,'linewidth',2,'color','g','linestyle','-.')
+            plot(Q2,TorquePassiveQ2valOptimal,'linewidth',2,'color','g','linestyle','-.')
             hold off
-            legend('Desired Torque','Passive Torque')
+            legend('\tau_d','\tau_p','Orientation','horizontal')
+            legend BOXOFF
             subplot(3,2,4)
             plot(Q2,TorqueActive(2,:),'linewidth',2,'color','r')
             title('Actuator Torque')
@@ -314,15 +333,16 @@ if(ShowFlag)
         ylabel('\tau_2','fontsize',14)
         hold off
         
-        subplot(3,length(Degree),2*(length(Degree)-1)+3,'FontWeight','bold','FontSize',12)
+        subplot(3,SubplotNUM,2*(SubplotNUM-1)+3,'FontWeight','bold','FontSize',12)
         plot(Q3,TorqueDesire(3,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
-        if(length(Degree)==2)
+        if(strcmp(Mode,'CostB'))
             hold on
-            plot(Q3,TorPasQ3,'linewidth',2,'color','g','linestyle','-.')
+            plot(Q3,TorquePassiveQ3valOptimal,'linewidth',2,'color','g','linestyle','-.')
             hold off
-            legend('Desired Torque','Passive Torque')
+            legend('\tau_d','\tau_p','Orientation','horizontal')
+            legend BOXOFF
             subplot(3,2,6)
             plot(Q3,TorqueActive(3,:),'linewidth',2,'color','r')
             title('Actuator Torque')

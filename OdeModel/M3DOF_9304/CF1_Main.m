@@ -380,10 +380,10 @@ NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,
     Op_FmisCon_SQP(CostFun,NonCons,Initial+Rand*(randn(1,3*(Degree+1))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
-[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,CostSlope_X0,RMSError_X0]=...
-                        ShowTime(Initial,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,0,0,'Initial');
-[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,CostSlope_Opt,RMSError_Opt]=...
-                        ShowTime(x,Time,Tres,Degree,Weight,XEF,YEF,m,L,g,1,1,'Optimized');
+[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,[],IntU2_X0,IntUdq_X0,IntAbsUdq_X0,CostSlope_X0,RMSError_X0]=...
+                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,'DntShow','2Cycle','CostA','Initial');
+[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,[],IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,CostSlope_Opt,RMSError_Opt]=...
+                        ShowTime(x,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,'Show','2Cycle','CostA','Optimized');
 
 TotalCost_X0  = Landa*Select*[ IntU2_X0  IntAbsUdq_X0  IntUdq_X0]'  + (1-Landa)*CostSlope_X0;
 TotalCost_Opt = Landa*Select*[ IntU2_Opt IntAbsUdq_Opt IntUdq_Opt]' + (1-Landa)*CostSlope_Opt;
