@@ -295,8 +295,8 @@ tic
 nn=3; % number of joints
 
 % DoF of Optimization 
-rQ=10; % Degree of joint trajectory
-rU=7; % Degree of passive torque
+rQ=7; % Degree of joint trajectory
+rU=5; % Degree of passive torque
 
 % B matrix
 B=eye(nn);
@@ -403,9 +403,9 @@ end
 % BetaOptimal=Landa*(Landa*Iq+(1-Landa)*Idq_conc)^-1*Iqu';
 SVDsol=SVDBlockInvertor((Landa*Iq+(1-Landa)*Idq_conc),nn,rU+1,0.0001);
 BetaOptimal=Landa*SVDsol*Iqu';
-TorquePassiveQ1valOptimal=polyval(BetaOptimal(1: 4),Q1);
-TorquePassiveQ2valOptimal=polyval(BetaOptimal(5: 8),Q2);
-TorquePassiveQ3valOptimal=polyval(BetaOptimal(9:12),Q3);
+TorquePassiveQ1valOptimal=polyval(BetaOptimal(0*(rU+1)+1:1*(rU+1)),Q1);
+TorquePassiveQ2valOptimal=polyval(BetaOptimal(1*(rU+1)+1:2*(rU+1)),Q2);
+TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
 TorquePassiveValOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
 
 
