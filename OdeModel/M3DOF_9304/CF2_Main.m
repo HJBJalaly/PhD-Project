@@ -293,18 +293,15 @@ AnimBot3DOF(time(1:end),Y,L);
 tic
 % DoF system
 nn=3; % number of joints
-
 % DoF of Optimization 
 rQ=7; % Degree of joint trajectory
 rU=5; % Degree of passive torque
-
 % B matrix
 B=eye(nn);
-
 % WeightMatrix
-Weight=[ 1 1 1]';
-Landa=0.75;
-
+Weight=[ .1 .1 1]';
+Landa=0.95;
+%%
 
 Time=time(Middle:end)-time(end)/2;
 Q1=q1(Middle:end);
@@ -373,9 +370,6 @@ syms s real;
 DqQ_rU_Joint=[(rU:-1:1).*(s.^(rU-1:-1:0)')', 0]';
 QQ=double(int(DqQ_rU_Joint*DqQ_rU_Joint',0,3/2*pi));
 
-
-
-
 Psi=zeros(rU+1,rU+1,nn);
 Idq=zeros(rU+1,rU+1,nn);
 Idq_conc=zeros((rU+1)*nn,(rU+1)*nn);
@@ -398,7 +392,7 @@ for Joint=1:nn
     Idq_conc((Joint-1)*(rU+1)+1:(Joint)*(rU+1),(Joint-1)*(rU+1)+1:(Joint)*(rU+1)) = Idq(:,:,Joint);
 
 end
-1
+
 
 % BetaOptimal=Landa*(Landa*Iq+(1-Landa)*Idq_conc)^-1*Iqu';
 SVDsol=SVDBlockInvertor((Landa*Iq+(1-Landa)*Idq_conc),nn,rU+1,0.0001);
@@ -496,12 +490,12 @@ LL3=L;
 tic
 MaxFunEvals_Data=3000*(rQ);
 MaxIter_Data=1000;
-TolFun_Data=1e-6;
-TolX_Data=1e-6;
+TolFun_Data=1e-8;
+TolX_Data=1e-8;
 TolCon_Data=1e-6;
 Algorithm='sqp';
-% Algorithm='interior-point';
-Rand=0*1e-30;
+ Algorithm='interior-point';
+Rand=5000*1e-20;
 MinSinValue=0.005;
 
 CostFun   = @(Alpha)CF2_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,QQ,B,g,mL1,mL2,mL3,LL1,LL2,LL3,MinSinValue);
