@@ -1,4 +1,4 @@
-function  [CoefP,CoefB]= BezierCoeffinet(Tspan,Sspan,Degree)
+function  [CoefP,CoefB]= LSParamPoly(Tspan,Sspan,Degree)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 

@@ -80,7 +80,7 @@ for Joint=1:3
     tauShiftScale= tau /max(tau);
     
     DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
-%     sum((DTa.^4).*abs(diff(ThetaShiftScale)))
+%     sum((DTa.^4).*abs(exitdiff(ThetaShiftScale)))
 %     sum((DTa.^2).*abs(diff(ThetaShiftScale)))
 %     sum((DTa.^2).*(diff(ThetaShiftScale).^2))
 %     

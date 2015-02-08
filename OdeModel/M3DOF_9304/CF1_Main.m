@@ -7,6 +7,7 @@ function CF1_Main()
 clear
 close all
 home
+rand('twister', sum(100*clock));
 
 
 %% create a sample motion with 2 active and 1 passive joints

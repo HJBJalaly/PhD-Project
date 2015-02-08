@@ -17,6 +17,11 @@ elseif(strcmp(Mode,'CostB'))
     rQ=Degree(2) ;
     rU=Degree(3) ;
     SubplotNUM=2;
+elseif(strcmp(Mode,'CostC'))
+    nn=Degree(1);
+    rQ=Degree(2) ;
+    rU=Degree(3) ;
+    SubplotNUM=2;    
 end
 
 
@@ -220,6 +225,33 @@ elseif(strcmp(Mode,'CostB'))   % for CF2
     TorquePassiveValOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
     TorqueActive=TorqueDesire-TorquePassiveValOptimal;
   
+elseif(strcmp(Mode,'CostC'))   % for CF3
+    BetaOptimal=[];
+    Cost=0;
+    CostSub=0;
+    for i=1:nn
+        QQ=[];
+        DQ=[];
+        CoefBLSI = LSParamPoly(QVal(i,:),TorqueDesire(i,:)',rU,Landa);    
+        for j=1:length(QVal(i,:))
+             QQ(j,:) = QVal(i,j).^(rU:-1:0)';
+             DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
+        end
+        
+        IntU2=IntU2 + ...
+              Weight(i)* 1/2*(TorqueDesire(i,:)' - QQ*CoefBLSI )'* (TorqueDesire(i,:)' - QQ*CoefBLSI );
+                          
+        CostSlope = CostSlope + CoefBLSI'*(DQ'*DQ)*CoefBLSI;
+
+        BetaOptimal=[BetaOptimal;CoefBLSI];
+    end
+
+
+    TorquePassiveQ1valOptimal=polyval(BetaOptimal(0*(rU+1)+1:1*(rU+1)),Q1);
+    TorquePassiveQ2valOptimal=polyval(BetaOptimal(1*(rU+1)+1:2*(rU+1)),Q2);
+    TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
+    TorquePassiveValOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
+    TorqueActive=TorqueDesire-TorquePassiveValOptimal;
 end
 
 
@@ -287,7 +319,7 @@ if(strcmp(ShowFlag,'Show'))
         hold off
         grid on
         set(gca,'YMinorGrid','on')
-        if(strcmp(Mode,'CostB'))
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
             hold on
             plot(Q1,TorquePassiveQ1valOptimal,'linewidth',2,'color','g','linestyle','-.')
             hold off
@@ -311,7 +343,7 @@ if(strcmp(ShowFlag,'Show'))
         plot(Q2,TorqueDesire(2,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
-        if(strcmp(Mode,'CostB'))
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
             hold on
             plot(Q2,TorquePassiveQ2valOptimal,'linewidth',2,'color','g','linestyle','-.')
             hold off
@@ -337,7 +369,7 @@ if(strcmp(ShowFlag,'Show'))
         plot(Q3,TorqueDesire(3,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
-        if(strcmp(Mode,'CostB'))
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
             hold on
             plot(Q3,TorquePassiveQ3valOptimal,'linewidth',2,'color','g','linestyle','-.')
             hold off
