@@ -172,7 +172,7 @@ if (strcmp(Mode,'CostA')) % for CF1 % for CF1 % for CF1 % for CF1
         tau=TorqueDesire(Joint, 1:Till)-min(TorqueDesire(Joint, 1:Till));
         tauShiftScale= tau /max(tau);
         DTa=diff(tauShiftScale)./diff(ThetaShiftScale)*0.75;
-        CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint)/sum(Weight);
+        CostSlope=CostSlope+sum((DTa*4/3).^2)*Weight(Joint)/sum(Weight);
     end
     
     BetaOptimal=[];

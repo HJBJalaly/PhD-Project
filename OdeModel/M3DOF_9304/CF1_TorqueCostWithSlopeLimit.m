@@ -71,12 +71,12 @@ Qq=[Q1;Q2;Q3];
 for Joint=1:3
     
 %     Joint=1;
-    Till=floor(size(Qq,2)/1);
+%     Till=floor(size(Qq,2)/1);
     
-    ThetaShift=Qq(Joint, 1:Till)-min(Qq(Joint, 1:Till));
+    ThetaShift=Qq(Joint, :)-min(Qq(Joint, :));
     ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
     
-    tau=Torque(Joint, 1:Till)-min(Torque(Joint, 1:Till));
+    tau=Torque(Joint, :)-min(Torque(Joint, :));
     tauShiftScale= tau /max(tau);
     
     DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
@@ -85,7 +85,7 @@ for Joint=1:3
 %     sum((DTa.^2).*(diff(ThetaShiftScale).^2))
 %     
 %     CostSlope=CostSlope+sum((DTa.^4).*abs(diff(ThetaShiftScale)))*Weight(Joint);
-	CostSlope=CostSlope+sum(DTa.^2)*Weight(Joint);
+	CostSlope=CostSlope+sum((DTa*4/3).^2)*Weight(Joint);
     
 
 end
