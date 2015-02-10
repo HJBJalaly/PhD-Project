@@ -68,12 +68,12 @@ if(strcmp(ShowFlag,'Show'))
     
     figure('name',['WorkSapce : ',Name])
         plot(Pos(1,:),Pos(2,:),'linewidth',2,'linestyle','-','color','b')
-        title('WorkSpace','FontWeight','bold')
+        title('WorkSpace','FontWeight','bold','FontName','mwa_cmb10');
         hold on
         plot(RPos(1,:),RPos(2,:),'linewidth',2,'linestyle','-','color','r')
         hold off
-        xlabel('x (m)','fontsize',12)
-        ylabel('y (m)','fontsize',12)
+        xlabel('x (m)','fontsize',12,'FontName','mwa_cmb10')
+        ylabel('y (m)','fontsize',12,'FontName','mwa_cmb10')
 
     
     AnimBot3DOF(Time,QVal',L);
@@ -89,10 +89,10 @@ if(strcmp(ShowFlag,'Show'))
             plot(Time+Time(end),Q1,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
-        title('Jonits Trajectory','FontWeight','bold')
+        title('Jonits Trajectory','FontWeight','bold','FontName','mwa_cmb10');
         grid on
-        xlabel('time (s)','fontsize',12)
-        ylabel('q_1 (rad)','fontsize',14)
+        xlabel('time (s)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('q_1 (rad)','fontsize',14,'FontName','mwa_cmb10');
 
         subplot(3,1,2)
         plot(Time,Q2,'linewidth',2)
@@ -102,8 +102,8 @@ if(strcmp(ShowFlag,'Show'))
             hold off
         end
         grid on
-        xlabel('time (s)','fontsize',12)
-        ylabel('q_2 (rad)','fontsize',14)
+        xlabel('time (s)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('q_2 (rad)','fontsize',14,'FontName','mwa_cmb10');
 
         subplot(3,1,3)
         plot(Time,Q3,'linewidth',2)
@@ -113,8 +113,8 @@ if(strcmp(ShowFlag,'Show'))
             hold off
         end
         grid on
-        xlabel('time (s)','fontsize',12)
-        ylabel('q_3 (rad)','fontsize',14)
+        xlabel('time (s)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('q_3 (rad)','fontsize',14,'FontName','mwa_cmb10');
 
 end
 %% Torque
@@ -264,14 +264,14 @@ if(strcmp(ShowFlag,'Show'))
             plot(Time+Time(end),TorqueDesire,'linewidth',2,'linestyle','-.')
             hold off
         end
-        title(' Desired Torque','FontWeight','bold')
+        title(' Desired Torque','FontWeight','bold','FontName','mwa_cmb10');
         legend('\tau_d_1','\tau_d_2','\tau_d_3')
-        xlabel('time (s)','fontsize',14)
-        ylabel('\tau','fontsize',14)
+        xlabel('time (s)','fontsize',14,'FontName','mwa_cmb10');
+        ylabel('\tau','fontsize',14,'FontName','mwa_cmb10');
         grid on
         
     figure('name',[' Desired Torque*\dot{q} vs time : ',Name])
-        subplot(3,1,1,'FontWeight','bold','FontSize',12)
+        subplot(3,1,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Time,TorqueDesire(1,:).*D1Q1,'linewidth',2)
         if(strcmp(Period,'2Cycle'))
             hold on
@@ -279,43 +279,43 @@ if(strcmp(ShowFlag,'Show'))
             hold off
         end
         title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
-        xlabel('time','fontsize',12)
-        ylabel('${\tau_d_1 * \dot q_1}$', 'interpreter','latex','fontsize',12)
+        xlabel('time','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('${\tau_d_1 * \dot q_1}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
         grid on
         set(gca,'YMinorGrid','on')
 
 
-        subplot(3,1,2,'FontWeight','bold','FontSize',12)
+        subplot(3,1,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Time,TorqueDesire(2,:).*D1Q2,'linewidth',2)
         if(strcmp(Period,'2Cycle'))
             hold on
             plot(Time+Time(end),TorqueDesire(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
-        xlabel('time','fontsize',12)
-        ylabel('${\tau_d_2 * \dot q_2}$', 'interpreter','latex','fontsize',12)
+        xlabel('time','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('${\tau_d_2 * \dot q_2}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
         grid on
         set(gca,'YMinorGrid','on')
 
 
-        subplot(3,1,3,'FontWeight','bold','FontSize',12)
+        subplot(3,1,3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Time,TorqueDesire(3,:).*D1Q3,'linewidth',2)
         if(strcmp(Period,'2Cycle'))
             hold on
             plot(Time+Time(end),TorqueDesire(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
-        xlabel('time','fontsize',12)
-        ylabel('${\tau_d_3 * \dot q_3}$', 'interpreter','latex','fontsize',12)
+        xlabel('time','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('${\tau_d_3 * \dot q_3}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
         grid on
         set(gca,'YMinorGrid','on')
 
    figure('name',['Torque vs Angle : ',Name])
-        subplot(3,SubplotNUM,0*(SubplotNUM-1)+1,'FontWeight','bold','FontSize',12)
+        subplot(3,SubplotNUM,0*(SubplotNUM-1)+1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Q1,TorqueDesire(1,:),'linewidth',2)
-        title('Desired/Passive Torque Angle Profile','FontWeight','bold')
-        xlabel('q_1 (rad)','fontsize',12)
-        ylabel('\tau_1','fontsize',14)
+        title('Desired/Passive Torque Angle Profile','FontWeight','bold','FontName','mwa_cmb10');
+        xlabel('q_1 (rad)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('\tau_1','fontsize',14,'FontName','mwa_cmb10');
         hold off
         grid on
         set(gca,'YMinorGrid','on')
@@ -327,9 +327,9 @@ if(strcmp(ShowFlag,'Show'))
             legend BOXOFF
             subplot(3,2,2)
             plot(Q1,TorqueActive(1,:),'linewidth',2,'color','r')
-            title('Actuator Torque')
-            xlabel('q_1 (rad)','fontsize',12)
-            ylabel('\tau_a_1','fontsize',14)
+            title('Actuator Torque','FontName','mwa_cmb10');
+            xlabel('q_1 (rad)','fontsize',12,'FontName','mwa_cmb10');
+            ylabel('\tau_a_1','fontsize',14,'FontName','mwa_cmb10');
             grid on
             set(gca,'YMinorGrid','on')
             subplot(3,2,1)
@@ -339,7 +339,7 @@ if(strcmp(ShowFlag,'Show'))
         plot(Q1(10),TorqueDesire(1,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         hold off
         
-        subplot(3,SubplotNUM,1*(SubplotNUM-1)+2,'FontWeight','bold','FontSize',12)
+        subplot(3,SubplotNUM,1*(SubplotNUM-1)+2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Q2,TorqueDesire(2,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
@@ -351,9 +351,9 @@ if(strcmp(ShowFlag,'Show'))
             legend BOXOFF
             subplot(3,2,4)
             plot(Q2,TorqueActive(2,:),'linewidth',2,'color','r')
-            title('Actuator Torque')
-            xlabel('q_2 (rad)','fontsize',12)
-            ylabel('\tau_a_2','fontsize',14)
+            title('Actuator Torque','FontName','mwa_cmb10');
+            xlabel('q_2 (rad)','fontsize',12,'FontName','mwa_cmb10');
+            ylabel('\tau_a_2','fontsize',14,'FontName','mwa_cmb10');
             grid on
             set(gca,'YMinorGrid','on')
             subplot(3,2,3)
@@ -361,11 +361,11 @@ if(strcmp(ShowFlag,'Show'))
         hold on
         plot(Q2(1),TorqueDesire(2,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
         plot(Q2(10),TorqueDesire(2,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
-        xlabel('q_2 (rad)','fontsize',12)
-        ylabel('\tau_2','fontsize',14)
+        xlabel('q_2 (rad)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('\tau_2','fontsize',14,'FontName','mwa_cmb10');
         hold off
         
-        subplot(3,SubplotNUM,2*(SubplotNUM-1)+3,'FontWeight','bold','FontSize',12)
+        subplot(3,SubplotNUM,2*(SubplotNUM-1)+3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Q3,TorqueDesire(3,:),'linewidth',2)
         grid on
         set(gca,'YMinorGrid','on')
@@ -377,9 +377,9 @@ if(strcmp(ShowFlag,'Show'))
             legend BOXOFF
             subplot(3,2,6)
             plot(Q3,TorqueActive(3,:),'linewidth',2,'color','r')
-            title('Actuator Torque')
-            xlabel('q_3 (rad)','fontsize',12)
-            ylabel('\tau_a_3','fontsize',14)
+            title('Actuator Torque','FontName','mwa_cmb10');
+            xlabel('q_3 (rad)','fontsize',12,'FontName','mwa_cmb10');
+            ylabel('\tau_a_3','fontsize',14,'FontName','mwa_cmb10');
             grid on
             set(gca,'YMinorGrid','on')
             subplot(3,2,5)
@@ -387,8 +387,8 @@ if(strcmp(ShowFlag,'Show'))
         hold on
         plot(Q3(1),TorqueDesire(3,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
         plot(Q3(10),TorqueDesire(3,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
-        xlabel('q_3 (rad)','fontsize',12)
-        ylabel('\tau_3','fontsize',14)
+        xlabel('q_3 (rad)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('\tau_3','fontsize',14,'FontName','mwa_cmb10');
         hold off
 
 end

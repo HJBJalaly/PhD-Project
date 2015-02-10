@@ -295,11 +295,11 @@ tic
 nn=3; % number of joints
 % DoF of Optimization 
 rQ=7; % Degree of joint trajectory
-rU=5; % Degree of passive torque
+rU=7; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
-Weight=[ .1 .1 1]';
+Weight=[ 1 1 1]';
 Landa=0.95;
 
 
@@ -495,7 +495,7 @@ TolX_Data=1e-8;
 TolCon_Data=1e-6;
 Algorithm='sqp';
  Algorithm='interior-point';
-Rand=5000*1e-20;
+Rand=5000*1e-10;
 MinSinValue=0.005;
 
 CostFun   = @(Alpha)CF2_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,QQ,B,g,mL1,mL2,mL3,LL1,LL2,LL3,MinSinValue);

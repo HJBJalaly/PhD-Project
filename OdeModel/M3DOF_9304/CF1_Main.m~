@@ -405,7 +405,7 @@ toc
 
 %% Scale and shift profile
 
-Joint=1;
+Joint=3;
 
 ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/(floor(size(Q_Opt,2)/2)));
 ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
@@ -419,10 +419,9 @@ tauShift=tau+TauMin*2;
 TauMax=max(tauShift);
 tauShiftScale=(tauShift)/TauMax;
 
-Range=[90:95]; % range of fiting
-
+Range=[5:10]; % range of fiting
 NewFeasible=1;
-PosFlag=1;  % 0 for first, 1 for end
+PosFlag=0;  % 0 for first, 1 for end
 
 if(PosFlag==0)
     SubRange1=[1:Range(1)]; % for first :  range of outlayer
