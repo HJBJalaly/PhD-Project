@@ -295,7 +295,7 @@ tic
 nn=3; % number of joints
 % DoF of Optimization 
 rQ=7; % Degree of joint trajectory
-rU=2; % Degree of passive torque
+rU=3; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
@@ -437,6 +437,9 @@ figure('name','Passive Torques')
 Degree=[nn rQ rU];
 Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 
+%  Xt=x;
+ Initial=x;
+
 % WeightMatrix
 % Weight=[ 10 1 1]';
 % Landa=.85;
@@ -460,7 +463,7 @@ TolX_Data=1e-6;
 TolCon_Data=1e-6;
 Algorithm='sqp';
   Algorithm='interior-point';
-Rand=5000*1e-20;
+Rand=5000*1e-10;
 
 CostFun   = @(Alpha)CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
@@ -472,12 +475,12 @@ NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
 
 
 [Torque_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlope_X0,RMSError_X0]=...    
-                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
+                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[] ,XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Initial');
 [Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlope_Opt,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
                     
-TotalCost_X0  = Landa* IntU2_X0    + (1-Landa)*CostSlope_X0;
-TotalCost_Opt = Landa* IntU2_Opt   + (1-Landa)*CostSlope_Opt;
+TotalCost_X0  = IntU2_X0    + Landa*CostSlope_X0;
+TotalCost_Opt = IntU2_Opt   + Landa*CostSlope_Opt;
              
 
 DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n',rQ,rU, 'Cast 2b');
@@ -494,64 +497,43 @@ toc
 
 %% Scale and shift profile
 
-Joint=1;
+ThetaShiftScale=[];
+ThetaStepscale=[];
+tauShiftScale=[];
 
-ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))))/200);
-ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
-ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
-ThetaShiftScale = ThetaShift* floor(deg2rad(270) /  max(ThetaShift));
-ThetaStepscale  = ThetaStep* floor(deg2rad(270) /  max(ThetaShift));
+for Joint=1:nn
 
 
-tau=polyval(BetaOptimal_Opt((rU+1)*(Joint-1)+1: (Joint)*(rU+1)),ThetaS);    
-TauMin=abs(min(tau));
-tauShift=tau+TauMin*2;
-tauShiftScale=(tauShift)/max(tauShift);
+    ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))) / (floor(size(Q_Opt,2)/2)));
+    ThetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+    ThetaShift=ThetaS-min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+    ThetaShiftScale{Joint} = ThetaShift* floor(deg2rad(270) /  max(ThetaShift));
+    ThetaStepscale{Joint}  = ThetaStep* floor(deg2rad(270) /  max(ThetaShift));
 
-% Range=5:25; % range of fiting
-% SubRange1=[1:Range(1)]; % for first :  range of outlayer
-% % SubRange1=[Range(end)+1:length(tau)]; % for end :  range of outlayer
-% 
-% SubRange2=[Range(1)+1:length(tau)]; % for first : unchanged value
-% % SubRange2=[1:Range(end)]; % for end : unchanged value
-% 
-% Curve=fit( ThetaShiftScale(Range)', tauShiftScale(Range)', 'poly2');
-% NewTau=feval(Curve,ThetaShiftScale(SubRange1))';
-% tauShiftScaleVar= [NewTau tauShiftScale(SubRange2)]; % for first
-% % tauShiftScaleVar= [tauShiftScale(SubRange2) NewTau];  % for end
 
-figure
-    subplot(2,1,1)
-    plot(ThetaShiftScale,tauShiftScale)
-    xlabel('ThetaShiftScale')
-    ylabel('tauShiftScale')
-    grid on
-    
-    subplot(2,1,2)
-    plot(ThetaShiftScale(1:end-1),diff(tauShiftScale)./diff(ThetaShiftScale))
-    xlabel('ThetaShiftScale')
-    ylabel('DtauShiftScale')
-    grid on
-    hold on
-    plot(ThetaShiftScale,+ones(size(ThetaShiftScale)),'r-.')
-    plot(ThetaShiftScale,-ones(size(ThetaShiftScale)),'r-.')
-    hold off
-% hold all
-% plot(ThetaShiftScale,tauShiftScaleVar)
-hold off
+    tau=polyval(BetaOptimal_Opt((rU+1)*(Joint-1)+1: (Joint)*(rU+1)),ThetaS);    
+    TauMin=abs(min(tau));
+    tauShift=tau+TauMin*2;
+    tauShiftScale{Joint}=(tauShift)/max(tauShift);
 
-% tauVar1=(tauShiftScaleVar*10)-TauMin*2;
-% figure
-% plot(Q_Opt(Joint,:),Torque_Opt(Joint,:),'linewidth',2)
-% hold on
-% plot(ThetaS,tauVar,'linewidth',2,'color','r')
-% grid on
-% legend('Optimal Active Profile','Feasible Passive Profile')
-% hold off
-% xlabel('q (rad)')
-% ylabel('\tau')
-% title(['Joint ',num2str(Joint)])
 
+    figure('name',['Joint ', num2str( Joint)])
+        subplot(2,1,1)
+        plot(ThetaShiftScale{Joint},tauShiftScale{Joint})
+        xlabel('ThetaShiftScale')
+        ylabel('tauShiftScale')
+        grid on
+
+        subplot(2,1,2)
+        plot(ThetaShiftScale{Joint}(1:end-1),diff(tauShiftScale{Joint})./diff(ThetaShiftScale{Joint}))
+        xlabel('ThetaShiftScale')
+        ylabel('DtauShiftScale')
+        grid on
+        hold on
+        plot(ThetaShiftScale{Joint},+ones(size(ThetaShiftScale{Joint})),'r-.')
+        plot(ThetaShiftScale{Joint},-ones(size(ThetaShiftScale{Joint})),'r-.')
+        hold off
+end
 %% Ga for find best Param
 
 k0=1000;
@@ -561,21 +543,26 @@ q00=1;
 nvars=3;
 lb=[50 5e-2 5e-2];
 PopInitRange=[lb; k0 R0 q00];
-PopulationSize=500;
+PopulationSize=200;
 InitialPopulation=[k0*rand(PopulationSize,1) R0*rand(PopulationSize,1) q00*rand(PopulationSize,1)];
-CostParam=@(Param)GA_CostParamNonLinearSpring(Param,ThetaStepscale,ThetaShiftScale,tauShiftScale);
 
-[ParamA,fval,exitflag,output,population,score] = ...
-    GA_FminCost(CostParam,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
-disp(output.message)
+ParamA=[];
+for Joint=1:nn
+    disp(['Joint:',num2str(Joint)])
+    CostParam=@(Param)GA_CostParamNonLinearSpring(Param,ThetaStepscale{Joint},ThetaShiftScale{Joint},tauShiftScale{Joint});
 
+    [ParamA{Joint},fval,exitflag,output,population,score] = ...
+        GA_FminCost(CostParam,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
+    disp(output.message)
+end
 %%
 % ParamA=[kg+600,Rg-.85,qg0+.25]
-k=ParamA(1);
-R=ParamA(2);
-q0=ParamA(3);
+for Joint=1:nn
+    k=ParamA{Joint}(1);
+    R=ParamA{Joint}(2);
+    q0=ParamA{Joint}(3);
 
-NonLinearSpring(ThetaStepscale,ThetaShiftScale,tauShiftScale,k,R,q0,.1)
-% NonLinearSpring(ThetaStep,ThetaS,tauShift,k,R,q0,.1)
-
+    NonLinearSpring(ThetaStepscale{Joint},ThetaShiftScale{Joint},tauShiftScale{Joint},k,R,q0,.1,['Joint ',num2str(Joint)])
+    % NonLinearSpring(ThetaStep,ThetaS,tauShift,k,R,q0,.1)
+end
 %% 

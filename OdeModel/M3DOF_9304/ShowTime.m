@@ -244,7 +244,7 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
         end
         
         IntU2=IntU2 + ...
-              Weight(i)* 1/2*(TorqueDesire(i,:)' - QQ*CoefBLSI )'* (TorqueDesire(i,:)' - QQ*CoefBLSI );
+              Weight(i)* 1/2*(TorqueDesire(i,:)' - QQ*CoefBLSI )'* (TorqueDesire(i,:)' - QQ*CoefBLSI )*Tres;
                           
         CostSlope = CostSlope + CoefBLSI'*(DQ'*DQ)*CoefBLSI;
 

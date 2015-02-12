@@ -1,4 +1,4 @@
-function CF2_Main()
+function CF3_Main()
 
 
 
@@ -7,7 +7,7 @@ function CF2_Main()
 clear
 close all
 home
-
+rand('twister', sum(100*clock));
 
 %% create a sample motion with 2 active and 1 passive joints
 
@@ -295,12 +295,12 @@ tic
 nn=3; % number of joints
 % DoF of Optimization 
 rQ=7; % Degree of joint trajectory
-rU=7; % Degree of passive torque
+rU=3; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
 Weight=[ 1 1 1]';
-Landa=0.98;
+Landa=0.000001;
 
 
 Time=time(Middle:end)-time(end)/2;
@@ -327,79 +327,44 @@ QVal=[Q1val;Q2val;Q3val];
 RPosVal=L*[cos(Q1val)+cos(Q1val+Q2val)+cos(Q1val+Q2val+Q3val);
         sin(Q1val)+sin(Q1val+Q2val)+sin(Q1val+Q2val+Q3val)];
 
-[Beta_UPassive1,BezireCoef_TorP1]= BezierCoeffinet(Q1,TorqueDesQ1,rU);
-[Beta_UPassive2,BezireCoef_TorP2]= BezierCoeffinet(Q2,TorqueDesQ2,rU);
-[Beta_UPassive3,BezireCoef_TorP3]= BezierCoeffinet(Q3,TorqueDesQ3,rU);
+    
+CoefBLS_UPassive1 = LSParamPoly(Q1',TorqueDesQ1',rU,Landa);    
+CoefBLS_UPassive2 = LSParamPoly(Q2',TorqueDesQ2',rU,Landa);    
+CoefBLS_UPassive3 = LSParamPoly(Q3',TorqueDesQ3',rU,Landa);    
+CoefBLS_UPassive=[CoefBLS_UPassive1;CoefBLS_UPassive2;CoefBLS_UPassive3];
 
 
-TorquePassiveQ1val=polyval(Beta_UPassive1,Q1);
-TorquePassiveQ2val=polyval(Beta_UPassive2,Q2);
-TorquePassiveQ3val=polyval(Beta_UPassive3,Q3);
+TorquePassiveQ1val=polyval(CoefBLS_UPassive1,Q1);
+TorquePassiveQ2val=polyval(CoefBLS_UPassive2,Q2);
+TorquePassiveQ3val=polyval(CoefBLS_UPassive3,Q3);
 TorquePassiveVal=[TorquePassiveQ1val; TorquePassiveQ2val; TorquePassiveQ3val];
     
-% Omega matrix
-Omega = B * (B'*B)^-1 *diag(Weight) * (B'*B)^-1 * B';
 
 % Integral Matrix
-Iu=0;
-Iq=zeros(nn*(rU+1),nn*(rU+1));
-Iqu=zeros(1,(rU+1)*nn);
-for tt=1:length(Time)
-   
-    QQ_conc=zeros((rU+1)*nn,nn);% \underline{\underline{\mathcal{Q}}}^{r_u}
-    for joint=1:nn
-        QQ_rU_Joint=QVal(joint,tt).^(rU:-1:0)';
-        QQ_conc(1+(joint-1)*(rU+1):(joint)*(rU+1),joint)= QQ_rU_Joint;
+Cost=0;
+CostSub=0;
+for i=1:nn
+    QQ=[];
+    DQ=[];
+    for j=1:length(QVal(i,:))
+         QQ(j,:) = QVal(i,j).^(rU:-1:0)';
+         DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
     end
-
-    Iu = Iu + TorqueDesire(:,tt)'*Omega*TorqueDesire(:,tt);
-
-    Iq = Iq + QQ_conc*Omega*QQ_conc';
-
-    Iqu= Iqu+ TorqueDesire(:,tt)'*Omega*QQ_conc';
-   
-end
-
-Iu=Iu*Tres;
-Iq=Iq*Tres;
-Iqu=Iqu*Tres;
-
-syms s real;
-
-
-DqQ_rU_Joint=[(rU:-1:1).*(s.^(rU-1:-1:0)')', 0]';
-QQ=double(int(DqQ_rU_Joint*DqQ_rU_Joint',0,3/2*pi));
-
-Psi=zeros(rU+1,rU+1,nn);
-Idq=zeros(rU+1,rU+1,nn);
-Idq_conc=zeros((rU+1)*nn,(rU+1)*nn);
-
-for Joint=1:nn
-    a_hat(Joint) = max(TorquePassiveVal(Joint,:)) - min(TorquePassiveVal(Joint,:));
-    b_hat(Joint) = min(TorquePassiveVal(Joint,:));
-    c_hat(Joint) =(max(QVal(Joint,:)) - min(QVal(Joint,:)))* 2 / 3/pi;
-    d_hat(Joint) = min(QVal(Joint,:));
-
-    for kk=1:rU+1
-        Psi(kk,:,Joint)  = [zeros(1,kk-1),sym2poly( (c_hat(Joint)*s+ d_hat(Joint))^(rU+1-(kk))  ) ];
-%         Psi2(kk,:,Joint) = [zeros(1,kk-1), (c_hat(Joint)^(rU+1-(kk)))* poly(-d_hat(Joint)/c_hat(Joint)*ones(1,rU+1-(kk))  ) ];
-    end
-
-    QVal_hat(Joint,:)= ( QVal(Joint,:)-d_hat(Joint))/c_hat(Joint);
-
-    Idq(:,:,Joint) = Weight(Joint)*c_hat(Joint)* Psi(:,:,Joint)*QQ*Psi(:,:,Joint)';
     
-    Idq_conc((Joint-1)*(rU+1)+1:(Joint)*(rU+1),(Joint-1)*(rU+1)+1:(Joint)*(rU+1)) = Idq(:,:,Joint);
-
+    Cost=Cost + ...
+          Weight(i)*( 1/2*(TorqueDesire(i,:)' - QQ*CoefBLS_UPassive((i-1)*(rU+1)+1:(i)*(rU+1)) )'* (TorqueDesire(i,:)' - QQ*CoefBLS_UPassive((i-1)*(rU+1)+1:(i)*(rU+1)) )+ ...
+                      Landa* CoefBLS_UPassive((i-1)*(rU+1)+1:(i)*(rU+1))'*(DQ'*DQ)*CoefBLS_UPassive((i-1)*(rU+1)+1:(i)*(rU+1)) );
+          
+    CostSub=CostSub + ...
+          Weight(i)*( 1/2*(TorqueDesire(i,:)')'*(TorqueDesire(i,:)')+...
+                     -1/2*(TorqueDesire(i,:)')'*QQ*((QQ'*QQ)+Landa*(DQ'*DQ))^-1 * QQ' * (TorqueDesire(i,:)'));
 end
 
 
-% BetaOptimal=Landa*(Landa*Iq+(1-Landa)*Idq_conc)^-1*Iqu';
-SVDsol=SVDBlockInvertor((Landa*Iq+(1-Landa)*Idq_conc),nn,rU+1,0.0001);
-BetaOptimal=Landa*SVDsol*Iqu';
+BetaOptimal=[CoefBLS_UPassive1;CoefBLS_UPassive2;CoefBLS_UPassive3];
 TorquePassiveQ1valOptimal=polyval(BetaOptimal(0*(rU+1)+1:1*(rU+1)),Q1);
-TorquePassiveQ2valOptimal=polyval(BetaOptimal(1*(rU+1)+1:2*(rU+1)),Q2);
-TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
+TorquePassiveQ2valOptimal=polyval(BetaOptimal(1*(rU+1)+1:2*(rU+1)),Q2val);
+TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3val);
 TorquePassiveValOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
 
 
@@ -438,7 +403,7 @@ figure('name','Passive Torques')
     plot(Q1,TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
     hold on
     plot(Q1,TorquePassiveQ1val,'linewidth',2,'linestyle','-.','color','r')
-    plot(Q1,TorquePassiveQ1valOptimal,'linewidth',2,'linestyle','-.','color','g')
+    plot(Q1val,TorquePassiveQ1valOptimal,'linewidth',2,'linestyle','-.','color','g')
     hold off
     grid on
     xlabel('q_1')
@@ -449,7 +414,7 @@ figure('name','Passive Torques')
     plot(Q2,TorqueDesQ2,'linewidth',2,'linestyle','-','color','b')
     hold on
     plot(Q2,TorquePassiveQ2val,'linewidth',2,'linestyle','-.','color','r')
-    plot(Q2,TorquePassiveQ2valOptimal,'linewidth',2,'linestyle','-.','color','g')
+    plot(Q2val,TorquePassiveQ2valOptimal,'linewidth',2,'linestyle','-.','color','g')
     hold off
     grid on
     xlabel('q_2')
@@ -460,7 +425,7 @@ figure('name','Passive Torques')
     plot(Q3,TorqueDesQ3,'linewidth',2,'linestyle','-','color','b')
     hold on
     plot(Q3,TorquePassiveQ3val,'linewidth',2,'linestyle','-.','color','r')
-    plot(Q3,TorquePassiveQ3valOptimal,'linewidth',2,'linestyle','-.','color','g')
+    plot(Q3val,TorquePassiveQ3valOptimal,'linewidth',2,'linestyle','-.','color','g')
     hold off
     grid on
     xlabel('q_3')
@@ -469,13 +434,11 @@ figure('name','Passive Torques')
  toc
 %% Optimization
 
-
 Degree=[nn rQ rU];
 Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
-% % 
+
 %  Xt=x;
-% Xt2=x;
-% Initial=x;
+ Initial=x;
 
 % WeightMatrix
 % Weight=[ 10 1 1]';
@@ -495,32 +458,32 @@ LL3=L;
 tic
 MaxFunEvals_Data=3000*(rQ);
 MaxIter_Data=1000;
-TolFun_Data=1e-5;
-TolX_Data=1e-5;
-TolCon_Data=1e-5;
-% Algorithm='sqp';
-Algorithm='interior-point';
+TolFun_Data=1e-6;
+TolX_Data=1e-6;
+TolCon_Data=1e-6;
+Algorithm='sqp';
+  Algorithm='interior-point';
 Rand=5000*1e-10;
-MinSinValue=0.005;
 
-CostFun   = @(Alpha)CF2_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,QQ,B,g,mL1,mL2,mL3,LL1,LL2,LL3,MinSinValue);
-NonConstr = @(Alpha)CF2_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
+CostFun   = @(Alpha)CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
+NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
+
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-    Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(sum(rQ)+length(rQ)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
+    Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(rQ+length(rQ)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
-[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlope_X0,RMSError_X0]=...
-                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,QQ,B,XEF,YEF,m,L,g,MinSinValue,'Show','2Cycle','CostB','Initial');
+[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlope_X0,RMSError_X0]=...    
+                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[] ,XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Initial');
 [Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlope_Opt,RMSError_Opt]=...
-                        ShowTime(x,Time,Tres,Degree,Weight,Landa,QQ,B,XEF,YEF,m,L,g,MinSinValue,'Show','2Cycle','CostB','Optimized');
-
-TotalCost_X0  = Landa* IntU2_X0    + (1-Landa)*CostSlope_X0;
-TotalCost_Opt = Landa* IntU2_Opt   + (1-Landa)*CostSlope_Opt;
+                        ShowTime(x,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
+                    
+TotalCost_X0  = IntU2_X0    + Landa*CostSlope_X0;
+TotalCost_Opt = IntU2_Opt   + Landa*CostSlope_Opt;
              
 
-DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n',rQ,rU, 'Cast 2a');
+DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n',rQ,rU, 'Cast 2b');
 Title=sprintf('%22s %10s % 11s % 11s % 15s % 15s','IntU2','C.S.','Total','RMS Err','Req. Work','Actuator Work');
 Result_X0 =sprintf('%-11s %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e  ','Initial:',IntU2_X0,CostSlope_X0,TotalCost_X0,RMSError_X0,sum(IntAbsUdqDesire_X0),IntAbsUdq_X0);
 Result_Opt=sprintf('%-11s %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e\n','Optimized:',IntU2_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt,sum(IntAbsUdqDesire_Opt),IntAbsUdq_Opt);
