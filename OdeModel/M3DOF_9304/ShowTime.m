@@ -129,7 +129,7 @@ LL3=L;
 TorqueDesire=zeros(3,length(Time));
 IntU2=0;
 IntAbsUdq=0;
-IntAbsUdqDesire=zeros(nn,1);
+IntAbsUdqDesire=[];
 IntUdq=0;
 CostSlope=0;
 
@@ -257,6 +257,10 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
     TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
     TorquePassiveValOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
     TorqueActive=TorqueDesire-TorquePassiveValOptimal;
+    
+    IntAbsUdqDesire=(sum(abs(TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
+    IntAbsUdq=sum(sum(abs(TorqueActive.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
+
 end
 
 

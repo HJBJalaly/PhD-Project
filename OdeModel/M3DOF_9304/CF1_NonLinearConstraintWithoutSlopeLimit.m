@@ -47,4 +47,3 @@ Ceq=[RPos(:,1)-Pos(:,1);
      D2Q2(1)-D2Q2(end);
      D2Q3(1)-D2Q3(end)];    
 end
-

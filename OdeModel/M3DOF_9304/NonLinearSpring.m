@@ -1,4 +1,4 @@
-function NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0,Tpause)
+function NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0,Tpause,Name)
 % Param
 % ThetaStep : in rad
 % Theta: in rad with constant diff
@@ -70,8 +70,12 @@ Tauc=F.*r.*sin(Thetaa);
 
 
 %% showtime
+if(nargin==8)
+    figure('name',Name)
+else
+    figure
+end
 
-figure
 subplot(1,3,1)
 plot(rad2deg(ThetaS),tau)
 xlabel('\theta (deg)')
@@ -91,7 +95,11 @@ set(gcf,'Units','points', 'Position', [100, 10,100+ Xp,100+ Yp])
 
 
 if(Tpause>-1)
-    figure
+    if(nargin==8)
+        figure('name',Name)
+    else
+        figure
+    end
     DeltaF=max(F)-min(F);
     DeltaTau=max(Tauc)-min(Tauc);
 

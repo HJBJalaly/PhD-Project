@@ -294,15 +294,15 @@ tic
 % DoF system
 nn=3; % number of joints
 % DoF of Optimization 
-rQ=8; % Degree of joint trajectory
-rU=5; % Degree of passive torque
+rQ=7; % Degree of joint trajectory
+rU=2; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
 Weight=[ 1 1 1]';
-Landa=0.0001;
+Landa=0.000001;
 
-%%
+
 Time=time(Middle:end)-time(end)/2;
 Q1=q1(Middle:end);
 Q2=q2(Middle:end);
@@ -455,35 +455,35 @@ LL3=L;
 tic
 MaxFunEvals_Data=3000*(rQ);
 MaxIter_Data=1000;
-TolFun_Data=1e-8;
-TolX_Data=1e-8;
+TolFun_Data=1e-6;
+TolX_Data=1e-6;
 TolCon_Data=1e-6;
 Algorithm='sqp';
-%  Algorithm='interior-point';
+  Algorithm='interior-point';
 Rand=5000*1e-20;
-MinSinValue=0.005;
 
 CostFun   = @(Alpha)CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
-NonConstr = @(Alpha)CF2_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
+NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
+
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-    Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(sum(rQ)+length(rQ)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
+    Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(rQ+length(rQ)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
-[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,CostSlope_X0,RMSError_X0]=...
-                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,QQ,B,XEF,YEF,m,L,g,MinSinValue,'DntShow','2Cycle','CostC','Initial');
-[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,CostSlope_Opt,RMSError_Opt]=...
-                        ShowTime(x,Time,Tres,Degree,Weight,Landa,QQ,B,XEF,YEF,m,L,g,MinSinValue,'Show','2Cycle','CostC','Optimized');
-
+[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlope_X0,RMSError_X0]=...    
+                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
+[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlope_Opt,RMSError_Opt]=...
+                        ShowTime(x,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
+                    
 TotalCost_X0  = Landa* IntU2_X0    + (1-Landa)*CostSlope_X0;
 TotalCost_Opt = Landa* IntU2_Opt   + (1-Landa)*CostSlope_Opt;
              
 
 DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n',rQ,rU, 'Cast 2b');
-Title=sprintf('%24s %12s % 12s % 12s % 12s','IntU2','IntAbsUdq','C.S.','Total','RMS Err');
-Result_X0 =sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e ','Initial:',IntU2_X0,IntAbsUdq_X0,CostSlope_X0,TotalCost_X0,RMSError_X0);
-Result_Opt=sprintf('%-11s %12.2e %12.2e % 12.2e % 12.2e % 12.2e\n','Optimized:',IntU2_Opt,IntAbsUdq_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt);
+Title=sprintf('%22s %10s % 11s % 11s % 15s % 15s','IntU2','C.S.','Total','RMS Err','Req. Work','Actuator Work');
+Result_X0 =sprintf('%-11s %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e  ','Initial:',IntU2_X0,CostSlope_X0,TotalCost_X0,RMSError_X0,sum(IntAbsUdqDesire_X0),IntAbsUdq_X0);
+Result_Opt=sprintf('%-11s %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e\n','Optimized:',IntU2_Opt,CostSlope_Opt,TotalCost_Opt,RMSError_Opt,sum(IntAbsUdqDesire_Opt),IntAbsUdq_Opt);
 display(output.message)
 disp(DegreeStr)
 disp(Title)

@@ -10,6 +10,9 @@ end
 
 % CoefBLS=((QQ'*QQ)+alpha*(DD'*DD))^-1 * QQ'*TorqueProfile;
 CoefBLS=((QQ'*QQ)+alpha*(DD'*DD))\( QQ'*TorqueProfile);
+if(rcond(QQ'*QQ)<1e-20)
+    1;
+end
 
 % syms s real;
 % 
