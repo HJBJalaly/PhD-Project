@@ -246,7 +246,7 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
         IntU2=IntU2 + ...
               Weight(i)* 1/2*(TorqueDesire(i,:)' - QQ*CoefBLSI )'* (TorqueDesire(i,:)' - QQ*CoefBLSI )*Tres;
                           
-        CostSlope = CostSlope + CoefBLSI'*(DQ'*DQ)*CoefBLSI;
+        CostSlope = CostSlope + Weight(i)* 1/2*CoefBLSI'*(DQ'*DQ)*CoefBLSI*Tres;
 
         BetaOptimal=[BetaOptimal;CoefBLSI];
     end
