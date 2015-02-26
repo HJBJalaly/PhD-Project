@@ -241,12 +241,13 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
         for j=1:length(QVal(i,:))
              QQ(j,:) = QVal(i,j).^(rU:-1:0)';
              DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
+             D2Q(j,:) = ([QVal(i,j).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
         end
         
         IntU2=IntU2 + ...
               Weight(i)* 1/2*(TorqueDesire(i,:)' - QQ*CoefBLSI )'* (TorqueDesire(i,:)' - QQ*CoefBLSI )*Tres;
                           
-        CostSlope = CostSlope + Weight(i)* 1/2*CoefBLSI'*(DQ'*DQ)*CoefBLSI*Tres;
+        CostSlope = CostSlope + Weight(i)* 1/2*CoefBLSI'*(D2Q'*D2Q)*CoefBLSI*Tres;
 
         BetaOptimal=[BetaOptimal;CoefBLSI];
     end
