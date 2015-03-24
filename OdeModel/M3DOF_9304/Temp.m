@@ -145,3 +145,48 @@ figure
     ylabel('${\frac{{\partial\tau}}{\partial{q}}}$ ','interpreter','latex','fontsize',38)
     hold off
 %     ylim([-4,1.5])
+
+%%
+
+
+for i=1:size(Q_Opt,2)
+    q1=Q_Opt(1,i);
+    q2=Q_Opt(2,i);
+    q3=Q_Opt(3,i);
+    D1q1=D1Q_Opt(1,i);
+    D1q2=D1Q_Opt(2,i);
+    D1q3=D1Q_Opt(3,i);
+    
+
+    KK(i)= mL2*LL1*D1q1*LL2*D1q2*cos(q2)/2 + mL1*LL1^2*D1q1^2/6 + mL2*LL2^2*D1q1*D1q2/3 + ...
+           mL2*LL1^2*D1q1^2/2 + mL2*LL2^2*D1q1^2/6 + mL2*LL2^2*D1q2^2/6 + mL2*LL1*D1q1^2*LL2*cos(q2)/2 + ...
+           mL3*LL1*D1q1^2*LL2*cos(q2) + mL3*LL1*D1q1^2*LL3*cos(q2+q3)/2 + mL3*LL2*D1q1^2*LL3*cos(q3)/2 + ...
+           mL3*LL2^2*D1q1*D1q2 + mL3*LL3^2*D1q2*D1q3/3 + mL3*LL3^2*D1q1*D1q3/3 + mL3*LL3^2*D1q1*D1q2/3 + ...
+           mL3*LL1^2*D1q1^2/2 + mL3*LL2^2*D1q1^2/2 + mL3*LL2^2*D1q2^2/2 + mL3*LL3^2*D1q1^2/6 + ...
+           mL3*LL3^2*D1q2^2/6 + mL3*LL3^2*D1q3^2/6 + mL3*LL1*D1q1*LL2*D1q2*cos(q2) + ...
+           mL3*LL1*D1q1*LL3*D1q2*cos(q2+q3)/2 + mL3*LL1*D1q1*LL3*D1q3*cos(q2+q3)/2 + ...
+           mL3*LL2*D1q1*LL3*D1q2*cos(q3) + mL3*LL2*D1q1*LL3*D1q3*cos(q3)/2 + mL3*LL2*D1q2*LL3*D1q3*cos(q3)/2 + ...
+           mL3*LL2*D1q2^2*LL3*cos(q3)/2;
+    UU(i)= g*(mL3*LL3*sin(q1+q2+q3) + LL2*(2*mL3+mL2)*sin(q1+q2) + sin(q1)*LL1*(mL1+2*mL2+2*mL3))/2;
+
+end
+
+
+LLnum=KK-UU;
+
+D1K1=diff(KK)./diff(D1Q_Opt(1,:));
+D1K2=diff(KK)./diff(D1Q_Opt(2,:));
+D1K3=diff(KK)./diff(D1Q_Opt(3,:));
+
+IntSub1=2*(( D1K1(100)*D1Q_Opt(1,100)- KK(100)-LLnum(100) ) - ( D1K1(1)*D1Q_Opt(1,1)- KK(1)-LLnum(1) ));
+IntSub2=2*(( D1K2(100)*D1Q_Opt(2,100)- KK(100)-LLnum(100) ) - ( D1K2(1)*D1Q_Opt(2,1)- KK(1)-LLnum(1) ));
+IntSub3=2*(( D1K3(100)*D1Q_Opt(3,100)- KK(100)-LLnum(100) ) - ( D1K3(1)*D1Q_Opt(3,1)- KK(1)-LLnum(1) ));
+
+IntUdq1=sum(Torque_Opt(1,:).*D1Q_Opt(1,:))*Tres;
+IntUdq2=sum(Torque_Opt(2,:).*D1Q_Opt(2,:))*Tres;
+IntUdq3=sum(Torque_Opt(3,:).*D1Q_Opt(3,:))*Tres;
+
+
+[ IntSub1, IntSub2, IntSub3;
+  IntUdq1, IntUdq2, IntUdq3 ]
+

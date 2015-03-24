@@ -381,10 +381,10 @@ NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,
     Op_FmisCon_SQP(CostFun,NonCons,Initial+Rand*(randn(1,3*(Degree+1))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
-[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,Nothing,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,Nothing,CostSlope_X0,RMSError_X0]=...
+[Torque_X0,Q_X0,D1Q_X0,D2Q_X0,Nothing,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,Nothing,CostSlope_X0,Nothing,RMSError_X0]=...
                         ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostA','Initial');
                                  
-[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,Nothing,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,Nothing,CostSlope_Opt,RMSError_Opt]=...
+[Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,Nothing,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,Nothing,CostSlope_Opt,Nothing,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostA','Optimized');
 
 TotalCost_X0  = Landa*Select*[ IntU2_X0  IntAbsUdq_X0  IntUdq_X0]'  + (1-Landa)*CostSlope_X0;
@@ -479,6 +479,8 @@ figure
 plot(ThetaDiff,tauDiff)
 
 tauVar=(tauShiftScaleVar*TauMax)-TauMin*2;
+tauVar(SubRange1)=tauVar(SubRange1)-2*(-0.4533)*(tauVar(SubRange1)-tauVar(SubRange1(1)));
+
 figure
 plot(Q_Opt(Joint,:),Torque_Opt(Joint,:),'linewidth',2)
 hold on
@@ -529,7 +531,7 @@ PopulationSize=500;
 InitialPopulation=[k0*rand(PopulationSize,1) R0*rand(PopulationSize,1) q00*rand(PopulationSize,1)];
 CostParamDiff=@(Param)GA_CostParamNonLinearSpring(Param,ThetaStepscale,ThetaShiftScale,tauDiff);
 
-[ParamADiff,fval,exitflag,output,population,score] = ...
+[ParamADiff,fvalGA,exitflagGA,outputGA,populationGA,scoreGA] = ...
     GA_FminCost(CostParamDiff,nvars,lb,PopInitRange,PopulationSize,InitialPopulation);
 disp(output.message)
 

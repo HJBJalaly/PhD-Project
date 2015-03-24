@@ -1,4 +1,4 @@
-function [TorqueDesire,Q,D1Q,D2Q,BetaOptimal,IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlope,RMS]=...
+function [TorqueDesire,Q,D1Q,D2Q,BetaOptimal,IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlopeD1Q,CostSlopeD2Q,RMS]=...
                 ShowTime(Alpha,Time,Tres,Degree,Weight,Landa,QQ,B,Xef,Yef,m,L,g,MinSinValue,ShowFlag,Period,Mode,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
@@ -131,7 +131,8 @@ IntU2=0;
 IntAbsUdq=0;
 IntAbsUdqDesire=[];
 IntUdq=0;
-CostSlope=0;
+CostSlopeD1Q=0;
+CostSlopeD2Q=0;
 
 for i=1:length(Time)
     q1=Q1(i);
@@ -172,8 +173,8 @@ if (strcmp(Mode,'CostA')) % for CF1 % for CF1 % for CF1 % for CF1
         ThetaShiftScale = ThetaShift* (deg2rad(270) /  max(ThetaShift));
         tau=TorqueDesire(Joint, 1:Till)-min(TorqueDesire(Joint, 1:Till));
         tauShiftScale= tau /max(tau);
-        DTa=diff(tauShiftScale)./diff(ThetaShiftScale)*0.75;
-        CostSlope=CostSlope+sum((DTa*4/3).^2)*Weight(Joint)/sum(Weight);
+        DTa=diff(tauShiftScale)./diff(ThetaShiftScale);
+        CostSlopeD1Q=CostSlopeD1Q+sum((DTa*4/3).^2)*Weight(Joint)/sum(Weight);
     end
     
     BetaOptimal=[];
@@ -214,7 +215,7 @@ elseif(strcmp(Mode,'CostB'))   % for CF2
     BetaOptimal=  Landa*SVDsol*Iuq';
      
     IntU2=1/2*Iu+1/2*BetaOptimal'*Iq*BetaOptimal-Iuq*BetaOptimal;
-    CostSlope=1/2*BetaOptimal'*Idq_conc*BetaOptimal;
+    CostSlopeD1Q=1/2*BetaOptimal'*Idq_conc*BetaOptimal;
 %     Cost = 1/2* Landa*Iu - 1/2*Landa^2*Iuq*(Landa*Iq + (1-Landa)*Idq_conc )^-1 *Iuq'
 %     IntU2*Landa+(1-Landa)*CostSlope    
 %     Cost = 1/2* Landa*Iu - 1/2*Landa^2*Iuq*SVDsol *Iuq';
@@ -247,7 +248,8 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
         IntU2=IntU2 + ...
               Weight(i)* 1/2*(TorqueDesire(i,:)' - QQ*CoefBLSI )'* (TorqueDesire(i,:)' - QQ*CoefBLSI )*Tres;
                           
-        CostSlope = CostSlope + Weight(i)* 1/2*CoefBLSI'*(D2Q'*D2Q)*CoefBLSI*Tres;
+        CostSlopeD1Q = CostSlopeD1Q + Weight(i)* 1/2*CoefBLSI'*(DQ'*DQ)*CoefBLSI*Tres;
+        CostSlopeD2Q = CostSlopeD2Q + Weight(i)* 1/2*CoefBLSI'*(D2Q'*D2Q)*CoefBLSI*Tres;
 
         BetaOptimal=[BetaOptimal;CoefBLSI];
     end
@@ -348,6 +350,8 @@ if(strcmp(ShowFlag,'Show'))
         plot(Q1(1),TorqueDesire(1,1),'linewidth',2,'linestyle','none','marker','*','markersize',10)
         plot(Q1(10),TorqueDesire(1,10),'linewidth',2,'linestyle','none','marker','*','markersize',6,'markeredgecolor','r')
         hold off
+        DeltaTorque=max(TorqueDesire(1,:))-min(TorqueDesire(1,:));
+        ylim([min(TorqueDesire(1,:))-0.2*DeltaTorque,max(TorqueDesire(1,:))+0.2*DeltaTorque])
         
         subplot(3,SubplotNUM,1*(SubplotNUM-1)+2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Q2,TorqueDesire(2,:),'linewidth',2)
@@ -374,6 +378,8 @@ if(strcmp(ShowFlag,'Show'))
         xlabel('q_2 (rad)','fontsize',12,'FontName','mwa_cmb10');
         ylabel('\tau_2','fontsize',14,'FontName','mwa_cmb10');
         hold off
+        DeltaTorque=max(TorqueDesire(2,:))-min(TorqueDesire(2,:));
+        ylim([min(TorqueDesire(2,:))-0.2*DeltaTorque,max(TorqueDesire(2,:))+0.2*DeltaTorque])
         
         subplot(3,SubplotNUM,2*(SubplotNUM-1)+3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Q3,TorqueDesire(3,:),'linewidth',2)
@@ -400,6 +406,9 @@ if(strcmp(ShowFlag,'Show'))
         xlabel('q_3 (rad)','fontsize',12,'FontName','mwa_cmb10');
         ylabel('\tau_3','fontsize',14,'FontName','mwa_cmb10');
         hold off
+        DeltaTorque=max(TorqueDesire(3,:))-min(TorqueDesire(3,:));
+        ylim([min(TorqueDesire(3,:))-0.2*DeltaTorque,max(TorqueDesire(3,:))+0.2*DeltaTorque])
+        
 
 end
 
