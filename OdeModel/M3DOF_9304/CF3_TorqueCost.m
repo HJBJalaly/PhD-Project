@@ -73,15 +73,14 @@ for i=1:nn
     for j=1:length(QVal(i,:))
          QQ(j,:) = QVal(i,j).^(rU:-1:0)';
          DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
-         D2Q(j,:) = ([QVal(i,j).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
+%          D2Q(j,:) = ([QVal(i,j).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
     end
 
     
-
   Cost=Cost + ...
           Weight(i)*1/2*( (TorqueDesire(i,:)' - QQ*CoefBLSI )'*(TorqueDesire(i,:)' - QQ*CoefBLSI) + ...
-                Landa(1)* CoefBLSI'*(DQ'*DQ)*CoefBLSI +...
-                Landa(2)* CoefBLSI'*(D2Q'*D2Q)*CoefBLSI )*Tres;
+                Landa(1)* CoefBLSI'*(DQ'*DQ)*CoefBLSI )*Tres;% +...
+%                 Landa(2)* CoefBLSI'*(D2Q'*D2Q)*CoefBLSI )*Tres;
 
 end
 1;

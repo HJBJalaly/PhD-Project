@@ -14,25 +14,29 @@ function NonLinearSpring(ThetaStep,ThetaS,tau,k,R,q0,Tpause,Name)
 
 % k=137;
 % R=130e-3;
+% Tpause=.01;
+% 
 % 
 % ThetaStep=.05;
 % ThetaS=deg2rad(0:ThetaStep:270);
+% ThetaStep=deg2rad(ThetaStep);
+% Name='Embed';
 % 
-% 
-% k=150;
-% R=175e-3;
-% q0=300e-3;  % for sinuid
-% tau=2*sin(ThetaS/3*4)+3;
-% 
-% 
+% % k=150;
+% % R=175e-3;
+% % q0=300e-3;  % for sinuid
+% % tau=2*sin(ThetaS/3*4)+3;
+% % 
+% % % 
+% % % 
 % % q0=130e-3;  % for cubic
 % % tau=0.21*(ThetaS-0.75*pi).*(ThetaS-0.25*pi).*(ThetaS-1.25*pi)+2.5;
-% 
-% % q0=190e-3;  % for constant
-% % tau=2*ones(size(ThetaS));
+% % 
+% % % q0=190e-3;  % for constant
+% % % tau=2*ones(size(ThetaS));
 %   
-% % q0=99e-3;  % for exp
-% % tau=2*(1-exp(-ThetaS))+1;        
+% q0=99e-3;  % for exp
+% tau=2*(1-exp(-ThetaS))+1;        
 
 %%  Calculate (r,theta) of spool
 

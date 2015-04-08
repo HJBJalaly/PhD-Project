@@ -292,7 +292,7 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %%  Generate Initial value for Optimization
 
-Degree=6;
+Degree=7;
 
 Time=time(Middle:end)-time(end)/2;
 Q1=q1(Middle:end);
@@ -352,28 +352,28 @@ LL2=L;
 LL3=L;
 
 %% Optimization
-% InitialT=Initial;
-%  xT=x;
-Initial=x;
+%  InitialT=Initial;
+%      xT=x;
+%    Initial=x;
 
 tic
 MaxFunEvals_Data=3000*Degree;
 MaxIter_Data=1000;
-TolFun_Data=1e-12;
+TolFun_Data=1e-6;
 TolX_Data=1e-12;
-TolCon_Data=1e-12;
+TolCon_Data=1e-15;
 Algorithm='sqp';
-% Algorithm='interior-point';
+ Algorithm='interior-point';
 
-Select=[ 0 0 1]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
+Select=[ 1 0 0]; SeletcStr={'IntU2','IntAbsUdq','IntUdq'};
 Weight=[ 10 1 0.01]';
-Landa=.7;
-Rand=1e-3;
+Landa=.95;
+Rand=1e-8;
 
 
 CostFun=@(Coef)CF1_TorqueCostWithSlopeLimit(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,XEF,YEF);
-1
+
 % CostFun=@(Coef)CF1_TorqueCostWithoutSlope(Coef,Time,Degree,Tres,Select,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3);
 % NonCons=@(Coef)CF1_NonLinearConstraintWithSplopeLimit(Coef,Time,Tres,Degree,Weight,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
 
@@ -382,7 +382,7 @@ NonCons=@(Coef)CF1_NonLinearConstraintWithoutSlopeLimit(Coef,Time,Tres,Degree,L,
 
 
 [Torque_X0,Q_X0,D1Q_X0,D2Q_X0,Nothing,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,Nothing,CostSlope_X0,Nothing,RMSError_X0]=...
-                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostA','Initial');
+                        ShowTime(Initial,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostA','Initial');
                                  
 [Torque_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,Nothing,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,Nothing,CostSlope_Opt,Nothing,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,Landa,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostA','Optimized');

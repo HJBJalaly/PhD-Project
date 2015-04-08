@@ -1,4 +1,4 @@
-function [TorqueDesire,Q,D1Q,D2Q,BetaOptimal,IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlopeD1Q,CostSlopeD2Q,RMS]=...
+function [TorqueDesire,TorqueActive,Q,D1Q,D2Q,BetaOptimal,IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlopeD1Q,CostSlopeD2Q,RMS]=...
                 ShowTime(Alpha,Time,Tres,Degree,Weight,Landa,QQ,B,Xef,Yef,m,L,g,MinSinValue,ShowFlag,Period,Mode,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
@@ -270,58 +270,153 @@ end
 if(strcmp(ShowFlag,'Show'))
     
     figure('name',[' Desired Torque vs Time : ',Name])
-        plot(Time,TorqueDesire,'linewidth',2)
+        subplot(3,1,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time,TorqueDesire(1,:),'linewidth',2,'displayname','\tau_d_1')
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+            hold on
+            plot(Time,TorqueActive(1,:),'linewidth',2,'color','r','displayname','\tau_a_1')
+            hold off
+        end
+        legend(gca,'show')
         if(strcmp(Period,'2Cycle'))
             hold on
-            plot(Time+Time(end),TorqueDesire,'linewidth',2,'linestyle','-.')
+            plot(Time+Time(end),TorqueDesire(1,:),'linewidth',2,'color','b','linestyle','-.')
+            if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+                plot(Time+Time(end),TorqueActive(1,:),'linewidth',2,'color','r','linestyle','-.')
+            end
             hold off
         end
         title(' Desired Torque','FontWeight','bold','FontName','mwa_cmb10');
-        legend('\tau_d_1','\tau_d_2','\tau_d_3')
+        legend BOXOFF
         xlabel('time (s)','fontsize',14,'FontName','mwa_cmb10');
-        ylabel('\tau','fontsize',14,'FontName','mwa_cmb10');
+        ylabel('\tau_1','fontsize',14,'FontName','mwa_cmb10');
         grid on
+        set(gca,'YMinorGrid','on')
+        DeltaTorque=max(TorqueDesire(1,:))-min(TorqueDesire(1,:));
+        ylim([min(TorqueDesire(1,:))-0.1*DeltaTorque,max(TorqueDesire(1,:))+0.1*DeltaTorque])
+        
+        subplot(3,1,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time,TorqueDesire(2,:),'linewidth',2,'displayname','\tau_d_2')
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+            hold on
+            plot(Time,TorqueActive(2,:),'linewidth',2,'color','r','displayname','\tau_a_2')
+            hold off
+        end
+        legend(gca,'show')
+        if(strcmp(Period,'2Cycle'))
+            hold on
+            plot(Time+Time(end),TorqueDesire(2,:),'linewidth',2,'color','b','linestyle','-.')
+            if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+                plot(Time+Time(end),TorqueActive(2,:),'linewidth',2,'color','r','linestyle','-.')
+            end
+            hold off
+        end
+        title(' Desired Torque','FontWeight','bold','FontName','mwa_cmb10');
+        legend BOXOFF
+        xlabel('time (s)','fontsize',14,'FontName','mwa_cmb10');
+        ylabel('\tau_2','fontsize',14,'FontName','mwa_cmb10');
+        grid on
+        set(gca,'YMinorGrid','on')
+        DeltaTorque=max(TorqueDesire(2,:))-min(TorqueDesire(2,:));
+        ylim([min(TorqueDesire(2,:))-0.1*DeltaTorque,max(TorqueDesire(2,:))+0.1*DeltaTorque])
+        
+        subplot(3,1,3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time,TorqueDesire(3,:),'linewidth',2,'displayname','\tau_d_3')
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+            hold on
+            plot(Time,TorqueActive(3,:),'linewidth',2,'color','r','displayname','\tau_a_3')
+            hold off
+        end
+        legend(gca,'show')
+        if(strcmp(Period,'2Cycle'))
+            hold on
+            plot(Time+Time(end),TorqueDesire(3,:),'linewidth',2,'color','b','linestyle','-.')
+            if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+                plot(Time+Time(end),TorqueActive(3,:),'linewidth',2,'color','r','linestyle','-.')
+            end
+            hold off
+        end
+        title(' Desired Torque','FontWeight','bold','FontName','mwa_cmb10');
+        legend BOXOFF
+        xlabel('time (s)','fontsize',14,'FontName','mwa_cmb10');
+        ylabel('\tau_3','fontsize',14,'FontName','mwa_cmb10');
+        grid on
+        set(gca,'YMinorGrid','on')
+        DeltaTorque=max(TorqueDesire(3,:))-min(TorqueDesire(3,:));
+        ylim([min(TorqueDesire(3,:))-0.1*DeltaTorque,max(TorqueDesire(3,:))+0.1*DeltaTorque])
+        
         
     figure('name',[' Desired Torque*\dot{q} vs time : ',Name])
         subplot(3,1,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        plot(Time,TorqueDesire(1,:).*D1Q1,'linewidth',2)
+        plot(Time,TorqueDesire(1,:).*D1Q1,'linewidth',2,'displayname','power_d_1')
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+            hold on
+            plot(Time,TorqueActive(1,:).*D1Q1,'linewidth',2,'color','r','displayname','power_a_1')
+            hold off
+        end
+        legend(gca,'show','Orientation','horizontal')
         if(strcmp(Period,'2Cycle'))
             hold on
-            plot(Time+Time(end),TorqueDesire(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),TorqueDesire(1,:).*D1Q1,'linewidth',2,'linestyle','-.')
+            if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+                plot(Time+Time(end),TorqueActive(1,:).*D1Q1,'linewidth',2,'color','r','linestyle','-.')
+            end
             hold off
         end
         title('${\tau * \dot q}$ vs Time','FontWeight','bold', 'interpreter','latex','fontsize',18)
-        xlabel('time','fontsize',12,'FontName','mwa_cmb10');
-        ylabel('${\tau_d_1 * \dot q_1}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('${\tau_1 * \dot q_1}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
         grid on
         set(gca,'YMinorGrid','on')
-
-
+        DeltaTorque=max(TorqueDesire(1,:).*D1Q1)-min(TorqueDesire(1,:).*D1Q1);
+        ylim([min(TorqueDesire(1,:).*D1Q1)-0.1*DeltaTorque,max(TorqueDesire(1,:).*D1Q1)+0.1*DeltaTorque])
+      
+        
         subplot(3,1,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        plot(Time,TorqueDesire(2,:).*D1Q2,'linewidth',2)
-        if(strcmp(Period,'2Cycle'))
+        plot(Time,TorqueDesire(2,:).*D1Q2,'linewidth',2,'displayname','power_d_2')
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
             hold on
-            plot(Time+Time(end),TorqueDesire(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time,TorqueActive(2,:).*D1Q2,'linewidth',2,'color','r','displayname','power_a_2')
             hold off
         end
-        xlabel('time','fontsize',12,'FontName','mwa_cmb10');
-        ylabel('${\tau_d_2 * \dot q_2}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
+        legend(gca,'show','Orientation','horizontal')
+        if(strcmp(Period,'2Cycle'))
+            hold on
+            plot(Time+Time(end),TorqueDesire(2,:).*D1Q2,'linewidth',2,'linestyle','-.')
+            if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+                plot(Time+Time(end),TorqueActive(2,:).*D1Q2,'linewidth',2,'color','r','linestyle','-.')
+            end
+            hold off
+        end
+        ylabel('${\tau_2 * \dot q_2}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
         grid on
         set(gca,'YMinorGrid','on')
-
+        DeltaTorque=max(TorqueDesire(2,:).*D1Q2)-min(TorqueDesire(2,:).*D1Q2);
+        ylim([min(TorqueDesire(2,:).*D1Q1)-0.1*DeltaTorque,max(TorqueDesire(2,:).*D1Q2)+0.1*DeltaTorque])
+      
 
         subplot(3,1,3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        plot(Time,TorqueDesire(3,:).*D1Q3,'linewidth',2)
+        plot(Time,TorqueDesire(3,:).*D1Q3,'linewidth',2,'displayname','power_d_1')
+        if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+            hold on
+            plot(Time,TorqueActive(3,:).*D1Q3,'linewidth',2,'color','r','displayname','power_a_3')
+            hold off
+        end
+        legend(gca,'show','Orientation','horizontal')
         if(strcmp(Period,'2Cycle'))
             hold on
-            plot(Time+Time(end),TorqueDesire(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),TorqueDesire(3,:).*D1Q3,'linewidth',2,'linestyle','-.')
+            if(strcmp(Mode,'CostB') || strcmp(Mode,'CostC'))
+                plot(Time+Time(end),TorqueActive(3,:).*D1Q3,'linewidth',2,'color','r','linestyle','-.')
+            end
             hold off
         end
         xlabel('time','fontsize',12,'FontName','mwa_cmb10');
-        ylabel('${\tau_d_3 * \dot q_3}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('${\tau_3 * \dot q_3}$', 'interpreter','latex','fontsize',12,'FontName','mwa_cmb10');
         grid on
         set(gca,'YMinorGrid','on')
-
+        DeltaTorque=max(TorqueDesire(3,:).*D1Q3)-min(TorqueDesire(3,:).*D1Q3);
+        ylim([min(TorqueDesire(3,:).*D1Q3)-0.1*DeltaTorque,max(TorqueDesire(3,:).*D1Q3)+0.1*DeltaTorque])
+      
    figure('name',['Torque vs Angle : ',Name])
         subplot(3,SubplotNUM,0*(SubplotNUM-1)+1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Q1,TorqueDesire(1,:),'linewidth',2)
@@ -344,6 +439,8 @@ if(strcmp(ShowFlag,'Show'))
             ylabel('\tau_a_1','fontsize',14,'FontName','mwa_cmb10');
             grid on
             set(gca,'YMinorGrid','on')
+            DeltaTorque=max(TorqueActive(1,:))-min(TorqueActive(1,:));
+            ylim([min(TorqueActive(1,:))-0.1*DeltaTorque,max(TorqueActive(1,:))+0.1*DeltaTorque])
             subplot(3,2,1)
         end
         hold on
@@ -370,6 +467,8 @@ if(strcmp(ShowFlag,'Show'))
             ylabel('\tau_a_2','fontsize',14,'FontName','mwa_cmb10');
             grid on
             set(gca,'YMinorGrid','on')
+            DeltaTorque=max(TorqueActive(2,:))-min(TorqueActive(2,:));
+            ylim([min(TorqueActive(2,:))-0.1*DeltaTorque,max(TorqueActive(2,:))+0.1*DeltaTorque])
             subplot(3,2,3)
         end
         hold on
@@ -398,6 +497,8 @@ if(strcmp(ShowFlag,'Show'))
             ylabel('\tau_a_3','fontsize',14,'FontName','mwa_cmb10');
             grid on
             set(gca,'YMinorGrid','on')
+            DeltaTorque=max(TorqueActive(3,:))-min(TorqueActive(3,:));
+            ylim([min(TorqueActive(3,:))-0.1*DeltaTorque,max(TorqueActive(3,:))+0.1*DeltaTorque])
             subplot(3,2,5)
         end
         hold on
