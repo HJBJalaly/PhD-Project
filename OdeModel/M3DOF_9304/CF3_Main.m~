@@ -181,7 +181,7 @@ L=1;
 % EF motion
 f=1;
 A=1;
-phi=pi;
+phi=0;
 Tres=0.005;
 time=0:Tres:2/f;
 
@@ -336,12 +336,12 @@ rU=5; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
-Weight=[ 1 1 1]';
+Weight=[ 3 2 1]';
 
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[1 0  ];
-Landa=[1e-3 1e-7];
+Landa=[1e-4 1e-7];
 
 
 Time=time(Middle:end)-time(end)/2;
@@ -489,7 +489,7 @@ Degree=[nn rQ rU];
 Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 % 
 % Xt2=x;
-%  Initial=x;
+% Initial=x;
 
 % WeightMatrix
 % Weight=[ 10 1 1]';
@@ -514,7 +514,7 @@ TolX_Data=1e-6;
 TolCon_Data=1e-6;
 Algorithm='sqp';
 Algorithm='interior-point';
-Rand=5000*1e-8;
+Rand=5000*1e-6;
 
 CostFun   = @(Alpha)CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,(Landa.*SelectLanda),g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
@@ -525,9 +525,11 @@ NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
     Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(rQ+length(rQ)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
+
+
 %%
 [TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,RMSError_X0]=...    
-                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
+                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[] ,XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
                     
@@ -556,6 +558,7 @@ toc
 ThetaShiftScale=[];
 ThetaStepscale=[];
 tauShiftScale=[];
+tauShiftMain=[];
 
 for Joint=1:nn
 
@@ -575,6 +578,7 @@ for Joint=1:nn
     tau=polyval(BetaOptimal_Opt((rU+1)*(Joint-1)+1: (Joint)*(rU+1)),ThetaS);    
     TauMin=abs(min(tau));
     tauShift=tau+TauMin*3;
+    tauShiftMain{Joint}=(tauShift);
     tauShiftScale{Joint}=(tauShift)/max(tauShift);
     
 
@@ -620,7 +624,7 @@ for Joint=1:nn
 end
 %%
 % ParamA=[kg+600,Rg-.85,qg0+.25]
-for Joint=2:2
+for Joint=1:nn
     k=ParamA{Joint}(1)*max(tauShiftMain{Joint});
     R=ParamA{Joint}(2)*2;
     q0=ParamA{Joint}(3);

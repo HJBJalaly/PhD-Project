@@ -529,7 +529,7 @@ NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
 
 %%
 [TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,RMSError_X0]=...    
-                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
+                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[] ,XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
                     
