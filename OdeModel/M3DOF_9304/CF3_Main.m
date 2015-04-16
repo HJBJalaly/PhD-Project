@@ -181,7 +181,7 @@ L=1;
 % EF motion
 f=1;
 A=1;
-phi=0;
+phi=2*pi;
 Tres=0.005;
 time=0:Tres:2/f;
 
@@ -205,9 +205,9 @@ Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
 Dyef= 2*zeros(size(time));
 D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
 D2yef= 2*zeros(size(time));
-q1=deg2rad( 41.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
-q2=deg2rad(18.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
-q3=deg2rad(44.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
+q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
+q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
+q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
 
 
 % % Line motion: Vertical
@@ -325,14 +325,14 @@ Y=[q1(1:end)',q2(1:end)',q3(1:end)'];
 AnimBot3DOF(time(1:end),Y,L);
 Middle=ceil(length(time)/2);
 %%  Generate Initial value for Optimization
-
+close all
 
 tic
 % DoF system
 nn=3; % number of joints
 % DoF of Optimization 
 rQ=10; % Degree of joint trajectory
-rU=5; % Degree of passive torque
+rU=4; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
@@ -345,13 +345,13 @@ Landa=[1e-4 1e-7];
 
 
 Time=time(Middle:end)-time(end)/2;
-Q1=q1(Middle:end);
-Q2=q2(Middle:end);
-Q3=q3(Middle:end);
+% Q1=q1(Middle:end);
+% Q2=q2(Middle:end);
+% Q3=q3(Middle:end);
 % Q_CF1_U2=load('temp2','Q_Opt');
-% Q1=Q_CF1_U2.Q_Opt(1,:);
-% Q2=Q_CF1_U2.Q_Opt(2,:);
-% Q3=Q_CF1_U2.Q_Opt(3,:);
+% Q1=Q_Opt(1,:);
+% Q2=Q_Opt(2,:);
+% Q3=Q_Opt(3,:);
 XEF=xef(Middle:end);
 YEF=yef(Middle:end);
 TorqueDesQ1=torqueDesire(1,Middle:end);
@@ -486,9 +486,9 @@ figure('name','Passive Torques')
 %% Optimization
 
 Degree=[nn rQ rU];
-% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 % 
-% Xt2=x;
+% Initail2=Initial;
 % Initial=x;
 
 % WeightMatrix
@@ -509,12 +509,13 @@ LL3=L;
 tic
 MaxFunEvals_Data=3000*(rQ);
 MaxIter_Data=1000;
-TolFun_Data=1e-6;
-TolX_Data=1e-6;
+TolFun_Data=1e-8;
+TolX_Data=1e-8;
 TolCon_Data=1e-6;
 Algorithm='sqp';
 Algorithm='interior-point';
 Rand=5000*1e-6;
+NewInit=Initial+Rand*(randn(1,3*(rQ+length(rQ))));
 
 CostFun   = @(Alpha)CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,(Landa.*SelectLanda),g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
@@ -522,14 +523,13 @@ NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-    Op_FmisCon_SQP(CostFun,NonConstr,Initial+Rand*(randn(1,3*(rQ+length(rQ)))),MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
-
+    Op_FmisCon_SQP(CostFun,NonConstr,NewInit,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
 
 %%
 [TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,RMSError_X0]=...    
-                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[] ,XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Initial');
+                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
                     
