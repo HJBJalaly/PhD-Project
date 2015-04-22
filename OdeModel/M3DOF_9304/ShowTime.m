@@ -1,5 +1,5 @@
 function [TorqueDesire,TorqueActive,Q,D1Q,D2Q,BetaOptimal,IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlopeD1Q,CostSlopeD2Q,RMS]=...
-                ShowTime(Alpha,Time,Tres,Degree,Weight,Landa,QQ,B,Xef,Yef,m,L,g,MinSinValue,ShowFlag,Period,Mode,Name)
+                ShowTime(Alpha,Time,Tres,Degree,Weight,Landa,Sat,QQ,B,Xef,Yef,m,L,g,MinSinValue,ShowFlag,Period,Mode,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % close all
@@ -238,7 +238,7 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
     for i=1:nn
         QQ=[];
         DQ=[];
-        CoefBLSI = LSParamPoly(QVal(i,:),TorqueDesire(i,:)',rU,Landa);    
+        CoefBLSI = LSParamPoly(QVal(i,:),TorqueDesire(i,:)',rU,Landa,Sat(i));    
         for j=1:length(QVal(i,:))
              QQ(j,:) = QVal(i,j).^(rU:-1:0)';
              DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';

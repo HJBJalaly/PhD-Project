@@ -1,4 +1,4 @@
-function  CoefBLS = LSParamPoly(qtrajectory,TorqueProfile,rU,alpha)
+function  CoefBLS = LSParamPoly(qtrajectory,TorqueProfile,rU,alpha,Sat)
 
 QQ=[];
 DD=[];
@@ -11,7 +11,7 @@ end
 
 
 % CoefBLS=((QQ'*QQ)+alpha*(DD'*DD))^-1 * QQ'*TorqueProfile;
-CoefBLS=((QQ'*QQ)+alpha(1)*(DD'*DD))\( QQ'*TorqueProfile);
+CoefBLS=((QQ'*QQ)+alpha(1)*Sat^2*(DD'*DD))\( QQ'*TorqueProfile);
 % CoefBLS=((QQ'*QQ)+alpha(1)*(DD'*DD)+alpha(2)*(DD2'*DD2))\( QQ'*TorqueProfile);
 % if(rcond(QQ'*QQ)<1e-20)
 %     1;

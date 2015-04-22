@@ -179,7 +179,7 @@ g=9.81*0;
 m=1;
 L=1;
 % EF motion
-f=1;
+f=.5;
 A=.75;
 phi=0;
 Tres=0.005;
@@ -338,7 +338,7 @@ rU=4; % Degree of passive torque
 B=eye(nn);
 % WeightMatrix
 Weight=[ 2 1 1]';
-Sat=[5,3,2];
+Sat=[2,1,1];
 
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};

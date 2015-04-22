@@ -1,4 +1,4 @@
-function Cost=CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,g,mL1,mL2,mL3,LL1,LL2,LL3)
+function Cost=CF3_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,Sat,g,mL1,mL2,mL3,LL1,LL2,LL3)
    
 % Torque=zeros(3,length(Time));
 nn=Degree(1);
@@ -69,7 +69,7 @@ Cost=0;
 for i=1:nn
     QQ=[];
     DQ=[];
-    CoefBLSI = LSParamPoly(QVal(i,:),TorqueDesire(i,:)',rU,Landa);    
+    CoefBLSI = LSParamPoly(QVal(i,:),TorqueDesire(i,:)',rU,Landa,Sat(i));    
     for j=1:length(QVal(i,:))
          QQ(j,:) = QVal(i,j).^(rU:-1:0)';
          DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
@@ -78,11 +78,10 @@ for i=1:nn
 
     
   Cost=Cost + ...
-          Weight(i)*1/2*( (TorqueDesire(i,:)' - QQ*CoefBLSI )'*(TorqueDesire(i,:)' - QQ*CoefBLSI) + ...
-                Landa(1)* CoefBLSI'*(DQ'*DQ)*CoefBLSI )*Tres+...
-                Weight(i)*max(abs((TorqueDesire(i,:)' - QQ*CoefBLSI )))*20;% +...
+          Weight(i)*1/2*( (TorqueDesire(i,:)' - QQ*CoefBLSI )'*(TorqueDesire(i,:)' - QQ*CoefBLSI)/Sat(i)^2 + ...
+                Landa(1)* CoefBLSI'*(DQ'*DQ)*CoefBLSI )*Tres;%+...
+%                     max(abs((TorqueDesire(i,:)' - QQ*CoefBLSI )))*20;% +...
 %                 Landa(2)* CoefBLSI'*(D2Q'*D2Q)*CoefBLSI )*Tres;
 
 end
-1;
 end
