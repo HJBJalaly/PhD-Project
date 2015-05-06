@@ -171,44 +171,44 @@ AnimBot3DOF(time(1:end),Y,L);
 
 %% create a active sample motion with 3 active joints as initial input of optimization
 home
-clear
+% clear
 clc
 % envirment
-g=9.81*0;
+g=9.81*1;
 % parameters of robot
 m=1;
 L=1;
 % EF motion
 f=1;
 A=.75;
-phi=0;
+phi=pi/2;
 Tres=0.005;
-time=0:Tres:2/f;
+time=0:Tres:4/f;
 
-% % Circle motion
-% f=0.5;
-% time=0:Tres:2/f;
-% xef=A*cos(2*pi*f*time)+1.5;
-% yef=A*sin(2*pi*f*time)+1;
-% Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
-% Dyef= (2*pi*f)*A*cos(2*pi*f*time);
-% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
-% D2yef=-(2*pi*f)^2*A*sin(2*pi*f*time);
-% q1=deg2rad(0);
-% q2=deg2rad(8.031);
-% q3=deg2rad(51.317);
+% Circle motion
+f=0.5;
+time=0:Tres:10/f;
+xef=A*cos(2*pi*f*time)+0;
+yef=A*sin(2*pi*f*time)+2;
+Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+Dyef= (2*pi*f)*A*cos(2*pi*f*time);
+D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+D2yef=-(2*pi*f)^2*A*sin(2*pi*f*time);
+q1=deg2rad(-60);
+q2=deg2rad(-88.031);
+q3=deg2rad(11.317);
 
-% Line motion: Horizontal
-xef=A*cos(2*pi*f*time+phi);
-yef=2.5*ones(size(time));
-Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
-Dyef= 2*zeros(size(time));
-D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
-D2yef= 2*zeros(size(time));
-q1=deg2rad( 42.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
-q2=deg2rad(19.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
-q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
-
+% % Line motion: Horizontal
+% xef=A*cos(2*pi*f*time+phi);
+% yef=2.5*ones(size(time));
+% Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
+% Dyef= 2*zeros(size(time));
+% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
+% D2yef= 2*zeros(size(time));
+% q1=deg2rad( 42.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
+% q2=deg2rad(19.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
+% q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
+% 
 
 % % Line motion: Vertical
 % phi=0;
@@ -238,9 +238,6 @@ q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
 % q2=deg2rad(18.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
 % q3=deg2rad(44.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
 % 
-
-
-
 
 
 pos=[xef;yef];
@@ -282,9 +279,9 @@ Middle=1;
 
 % show    
 % close all
-Middle=ceil(length(time)/2);
+Middle=ceil(9*length(time)/10);
 figure('name','Path (3DoF)')
-    plot(xef,yef,'linewidth',2.5,'linestyle','-','color','g')
+    plot(xef(Middle:end),yef(Middle:end),'linewidth',2.5,'linestyle','-','color','g')
     hold on 
     plot(RPosVal(1,Middle:end),RPosVal(2,Middle:end),'linewidth',2,'linestyle','-.','color','b')
     legend('Desired','Static Path Planing')
@@ -301,6 +298,19 @@ figure('name','Joint Trajectories')
     subplot(3,1,3)
     plot(time(Middle:end),q3(Middle:end))
     grid on
+    
+
+figure('name','Desired Power vs Time')
+    subplot(3,1,1)
+    plot(time(Middle:end),torqueDesire(1,Middle:end).*Dq(1,Middle:end))
+    grid on
+    subplot(3,1,2)
+    plot(time(Middle:end),torqueDesire(2,Middle:end).*Dq(2,Middle:end))
+    grid on
+    subplot(3,1,3)
+    plot(time(Middle:end),torqueDesire(3,Middle:end).*Dq(3,Middle:end))
+    grid on
+    
     
 figure('name','Desired Torque vs Time')
     plot(time(Middle:end),torqueDesire(:,Middle:end))
@@ -325,6 +335,8 @@ figure('name','Desired Torque vs Angle')
 Y=[q1(1:end)',q2(1:end)',q3(1:end)'];
 AnimBot3DOF(time(1:end),Y,L);
 
+IntAbsUdqDesire_Opt=sum(sum(abs(torqueDesire(:,Middle:end).*Dq(:,Middle:end)),2))*Tres
+
 %%  Generate Initial value for Optimization
 % close all
 
@@ -332,21 +344,21 @@ tic
 % DoF system
 nn=3; % number of joints
 % DoF of Optimization 
-rQ=10; % Degree of joint trajectory
-rU=4; % Degree of passive torque
+rQ=8; % Degree of joint trajectory
+rU=3; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
 Weight=[ 2 1 1]';
-Sat=[5,3,2];
+Sat=[1,1,1];
 
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[1 0  ];
-Landa=[1e-6 1e-7];
+Landa=[1e-7 1e-7];
 
 
-Time=time(Middle:end)-time(end)/2;
+Time=time(Middle:end)-time(Middle);
 Q1=q1(Middle:end);
 Q2=q2(Middle:end);
 Q3=q3(Middle:end);
@@ -452,7 +464,7 @@ figure('name','Path (3DoF)')
     axis equal
 
 figure('name','Passive Torques')
-    subplot(3,1,1)
+    subplot(3,2,1)
     plot(Q1,TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
     hold on
     plot(Q1,TorquePassiveQ1val,'linewidth',2,'linestyle','-.','color','r')
@@ -462,8 +474,14 @@ figure('name','Passive Torques')
     xlabel('q_1')
     ylabel('\tau_1')
     legend('Desired Torque','PassiveTorque')
+    subplot(3,2,2)
+    plot(Q1,TorqueDesQ1-TorquePassiveQ1val,'linewidth',2)
+    grid on
+    xlabel('q_1')
+    ylabel('\tau_1')
+    title('Active Torque')
     
-    subplot(3,1,2)
+    subplot(3,2,3)
     plot(Q2,TorqueDesQ2,'linewidth',2,'linestyle','-','color','b')
     hold on
     plot(Q2,TorquePassiveQ2val,'linewidth',2,'linestyle','-.','color','r')
@@ -473,8 +491,14 @@ figure('name','Passive Torques')
     xlabel('q_2')
     ylabel('\tau_2')
     legend('Desired Torque','PassiveTorque')
+    subplot(3,2,4)
+    plot(Q2,TorqueDesQ2-TorquePassiveQ2val,'linewidth',2)
+    grid on
+    xlabel('q_2')
+    ylabel('\tau_2')
+    title('Active Torque')
     
-    subplot(3,1,3)
+    subplot(3,2,5)
     plot(Q3,TorqueDesQ3,'linewidth',2,'linestyle','-','color','b')
     hold on
     plot(Q3,TorquePassiveQ3val,'linewidth',2,'linestyle','-.','color','r')
@@ -484,12 +508,25 @@ figure('name','Passive Torques')
     xlabel('q_3')
     ylabel('\tau_3')
     legend('Desired Torque','PassiveTorque')
+    subplot(3,2,6)
+    plot(Q3,TorqueDesQ3-TorquePassiveQ3val,'linewidth',2)
+    grid on
+    xlabel('q_3')
+    ylabel('\tau_3')
+    title('Active Torque')
+    
  toc
+ 
+ 
+TorqueActive=TorqueDesire-TorquePassiveVal;
+IntAbsUdqActive=sum(sum(abs(TorqueActive.*Dq(:,Middle:end)),2))*Tres
+IntAbsUdqDesire=sum(sum(abs(TorqueDesire.*Dq(:,Middle:end)),2))*Tres
+
 %% Optimization
 
 Degree=[nn rQ rU];
-Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
-% 
+% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+% % 
 % Initail2=Initial;
 % Initial=x;
 
@@ -506,7 +543,6 @@ mL3=m;
 LL1=L;
 LL2=L;
 LL3=L;
-
 
 tic
 MaxFunEvals_Data=3000*(rQ);
@@ -529,8 +565,10 @@ NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF);
 
 
 
+
 %%
-[TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,RMSError_X0]=...    
+[TorqueDesire_X0,TorqueActive_exit
+    X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,RMSError_X0]=...    
                         ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),Sat,[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,RMSError_Opt]=...
                         ShowTime(x,Time,Tres,Degree,Weight,(Landa.*SelectLanda),Sat,[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostC','Optimized');
@@ -552,6 +590,11 @@ disp(DegreeStr)
 disp(Title)
 disp(Result_X0)
 disp(Result_Opt)
+
+IntAbsUdqActive=sum(sum(abs(TorqueActive.*Dq(:,Middle:end)),2))*Tres;
+IntAbsUdqDesire=sum(sum(abs(TorqueDesire.*Dq(:,Middle:end)),2))*Tres;
+disp([IntAbsUdqActive IntAbsUdqDesire ])
+
 toc
 
 

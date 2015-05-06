@@ -38,8 +38,10 @@ RPos=L*[cos(Q1)+cos(Q1+Q2)+cos(Q1+Q2+Q3);
         sin(Q1)+sin(Q1+Q2)+sin(Q1+Q2+Q3)];
 
     
-Cneq=sum(sum((RPos-Pos).^2))*Tres-.000025;
-Ceq=[RPos(:,1)-Pos(:,1);
+Cneq=sum(sum((RPos-Pos).^2))*Tres-.00001;
+Middle=ceil(length(Time)/2);
+Ceq=[RPos(:,1)-Pos( :,1);
+    RPos(:,Middle)-Pos( :,Middle);
 %      RPos(:,end)-Pos(:,end);
      Q1(1)-Q1(end);
      Q2(1)-Q2(end);
