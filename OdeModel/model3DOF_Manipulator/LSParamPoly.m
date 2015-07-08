@@ -6,13 +6,13 @@ DD2=[];
 for i=1:length(qtrajectory)
      QQ(i,:) = qtrajectory(i).^(rU:-1:0)';
      DD(i,:) = ( [qtrajectory(i).^(rU-1:-1:0) 0].*(rU:-1:0))';
-     DD2(i,:) = ([qtrajectory(i).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
+%      DD2(i,:) = ([qtrajectory(i).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
 end
 
 
 % CoefBLS=((QQ'*QQ)+alpha*(DD'*DD))^-1 * QQ'*TorqueProfile;
-% CoefBLS=((QQ'*QQ)+alpha(1)*Sat^2*(DD'*DD))\( QQ'*TorqueProfile);
-CoefBLS=((QQ'*QQ)+alpha(1)*Sat^2*(DD'*DD)+alpha(2)*Sat^2*(DD2'*DD2))\( QQ'*TorqueProfile);
+CoefBLS=((QQ'*QQ)+alpha(1)*Sat^2*(DD'*DD))\( QQ'*TorqueProfile);
+% CoefBLS=((QQ'*QQ)+alpha(1)*(DD'*DD)+alpha(2)*(DD2'*DD2))\( QQ'*TorqueProfile);
 % if(rcond(QQ'*QQ)<1e-20)
 %     1;
 % end

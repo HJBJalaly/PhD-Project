@@ -72,16 +72,16 @@ for i=1:nn
     CoefBLSI = LSParamPoly(QVal(i,:),TorqueDesire(i,:)',rU,Landa,Sat(i));    
     for j=1:length(QVal(i,:))
          QQ(j,:) = QVal(i,j).^(rU:-1:0)';
-         DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
-%          D2Q(j,:) = ([QVal(i,j).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
+%          DQ(j,:) = ([QVal(i,j).^(rU-1:-1:0) 0].*(rU:-1:0))';
+         D2Q(j,:) = ([QVal(i,j).^(rU-2:-1:0) 0 0].*(rU:-1:0).*(rU-1:-1:-1))';
     end
 
     
   Cost=Cost + ...
           Weight(i)*1/2*( (TorqueDesire(i,:)' - QQ*CoefBLSI )'*(TorqueDesire(i,:)' - QQ*CoefBLSI)/Sat(i)^2 + ...
-                Landa(1)* CoefBLSI'*(DQ'*DQ)*CoefBLSI )*Tres;%+...
+                Landa(2)* CoefBLSI'*(D2Q'*D2Q)*CoefBLSI)*Tres;
+%                 Landa(1)* CoefBLSI'*(DQ'*DQ)*CoefBLSI )*Tres;%+...
 %                     max(abs((TorqueDesire(i,:)' - QQ*CoefBLSI )))*20;% +...
-%                 Landa(2)* CoefBLSI'*(D2Q'*D2Q)*CoefBLSI )*Tres;
 
 end
 end

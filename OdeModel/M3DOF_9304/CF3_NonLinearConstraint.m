@@ -40,8 +40,12 @@ RPos=L*[cos(Q1)+cos(Q1+Q2)+cos(Q1+Q2+Q3);
     
 Cneq=sum(sum((RPos-Pos).^2))*Tres-.00001;
 Middle=ceil(length(Time)/2);
+Middle3=ceil(3*length(Time)/4);
+Middle1=ceil(length(Time)/4);
 Ceq=[RPos(:,1)-Pos( :,1);
     RPos(:,Middle)-Pos( :,Middle);
+    RPos(:,Middle3)-Pos( :,Middle3);
+    RPos(:,Middle1)-Pos( :,Middle1);
 %      RPos(:,end)-Pos(:,end);
      Q1(1)-Q1(end);
      Q2(1)-Q2(end);
