@@ -1,6 +1,6 @@
-function DQ=SirDyn(t,Q,g,L,m,Pos,DPos,D2Pos,Time,Kp,Kd,FF_Torque,PassiveParam,rU)
+function DQ=SirDyn(t,Q,g,L,m,Pos,DPos,D2Pos,Qref,DQref,Time,Kp,Kd,FF_Torque,PassiveParam,rU)
 
-t
+% t
 q1=min(max(Q(1),-pi),pi);
 q2=min(max(Q(2),-pi),pi);
 q3=min(max(Q(3),-pi),pi);
@@ -41,20 +41,20 @@ TorquePassiveQ2=polyval(PassiveParam(1*(rU+1)+1:2*(rU+1)),q2);
 TorquePassiveQ3=polyval(PassiveParam(2*(rU+1)+1:3*(rU+1)),q3);
 TorquePassive=[TorquePassiveQ1; TorquePassiveQ2; TorquePassiveQ3];
 
-TorqueActiveQ1=interp1(Time,FF_Torque(1,:),t,'spline');
-TorqueActiveQ2=interp1(Time,FF_Torque(2,:),t,'spline');
-TorqueActiveQ3=interp1(Time,FF_Torque(3,:),t,'spline');
-TorqueActive=[TorqueActiveQ1; TorqueActiveQ2; TorqueActiveQ3];
+% TorqueActiveQ1=interp1(Time,FF_Torque(1,:),t,'spline');
+% TorqueActiveQ2=interp1(Time,FF_Torque(2,:),t,'spline');
+% TorqueActiveQ3=interp1(Time,FF_Torque(3,:),t,'spline');
+% TorqueActive=[TorqueActiveQ1; TorqueActiveQ2; TorqueActiveQ3];
 
-% Q1ref=interp1(Time,Qref(1,:),t,'spline');
-% Q2ref=interp1(Time,Qref(2,:),t,'spline');
-% Q3ref=interp1(Time,Qref(3,:),t,'spline');
-% DQ1ref=interp1(Time,DQref(1,:),t,'spline');
-% DQ2ref=interp1(Time,DQref(2,:),t,'spline');
-% DQ3ref=interp1(Time,DQref(3,:),t,'spline');
+Q1ref=interp1(Time,Qref(1,:),t,'spline');
+Q2ref=interp1(Time,Qref(2,:),t,'spline');
+Q3ref=interp1(Time,Qref(3,:),t,'spline');
+DQ1ref=interp1(Time,DQref(1,:),t,'spline');
+DQ2ref=interp1(Time,DQref(2,:),t,'spline');
+DQ3ref=interp1(Time,DQref(3,:),t,'spline');
 
-% TorqueActive=Kp*([Q1ref Q2ref Q3ref]'-[q1 q2 q3]')+...
-%              Kd*([DQ1ref DQ2ref DQ3ref]'-D1Q);
+ TorqueActive=Kp*([Q1ref Q2ref Q3ref]'-[q1 q2 q3]')+...
+              Kd*([DQ1ref DQ2ref DQ3ref]'-D1Q);
     
  
  
@@ -86,7 +86,8 @@ TorqueFB=0;
 
 
 D2Q= MM^-1*(-CC*D1Q-GG + TorqueFB*0+ TorqueActive*(1)+TorquePassive*(1));
-De=abs((TorqueFB+ TorqueActive+TorquePassive)'*D1Q);
-DQ=[D1Q;D2Q;De];
+DeReq=abs((TorqueFB+ TorqueActive+TorquePassive)'*D1Q);
+DeAct=abs(TorqueActive'*D1Q);
+DQ=[D1Q;D2Q;DeReq;DeAct];
 
 end
