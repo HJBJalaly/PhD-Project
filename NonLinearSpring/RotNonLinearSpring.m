@@ -1,45 +1,29 @@
-function RotNonLinearSpring()
-%%
-ThetaS=deg2rad(0:.1:270)';
-tau=.5*(ThetaS-3*pi/4);
-% tau=3*ones(size(ThetaS));
-% tau=2*(1-exp(-ThetaS))+1;
-% tau=(sin((ThetaS-3*pi/4)*2));
+function RotNonLinearSpring(ThetaS,tau,K,R,l0,lOde,FigName)
 
-% %%
-% Joint=1
-% rU=4;
-% ThetaStep=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))) / (floor(size(Q_Opt,2)/2)));
-% ThetaRange=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
-% tauMain=polyval(BetaOptimal_Opt((rU+1)*(Joint-1)+1: (Joint)*(rU+1)),ThetaRange);
-% 
-% Coef=polyfit(ThetaRange,tauMain,1);
-% Flin=polyval(Coef,ThetaRange);
-% Residule=tauMain-Flin;
-% tau=Residule;
-%%
- 
- figure
- subplot(2,1,1)
- plot(ThetaS,tau)
-% hold all
-% plot(ThetaRange,Flin)
-% 
-% subplot(2,1,2)
-% plot(ThetaRange,Residule)
+
 
 
 
 %%
 home
-close all
-K=5000;
-R=.02;
-l0=.075;
-l0Ode=.1;
+% close all
+
+if(nargin==0)
+    ThetaS=deg2rad(0:.1:270)';
+    tau=.5*(ThetaS-3*pi/4);
+    tau=3*ones(size(ThetaS));
+    tau=2*(1-exp(-ThetaS))+1;
+    tau=1*(sin((ThetaS-3*pi/4)*2));
+
+    K=5000;
+    R=.02*1;
+    l0=.075*1;
+    lOde=.1*1;
+    FigName='Test';
+end
 
 OdeOpt= odeset('RelTol',1e-4,'AbsTol',1e-4);
-[Theta,L_ThetaS]=ode15s(@(theta,l)OdeSolverNonLinTRot(theta,l,tau,ThetaS,K,l0),ThetaS,l0Ode,OdeOpt);
+[Theta,L_ThetaS]=ode15s(@(theta,l)OdeSolverNonLinTRot(theta,l,tau,ThetaS,K,l0),ThetaS,lOde,OdeOpt);
 
 Tan_Phi_Alpha=(tau./(K.*L_ThetaS.*(L_ThetaS-l0)));
 Phi_Alpha=atan(tau./(K.*L_ThetaS.*(L_ThetaS-l0)));
@@ -64,6 +48,49 @@ ThetaR=Theta+Alpha;
 % subplot(2,1,2)
 % plot(Theta,atan(Tan_Phi_Alpha))
 %% Show Time
+figure
+hp=polar([ThetaR ;ThetaR(1)],[r_thetaR ;r_thetaR(1)]);
+patch( get(hp,'XData'), get(hp,'YData'), 'g')
+
+figure
+subplot(1,3,[1,2])
+    hh1=polar(0,max(L_ThetaS)+R);
+    set(hh1,'linewidth',2);
+    hold on
+    hh=polar([ThetaR(1)*.9; ThetaR(1)*.9; ThetaR; ThetaR(end)*1.1 ;ThetaR(end)*1.1],[0; r_thetaR(1); r_thetaR ;r_thetaR(end); 0]);
+    set(hh,'linewidth',3);
+    
+    
+    hold all
+    hhh=polar(ThetaS,L_ThetaS);
+    set(hhh,'linestyle','-.');
+    viscircles(L_ThetaS(1)*[cos(ThetaS(1)),sin(ThetaS(1)) ], R,'EdgeColor',[0.31 0.31 0.3]);
+    plot([0 (L_ThetaS(1)+R)*cos(ThetaS(1))],[0,(L_ThetaS(1)+R)*sin(ThetaS(1))],'color','r','linewidth',2)
+    plot([L_ThetaS(1)*cos(ThetaS(1)) (r_thetaR(1))*cos(ThetaR(1))],[L_ThetaS(1)*sin(ThetaS(1)),(r_thetaR(1))*sin(ThetaR(1))],'color','g')
+    plot([0 (r_thetaR(1)+2*R)*cos(ThetaR(1))],[0,(r_thetaR(1)+2*R)*sin(ThetaR(1))],'color','m')
+    th = findall(gca,'Type','text');
+    for i = 1:length(th),
+      set(th(i),'FontSize',18)
+    end
+
+    
+hss=subplot(1,3,3);
+    p = get(hss, 'pos');
+    p(3) = p(3) + 0.075;
+    set(hss, 'pos', p);
+    hold on
+    title('\tau')
+    plot(rad2deg(ThetaS),tau,'linewidth',2)
+    StarTau=plot(rad2deg(ThetaS(1)),tau(1),'linestyle','none','marker','*','markersize',8);
+    xlabel('\theta_s (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('\tau (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    axis
+    grid on
+    set(gca,'FontSize',18)
+     legend(FigName)
+
+
+
 figure('units','normalized','outerposition',[0 0 1 1])
 
 subplot(3,3,3)
@@ -137,11 +164,13 @@ for i=1:StepT:length(ThetaS)
     hh1=polar(0,max(L_ThetaS)+2*R);
     set(hh1,'linewidth',2)
     hold on
-    polar(ThetaR,r_thetaR)
+    hh=polar(ThetaR,r_thetaR);
+    set(hh,'linewidth',3)
+    
     hold all
     hhh=polar(ThetaS(1:StepT:i),L_ThetaS(1:StepT:i));
     set(hhh,'linestyle','-.')
-    viscircles(L_ThetaS(i)*[cos(ThetaS(i)),sin(ThetaS(i)) ], R,'EdgeColor','b');
+    viscircles(L_ThetaS(i)*[cos(ThetaS(i)),sin(ThetaS(i)) ], R,'EdgeColor',[0.31 0.31 0.3]);
     plot([0 (L_ThetaS(i)+R)*cos(ThetaS(i))],[0,(L_ThetaS(i)+R)*sin(ThetaS(i))],'color','r','linewidth',2)
     plot([L_ThetaS(i)*cos(ThetaS(i)) (r_thetaR(i))*cos(ThetaR(i))],[L_ThetaS(i)*sin(ThetaS(i)),(r_thetaR(i))*sin(ThetaR(i))],'color','g')
     plot([0 (r_thetaR(i)+2*R)*cos(ThetaR(i))],[0,(r_thetaR(i)+2*R)*sin(ThetaR(i))],'color','m')
@@ -168,35 +197,13 @@ for i=1:StepT:length(ThetaS)
     
     drawnow
 end
-    
-    drawnow
-
 
 %%
 
-Tau=interp1(ThetaS,tau,Theta);
-Sin2Phi=2*Tau./(K*L_ThetaS.*(L_ThetaS-r0));
+fileID = fopen('Data.txt','w');
+Data=[r_thetaR(1:2:end).*cos(ThetaR(1:2:end)), r_thetaR(1:2:end).*sin(ThetaR(1:2:end)), zeros(size(ThetaR(1:2:end)))];
+fprintf(fileID,'%6.5f %6.5f %6.5f \r',Data');
+fclose(fileID);
 
-subplot(5,1,1)
-    plot(Theta,Sin2Phi)
-    ylabel('Sin2Phi')
-    grid on
-subplot(5,1,2)
-    plot(Theta,rad2deg( asin( Sin2Phi)/2))
-    ylabel('\phi')
-    grid on
-subplot(5,1,3)
-    plot(Theta,L_ThetaS)
-    ylabel('r')
-    grid on
-subplot(5,1,4)
-    plot(Theta,K*(L_ThetaS-r0))
-    ylabel('F')
-    grid on
-subplot(5,1,5)
-    plot(Theta,tau)
-    ylabel('\tau')
-    xlabel('\theta')
-    grid on
-1;
+
 end

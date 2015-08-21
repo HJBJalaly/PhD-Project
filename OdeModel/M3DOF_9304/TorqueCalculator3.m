@@ -1,4 +1,4 @@
-function Torque=TorqueCalculator(D2q,Dq,q,g,mL1,mL2,mL3,LL1,LL2,LL3,Time,Kp,Kd)
+function Torque=TorqueCalculator3(D2q,Dq,q,g,mL1,mL2,mL3,LL1,LL2,LL3)
 
 Torque=zeros(size(q));
 

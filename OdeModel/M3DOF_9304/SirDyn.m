@@ -1,9 +1,13 @@
-function DQ=SirDyn(t,Q,g,L,m,Pos,DPos,D2Pos,Qref,DQref,Time,Kp,Kd,FF_Torque,PassiveParam,rU)
+function DQ=SirDyn(t,Q,g,L,m,Qref,DQref,Time,Kp,Kd,PassiveParam,rU)
 
-% t
-q1=min(max(Q(1),-pi),pi);
-q2=min(max(Q(2),-pi),pi);
-q3=min(max(Q(3),-pi),pi);
+
+% q1=min(max(Q(1),-pi),pi);
+% q2=min(max(Q(2),-pi),pi);
+% q3=min(max(Q(3),-pi),pi);
+
+q1=Q(1);
+q2=Q(2);
+q3=Q(3);
 
 D1q1=Q(4);
 D1q2=Q(5);
@@ -58,34 +62,21 @@ DQ3ref=interp1(Time,DQref(3,:),t,'spline');
     
  
  
-% %%  Feedback Law Control
-% JJ=L*[-sin(q1)-sin(q1+q2)-sin(q1+q2+q3), -sin(q1+q2)-sin(q1+q2+q3), -sin(q1+q2+q3);
-%         cos(q1)+cos(q1+q2)+cos(q1+q2+q3),  cos(q1+q2)+cos(q1+q2+q3),  cos(q1+q2+q3)]; 
-% 
-% X=L*[cos(q1)+cos(q1+q2)+cos(q1+q2+q3);
-%      sin(q1)+sin(q1+q2)+sin(q1+q2+q3)];
-% 
-% Xd=interp1(Time,Pos',t,'spline')';
-% D1Xd=interp1(Time,DPos',t,'spline')';
-% D2Xd=interp1(Time,D2Pos',t,'spline')';
-% 
-% D2xr=D2Xd+Kd*(D1Xd-JJ*D1Q)+Kp*(Xd-X);
-% 
-% Jsharp=JJ'*(JJ*JJ')^-1;
-% DJ=L*[-cos(q1)*D1q1-cos(q1+q2)*(D1q1+D1q2)-cos(q1+q2+q3)*(D1q1+D1q2+D1q3)  , -cos(q1+q2)*(D1q1+D1q2)-cos(q1+q2+q3)*(D1q1+D1q2+D1q3) , -cos(q1+q2+q3)*(D1q1+D1q2+D1q3);
-%       -sin(q1)*D1q1-sin(q1+q2)*(D1q1+D1q2)-sin(q1+q2+q3)*(D1q1+D1q2+D1q3)  , -sin(q1+q2)*(D1q1+D1q2)-sin(q1+q2+q3)*(D1q1+D1q2+D1q3) ,  -sin(q1+q2+q3)*(D1q1+D1q2+D1q3)]; 
-%    
-% D2qr=Jsharp*(D2xr-DJ*D1Q);
-% TorqueFB=MM*D2qr+CC*D1Q+GG-TorquePassive;
-
 TorqueFB=0;
 
 
 
 %% Apply Torqe
 
+F=[5,4]';
+JJ=L*[-sin(q1)-sin(q1+q2)-sin(q1+q2+q3), -sin(q1+q2)-sin(q1+q2+q3), -sin(q1+q2+q3);
+           cos(q1)+cos(q1+q2)+cos(q1+q2+q3),  cos(q1+q2)+cos(q1+q2+q3),  cos(q1+q2+q3)]; 
 
-D2Q= MM^-1*(-CC*D1Q-GG + TorqueFB*0+ TorqueActive*(1)+TorquePassive*(1));
+
+TorqueDis=JJ'*F*(t>.75)*(t<1.25)*1;
+
+
+D2Q= MM^-1*(-CC*D1Q-GG + TorqueFB*0+ TorqueActive*(1)+TorquePassive*(1)+TorqueDis);
 DeReq=abs((TorqueFB+ TorqueActive+TorquePassive)'*D1Q);
 DeAct=abs(TorqueActive'*D1Q);
 DQ=[D1Q;D2Q;DeReq;DeAct];

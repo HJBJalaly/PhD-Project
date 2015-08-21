@@ -1,0 +1,1 @@
+RotNonLinearSpring(ThetaS{Joint}',tau{Joint}',K,R,l0,l0de,['up_',num2str(Joint)]);
