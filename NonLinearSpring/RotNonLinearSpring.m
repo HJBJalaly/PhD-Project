@@ -13,12 +13,12 @@ if(nargin==0)
     tau=.5*(ThetaS-3*pi/4);
     tau=3*ones(size(ThetaS));
     tau=2*(1-exp(-ThetaS))+1;
-    tau=1*(sin((ThetaS-3*pi/4)*2));
+    tau=.2*(sin((ThetaS-3*pi/4)*2));
 
-    K=5000;
-    R=.02*1;
-    l0=.075*1;
-    lOde=.1*1;
+    K=3000;
+    R=.009*1;
+    l0=.04*1;
+    lOde=.05*1;
     FigName='Test';
 end
 

@@ -1,4 +1,4 @@
-function [Cneq,Ceq]=CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,Xef,Yef,g,mL1,mL2,mL3,LL1,LL2,LL3)
+function [Cneq,Ceq]=CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,Xef,Yef,g,mL1,mL2,mL3,LL1,LL2,LL3)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -35,9 +35,9 @@ D2Q3=polyval(Alpha_D2Q3,Time);
 
 
 RPos=L*[cos(Q1)+cos(Q1+Q2)+cos(Q1+Q2+Q3);
-        sin(Q1)+sin(Q1+Q2)+sin(Q1+Q2+Q3)];
-
-TorqueDesire=[];    
+         sin(Q1)+sin(Q1+Q2)+sin(Q1+Q2+Q3)];
+ 
+% TorqueDesire=[];    
 % for i=[1,2,length(Time)-1,length(Time)]
 %     q1=Q1(i);
 %     q2=Q2(i);

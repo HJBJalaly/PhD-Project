@@ -86,7 +86,7 @@ axis equal
 q=[q1;q2];
 Dq=differential(q,time,Tres);
 D2q=differential(Dq,time,Tres);
-torqueDesire=TorqueCalculator2(D2q,Dq,q,g,m,m,L,L);
+torqueDesire=TorqueCalculatorMain2(D2q,Dq,q,g,m,m,L,L);
 
 
 figure('name','Path (3DoF)')
@@ -113,6 +113,25 @@ figure('name','Desired Torque vs Time')
     ylabel('\tau')
     grid on
     
+    
+figure('name','Desired Torque vs Angle')
+    subplot(2,1,1)
+    plot(InRangeShifter(rad2deg(q1(Middle-10:end-10))),torqueDesire(1,Middle-10:end-10),...
+        'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
+    title('Initial Required Torque-Angle Profile','FontSize',16);
+    xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    set(gca,'YMinorGrid','on')
+    grid on
+    
+    subplot(2,1,2)
+    plot(InRangeShifter(rad2deg(q2(Middle-10:end-10))),torqueDesire(2,Middle-10:end-10),...
+            'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
+    xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    set(gca,'YMinorGrid','on')
+    grid on
+    
 
 %%
 % DoF system
@@ -123,14 +142,13 @@ rU=3; % Degree of passive torque
 % B matrix
 B=eye(nn);
 % WeightMatrix
-Weight=[ 3 2 2]';
-Sat=[1,1,1];
+Weight=[ 3 2]';
+Sat=[1,1];
 
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[0 1];
 Landa=[1e-7 1e-3];
-
 
 Time=time(Middle:end)-time(Middle);
 Q1=q1(Middle:end);
