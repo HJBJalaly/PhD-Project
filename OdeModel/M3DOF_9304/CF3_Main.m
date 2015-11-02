@@ -598,10 +598,10 @@ NonConstr = @(Alpha)CF3_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,m
 %% ShowTime
 Degree=[nn rQ rU];
 
-[TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,RMSError_X0]=...    
-                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),Sat,[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
-[TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,RMSError_Opt]=...
-                        ShowTime(x,Time,Tres,Degree,Weight,(Landa.*SelectLanda),Sat,[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Optimized');
+[TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,Nothing,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,Nothing,RMSError_X0]=...    
+                        ShowTime(Initial,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],Sat,[],[] ,XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Initial');
+[TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,Nothing,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,Nothing,RMSError_Opt]=...
+                        ShowTime(x      ,Time,Tres,Degree,Weight,(Landa.*SelectLanda),[],Sat,[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostC','Optimized');
                     
 TotalCost_X0  = IntU2_X0    + sum(Landa.*SelectLanda.*[CostSlopeD1Q_X0 CostSlopeD2Q_X0]);
 TotalCost_Opt = IntU2_Opt   + sum(Landa.*SelectLanda.*[CostSlopeD1Q_Opt CostSlopeD2Q_Opt]);
