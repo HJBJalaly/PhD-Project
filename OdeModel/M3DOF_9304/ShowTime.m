@@ -605,7 +605,7 @@ if(strcmp(ShowFlag,'Show'))
                 hold off
                 grid on
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-                ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+                ylabel('u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
                 Llg=legend('u_r_3','u_u_3','u_b_2','u_a_3');
                 set(Llg,'orientation','horizontal')
                 xlim([Time(1) Time(end)])
@@ -775,7 +775,7 @@ if(strcmp(ShowFlag,'Show'))
                     set(sh2,'position',[sp2(1)-.25*(ap(3)-sp2(3)),sp2(2:end)]); 
                     plot(rad2deg(Q2+Q3),TorqueDesire(2,:)+TorqueDesire(3,:)-TorquePassiveOptimal(2,:)-TorquePassiveOptimal(3,:)-TorqueBicepsOptimal(1,:),'linewidth',2)
                     xlabel('q_2+q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-                    ylabel('u_3+u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+                    ylabel('u_2+u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
                     grid on
                     set(gca,'YMinorGrid','on')
                     hold on

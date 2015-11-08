@@ -76,36 +76,39 @@ if (rB>0)
 
     rUp=rU+1;
     rBp=rB+1;
+%     EYEU=[zeros(rU,rUp); zeros(1,rU),1 ]
+%     EYEB=[zeros(rU,rUp); zeros(1,rU),1 ]
+%     
     % for i=1 to n-2
     for i=1:nn-2
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*ones(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*ones(size(QQ{i}'*QQ{i})));
 
-        B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=QQ{i}'*QQhat{i};
-        B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=QQ{i+1}'*QQhat{i};
+        B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
+        B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=2*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
-        D((i-1)*rBp+1:(i)*rBp,(i)*rBp+1:(i+1)*rBp)=QQhat{i}'*QQhat{i+1};
-        D((i)*rBp+1:(i+1)*rBp,(i-1)*rBp+1:(i)*rBp)=QQhat{i+1}'*QQhat{i};
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i)*rBp+1:(i+1)*rBp)=Weight(i+1)*QQhat{i}'*QQhat{i+1};
+        D((i)*rBp+1:(i+1)*rBp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQhat{i+1}'*QQhat{i};
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(TorqueDesire(i,1:SampleRate:end)'+TorqueDesire(i+1,1:SampleRate:end)');
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
     end
     % for i=n-1
         i=nn-1;
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
-        B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=QQ{i}'*QQhat{i};
-        B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=QQ{i+1}'*QQhat{i};
+        B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
+        B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=2*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(TorqueDesire(i,1:SampleRate:end)'+TorqueDesire(i+1,1:SampleRate:end)');
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
     % for i=n
         i=nn;
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
 
 
     
@@ -130,7 +133,7 @@ if (rB>0)
                     (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)) ));
                     
     CostD2Q=CostD2Q + ... 
-          Weight(i)*([ BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
+          ([ BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
                        ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))'*(D2Qhatc{i}'*D2Qhatc{i})*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))]);
     
     for i=2:nn-1
@@ -201,12 +204,14 @@ else
     A=[];
     
     rUp=rU+1;
+    EYEU=[zeros(rU,rUp); zeros(1,rU),1 ]
+    
     % for i=1 to n-2
     for i=1:nn
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=(QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
     end
     
     OptimalSpring=A\Y(1:nn*(rUp));

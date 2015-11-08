@@ -1,4 +1,5 @@
-function  Cost=OptimalParam_SV(Qq,Qhatq,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate)
+function  [BetaOptimal,ThetaOptimal,CostActuation,CostD2Q,CostParaReg,TorquePassiveOptimal,TorqueBicepsOptimal]=...
+                    OptimalParam(Qq,Qhatq,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate)
 
                 
                 
@@ -83,11 +84,11 @@ if (rB>0)
         B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
         D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
-        D((i-1)*rBp+1:(i)*rBp,(i)*rBp+1:(i+1)*rBp)=Weight(i+1)*QQhat{i}'*QQhat{i+1};
-        D((i)*rBp+1:(i+1)*rBp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQhat{i+1}'*QQhat{i};
+        D((i-1)*rBp+1:(i)*rBp,(i)*rBp+1:(i+1)*rBp)=QQhat{i}'*QQhat{i+1};
+        D((i)*rBp+1:(i+1)*rBp,(i-1)*rBp+1:(i)*rBp)=QQhat{i+1}'*QQhat{i};
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
+        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(TorqueDesire(i,1:SampleRate:end)'+TorqueDesire(i+1,1:SampleRate:end)');
     end
     % for i=n-1
         i=nn-1;
@@ -96,61 +97,71 @@ if (rB>0)
         B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
         B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=2*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
+        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(TorqueDesire(i,1:SampleRate:end)'+TorqueDesire(i+1,1:SampleRate:end)');
     % for i=n
         i=nn;
         A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+
 
     
-%     Ai=(A);
-    Delta=inv(D-B'*A*B);
+    Ai=(A);
+    Delta=inv(D-B'*Ai*B);
 
-    OptimalSpring=[A+A*(B*Delta)*B'*A,  -A*(B*Delta);
-                 -(Delta*B')*A       ,   (Delta)        ]*Y;
+    OptimalSpring=[Ai+Ai*(B*Delta)*B'*Ai,  -Ai*(B*Delta);
+                 -(Delta*B')*Ai       ,   (Delta)        ]*Y;
 
     BetaOptimal=OptimalSpring(1:nn*(rU+1));
     ThetaOptimal=OptimalSpring(nn*(rU+1)+1:end);
 
     % Cost
-    Cost=0;
-    Landa=Landa*0;
+    CostActuation=0;
+    CostD2Q=0;
+    CostParaReg=0;
+
 
     i=1;
-    Cost=Cost + ...
+    CostActuation=CostActuation + ...
           Weight(i)*( 1/2*(TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rU+1))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)) )'*...
-                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)) ))+...
-                    Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))+...
-                    Landa(4)* ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))'*(D2Qhatc{i}'*D2Qhatc{i})*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp));
+                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)) ));
+                    
+    CostD2Q=CostD2Q + ... 
+          ([ BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
+                       ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))'*(D2Qhatc{i}'*D2Qhatc{i})*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))]);
+    
     for i=2:nn-1
 
-        Cost=Cost + ...
+        CostActuation=CostActuation + ...
           Weight(i)*( 1/2*(TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))-QQhatc{i-1}*ThetaOptimal((i-2)*(rBp)+1:(i-1)*(rBp)))'*...
-                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))-QQhatc{i-1}*ThetaOptimal((i-2)*(rBp)+1:(i-1)*(rBp))))+...
-                    Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))+...
-                    Landa(4)* ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))'*(D2Qhatc{i}'*D2Qhatc{i})*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp));
+                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i}*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))-QQhatc{i-1}*ThetaOptimal((i-2)*(rBp)+1:(i-1)*(rBp))));
+        CostD2Q=CostD2Q + ...
+          Weight(i)*([ BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
+                       ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))'*(D2Qhatc{i}'*D2Qhatc{i})*ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp))]);
     end
     i=nn;
-    Cost=Cost + ...
+    CostActuation=CostActuation + ...
           Weight(i)*( 1/2*(TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i-1}*ThetaOptimal((i-2)*(rBp)+1:(i-1)*(rBp)))'*...
-                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i-1}*ThetaOptimal((i-2)*(rBp)+1:(i-1)*(rBp))))+...
-                    Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp));
+                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))-QQhatc{i-1}*ThetaOptimal((i-2)*(rBp)+1:(i-1)*(rBp))));
+    CostD2Q=CostD2Q + ...
+          Weight(i)*([ BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
+                        0]);
     
-    Cost=Cost+Landa(1)*(BetaOptimal'*BetaOptimal)+Landa(3)*(ThetaOptimal'*ThetaOptimal);
-    
+    CostParaReg=[  BetaOptimal'*BetaOptimal,
+                  ThetaOptimal'*ThetaOptimal ];
+                
     % Torque
+    
+    for i=1:nn-1
+        TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
 
-%     for i=1:nn-1
-%         TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
-% 
-%         TorqueBicepsOptimal(i,:)=polyval(ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)),Qhatq(i,:));
-%     end
-%     i=nn;
-%     TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
+        TorqueBicepsOptimal(i,:)=polyval(ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)),Qhatq(i,:));
+    end
+    i=nn;
+    TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
     
 else
 %%    
@@ -192,10 +203,10 @@ else
     rUp=rU+1;
     % for i=1 to n-2
     for i=1:nn
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=(QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
 
-        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y((i-1)*rUp+1:(i)*rUp,1)=QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
     end
     
     OptimalSpring=A\Y(1:nn*(rUp));
@@ -206,24 +217,28 @@ else
 
 
 
-    Cost=0;
+    CostActuation=0;
 
     for i=1:nn
 
-        Cost=Cost + ...
+        CostActuation=CostActuation + ...
           Weight(i)*( 1/2*(TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)))'*...
-                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))))+...
-                    Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp));
+                    (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))));
+    
+        CostD2Q=CostD2Q + ...
+          Weight(i)*( [ Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
+                        0]);
     end
     
-    Cost=Cost+Landa(1)*BetaOptimal'*BetaOptimal;
+    CostParaReg = [BetaOptimal'*BetaOptimal,  0 ];
+    
     % Torque
 
-%     for i=1:nn
-%         TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
-%         
-%     end
-%     TorqueBicepsOptimal=zeros(nn-1,size(Qq,2));
+    for i=1:nn
+        TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
+        
+    end
+    TorqueBicepsOptimal=zeros(nn-1,size(Qq,2));
 end
 
 
