@@ -208,6 +208,7 @@ else
 
     Cost=0;
 
+    Landa=Landa*0;
     for i=1:nn
 
         Cost=Cost + ...

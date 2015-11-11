@@ -20,14 +20,14 @@ m=1;
 L=1;
 % EF motion
 A=.75;
-
+% 
 % % Circle motion
 % f=0.5;
 % phi=pi/2;
 % Tres=0.005;
-% time=0:Tres:21/f;
-% Middle1=ceil(19*length(time)/21);
-% Middle2=ceil(20*length(time)/21);
+% time=0:Tres:11/f;
+% Middle1=ceil(9*length(time)/11);
+% Middle2=ceil(10*length(time)/11);
 % xef=A*cos(2*pi*f*time)+0;
 % yef=A*sin(2*pi*f*time)+2;
 % Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
@@ -37,24 +37,44 @@ A=.75;
 % q1=deg2rad(-60);
 % q2=deg2rad(48.031);
 % q3=deg2rad(-51.317);
- 
-% Line motion: Horizontal
-f=1;
-phi=0;
-Tres=0.002;
-time=0:Tres:21/f;
-Middle1=ceil(19*length(time)/21);
-Middle2=ceil(20*length(time)/21);
-xef=A*cos(2*pi*f*time+phi);
-yef=2.5*ones(size(time));
-Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
-Dyef= 2*zeros(size(time));
-D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
-D2yef= 2*zeros(size(time));
-q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
-q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
-q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
- 
+  
+% % Line motion: Horizontal
+% f=1;
+% phi=0;
+% Tres=0.002;
+% time=0:Tres:21/f;
+% Middle1=ceil(19*length(time)/21);
+% Middle2=ceil(20*length(time)/21);
+% xef=A*cos(2*pi*f*time+phi);
+% yef=2.5*ones(size(time));
+% Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
+% Dyef= 2*zeros(size(time));
+% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
+% D2yef= 2*zeros(size(time));
+% q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
+% q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
+% q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
+
+% Ellipose motion
+f=0.5;
+phi=pi/2;
+Tres=0.01;
+time=0:Tres:41/f;
+Middle1=ceil(39*length(time)/41);
+Middle2=ceil(40*length(time)/41);
+Start=20;
+xef=A*cos(2*pi*f*time)+0;
+yef=A/2*sin(2*pi*f*time)+1.5;
+Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
+D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
+q1=deg2rad(-60);
+q2=deg2rad(48.031);
+q3=deg2rad(-48.031);
+
+
+
 
 % % Line motion: Vertical
 % phi=0;
@@ -210,8 +230,8 @@ tic
 nn=3; % number of joints
 % DoF of Optimization 
 rQ=8; % Degree of joint trajectory
-rU=4; % Degree of passive torque
-rB=2;
+rU=3; % Degree of passive torque
+rB=0;
 % WeightMatrix
 Weight=[3 2 1]';
 Weight=Weight*1;
@@ -221,9 +241,9 @@ SampleRate=10;
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[0 1];
-Landa=[.1 1e-7 .1 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+Landa=[.05 1e-7 .05 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
-%Landa=[.000002 1e-7 .000002 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+% Landa=[.000002 1e-7 .000002 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
 
 
@@ -459,12 +479,12 @@ LL3=L;
 tic
 MaxFunEvals_Data=5000*(rQ);
 MaxIter_Data=1000;
-TolFun_Data=1e-8;
-TolX_Data=1e-8;
-TolCon_Data=1e-6;
+TolFun_Data=1e-9;
+TolX_Data=1e-9;
+TolCon_Data=1e-7;
 Algorithm='sqp';
 Algorithm='interior-point';
-Rand=5000*1e-7;
+Rand=5000*1e-6;
 NewInit=Initial+Rand*(randn(1,3*(rQ+length(rQ))));
 
 CostFun   = @(Alpha)CF3b_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,LL1,LL2,LL3);

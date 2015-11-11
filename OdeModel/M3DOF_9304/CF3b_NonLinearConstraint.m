@@ -69,7 +69,7 @@ end
     
     
     
-Cneq=sum(sum((RPos-Pos).^2))*Tres-.00001;
+Cneq=sum(sum((RPos-Pos).^2))*Tres-.000005;
 Middle1=ceil(1*length(Time)/8);
 Middle2=ceil(2*length(Time)/8);
 Middle3=ceil(3*length(Time)/8);
@@ -78,9 +78,9 @@ Middle5=ceil(5*length(Time)/8);
 Middle6=ceil(6*length(Time)/8);
 Middle7=ceil(7*length(Time)/8);
 Ceq=[RPos(:,1)-Pos( :,1);
-%     RPos(:,Middle1)-Pos( :,Middle1);
+    (RPos(:,Middle1)-Pos( :,Middle1))*1;
     RPos(:,Middle2)-Pos( :,Middle2);
-    RPos(:,Middle3)-Pos( :,Middle3);
+    (RPos(:,Middle3)-Pos( :,Middle3))*.1;
     RPos(:,Middle4)-Pos( :,Middle4);
     RPos(:,Middle5)-Pos( :,Middle5);
     RPos(:,Middle6)-Pos( :,Middle6);
@@ -95,6 +95,5 @@ Ceq=[RPos(:,1)-Pos( :,1);
      D2Q1(1)-D2Q1(end);
      D2Q2(1)-D2Q2(end);
      D2Q3(1)-D2Q3(end);
-    (diff(TorqueDesire([1],1:2)')'-diff(TorqueDesire([1],end-1:end)')')*(1e-100);
-    ];
+     (diff(TorqueDesire([1],1:2)')'-diff(TorqueDesire([1],end-1:end)')')*(1e-100)];
 end

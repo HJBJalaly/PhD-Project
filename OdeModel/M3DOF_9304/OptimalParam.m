@@ -204,7 +204,7 @@ else
     A=[];
     
     rUp=rU+1;
-    EYEU=[zeros(rU,rUp); zeros(1,rU),1 ]
+    EYEU=[zeros(rU,rUp); zeros(1,rU),1 ];
     
     % for i=1 to n-2
     for i=1:nn
@@ -223,6 +223,7 @@ else
 
 
     CostActuation=0;
+    CostD2Q=0;
 
     for i=1:nn
 
@@ -231,11 +232,11 @@ else
                     (TorqueDesire(i,:)'- QQc{i}*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))));
     
         CostD2Q=CostD2Q + ...
-          Weight(i)*( [ Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
+          Weight(i)*( [ Landa(2)* BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp));
                         0]);
     end
     
-    CostParaReg = [BetaOptimal'*BetaOptimal,  0 ];
+    CostParaReg = [BetaOptimal'*BetaOptimal;  0 ];
     
     % Torque
 
