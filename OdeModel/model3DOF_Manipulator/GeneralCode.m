@@ -17,21 +17,21 @@ Tres=0.005;
 time=0:Tres:4/f;
 
 
-% Circle motion
-f=0.5;
-phi=pi/2;
-Tres=0.005;
-time=0:Tres:10/f;
-Middle=ceil(9*length(time)/10);
-xef=A*cos(2*pi*f*time)+0;
-yef=A*sin(2*pi*f*time)+2;
-Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
-Dyef= (2*pi*f)*A*cos(2*pi*f*time);
-D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
-D2yef=-(2*pi*f)^2*A*sin(2*pi*f*time);
-q1=deg2rad(-60);
-q2=deg2rad(48.031);
-q3=deg2rad(-51.317);
+% % Circle motion
+% f=0.5;
+% phi=pi/2;
+% Tres=0.005;
+% time=0:Tres:10/f;
+% Middle=ceil(9*length(time)/10);
+% xef=A*cos(2*pi*f*time)+0;
+% yef=A*sin(2*pi*f*time)+2;
+% Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+% Dyef= (2*pi*f)*A*cos(2*pi*f*time);
+% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+% D2yef=-(2*pi*f)^2*A*sin(2*pi*f*time);
+% q1=deg2rad(-60);
+% q2=deg2rad(48.031);
+% q3=deg2rad(-51.317);
 
 
 % % Line motion: Horizontal
@@ -48,6 +48,20 @@ q3=deg2rad(-51.317);
 % q2=deg2rad(19.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
 % q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
 
+% Ellipose motion
+f=0.5;
+Tres=0.01;
+time=0:Tres:41/f;
+Middle1=ceil(39*length(time)/41);
+Middle2=ceil(40*length(time)/41);
+xef=A*cos(2*pi*f*time)+0;
+yef=A/2*sin(2*pi*f*time)+1.5;
+Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
+D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
+q1=deg2rad(-60);
+q2=deg2rad(48.031);
 
 
 figure('name','Path (3DoF)')
@@ -76,10 +90,10 @@ end
 
 
 
-RPos=L*[cos(q1)+cos(q1+q2);
+rPosVal=L*[cos(q1)+cos(q1+q2);
         sin(q1)+sin(q1+q2)];
 hold all
-plot(RPos(1,:),RPos(2,:),'linewidth',2,'linestyle','-.','color','b')
+plot(rPosVal(1,:),rPosVal(2,:),'linewidth',2,'linestyle','-.','color','b')
 hold off
 axis equal
 
@@ -89,34 +103,56 @@ D2q=differential(Dq,time,Tres);
 torqueDesire=TorqueCalculatorMain2(D2q,Dq,q,g,m,m,L,L);
 
 
+%%
+% show    
+% close all
 figure('name','Path (3DoF)')
-    plot(xef(Middle:end),yef(Middle:end),'linewidth',2.5,'linestyle','-','color','g')
+    plot(xef(Middle1:Middle2),yef(Middle1:Middle2),'linewidth',2.5,'linestyle','-','color','g')
     hold on 
-    plot(RPos(1,Middle:end),RPos(2,Middle:end),'linewidth',2,'linestyle','-.','color','b')
+    plot(rPosVal(1,Middle1:Middle2),rPosVal(2,Middle1:Middle2),'linewidth',2,'linestyle','-.','color','b')
     legend('Desired','Static Path Planing')
     hold off
     axis equal
 
 figure('name','Joint Trajectories')
     subplot(2,1,1)
-    plot(time(Middle:end),q1(Middle:end))
+    plot(time(Middle1:Middle2),q1(Middle1:Middle2))
     grid on
     subplot(2,1,2)
-    plot(time(Middle:end),q2(Middle:end))
+    plot(time(Middle1:Middle2),q2(Middle1:Middle2))
+    grid on
+    
+
+figure('name','Desired Power vs Time')
+%     subplot(3,1,1)
+%     plot(time(Middle1:Middle2),torqueDesire(1,Middle1:Middle2).*Dq(1,Middle1:Middle2))
+%     grid on
+%     subplot(3,1,2)
+%     plot(time(Middle1:Middle2),torqueDesire(2,Middle1:Middle2).*Dq(2,Middle1:Middle2))
+%     grid on
+%     subplot(3,1,3)
+%     plot(time(Middle1:Middle2),torqueDesire(3,Middle1:Middle2).*Dq(3,Middle1:Middle2))
+%     grid on
+    plot(time(Middle1:Middle2),torqueDesire(:,Middle1:Middle2).*Dq(:,Middle1:Middle2),'linewidth',2)
+    set(gca,'fontsize',12,'FontWeight','bold')
+    legend('u_1','u_2','u_3')
+    xlabel('time (s)','fontsize',14,'FontWeight','bold')
+    ylabel('u','fontsize',14,'FontWeight','bold')
     grid on
     
     
 figure('name','Desired Torque vs Time')
-    plot(time(Middle:end),torqueDesire(:,Middle:end))
-    legend('\tau_1','\tau_2')
+    plot(time(Middle1:Middle2),torqueDesire(:,Middle1:Middle2))
+    legend('u_1','u_2','u_3')
     xlabel('time (s)')
-    ylabel('\tau')
+    ylabel('u')
     grid on
     
-    
+
+
 figure('name','Desired Torque vs Angle')
     subplot(2,1,1)
-    plot(InRangeShifter(rad2deg(q1(Middle-10:end-10))),torqueDesire(1,Middle-10:end-10),...
+    plot(rad2deg(q1(Middle1:Middle2)),torqueDesire(1,Middle1:Middle2),...
         'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
     title('Initial Required Torque-Angle Profile','FontSize',16);
     xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
@@ -125,13 +161,253 @@ figure('name','Desired Torque vs Angle')
     grid on
     
     subplot(2,1,2)
-    plot(InRangeShifter(rad2deg(q2(Middle-10:end-10))),torqueDesire(2,Middle-10:end-10),...
+    plot(InRangeShifter(rad2deg(q2(Middle1:Middle2))),torqueDesire(2,Middle1:Middle2),...
             'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
     xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     set(gca,'YMinorGrid','on')
     grid on
     
+    
+% Y=[q1(1:end)',q2(1:end)',q3(1:end)'];
+% % AnimBot3DOF(time(1:end),Y,L);
+
+IntAbsUdqDesire_Opt=sum(sum(abs(torqueDesire(:,Middle1:Middle2).*Dq(:,Middle1:Middle2)),2))*Tres
+    
+%%
+tic
+% DoF system
+nn=2; % number of joints
+% DoF of Optimization 
+rQ=40; % Degree of joint trajectory
+rU=4; % Degree of passive torque
+rB=1;
+% WeightMatrix
+Weight=[3 2 1]';
+Weight=Weight*1;
+Sat=[1,1,1];
+SampleRate=10;
+
+% Landa for [DQ  D2q ]
+SeletcStr={'DQ','D2Q'};
+SelectLanda=[0 1];
+% Landa=[.1 1e-7 .1 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+                           %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
+ Landa=[.0002 1e-6 .0002 1e-7]*1; % for linear
+%%
+
+Time=time(Middle1:Middle2)-time(Middle1);
+Q1=q1(Middle1:Middle2);
+Q2=q2(Middle1:Middle2);
+QJ=[Q1;Q2];
+
+Qhat1=Q1+Q2;
+QhatJ=[Qhat1];
+
+% Q_CF1_U2=load('temp2','Q_Opt');
+% Q1=Q_Opt(1,:);
+% Q2=Q_Opt(2,:);
+% Q3=Q_Opt(3,:);
+XEF=xef(Middle1:Middle2);
+YEF=yef(Middle1:Middle2);
+DXEF=Dxef(Middle1:Middle2);
+DYEF=Dyef(Middle1:Middle2);
+D2XEF=D2xef(Middle1:Middle2);
+D2YEF=D2yef(Middle1:Middle2);
+TorqueDesQ1=torqueDesire(1,Middle1:Middle2);
+TorqueDesQ2=torqueDesire(2,Middle1:Middle2);
+TorqueDesire=[TorqueDesQ1;TorqueDesQ2];
+
+
+% [Alpha_Q1,BezireCoef_q1]= BezierCoeffinet(Time,Q1,rQ);
+% [Alpha_Q2,BezireCoef_q2]= BezierCoeffinet(Time,Q2,rQ);
+
+% Q1val=polyval(Alpha_Q1,Time);
+% Q2val=polyval(Alpha_Q2,Time);
+% QVal=[Q1val;Q2val];
+
+
+% RPosVal=L*[cos(Q1val)+cos(Q1val+Q2val);
+%            sin(Q1val)+sin(Q1val+Q2val)];
+
+    
+[BetaOptimal,ThetaOptimal,CostActuation,CostD2Q,CostParaReg,TorquePassiveOptimal,TorqueBicepsOptimal]= ...
+            OptimalParam(QJ,QhatJ,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate);
+
+CostRequired=0;
+ for i=1:nn
+    CostRequired=CostRequired + ...
+          Weight(i)*( 1/2*(TorqueDesire(i,:)')'*TorqueDesire(i,:)');
+ end
+CostRequired*Tres
+           
+        
+Cost=(CostActuation+ Landa(1:2:4)*CostParaReg+Landa(2:2:4)*CostD2Q)*Tres;
+% Y=[Q1(1:end)',Q2(1:end)',Q3(1:end)'];
+% AnimBot3DOF(Time,Y,L);
+
+
+TorqueActive=TorqueDesire-TorquePassiveOptimal-[TorqueBicepsOptimal;zeros(size(Q1))]-[zeros(size(Q1));TorqueBicepsOptimal];
+WorkActuator    =sum(sum(abs(TorqueActive.*Dq(:,Middle1:Middle2)),2))*Tres;
+WorkDesire      =sum(sum(abs(TorqueDesire.*Dq(:,Middle1:Middle2)),2))*Tres;
+Title=sprintf('%10s  %15s %15s'  ,   'Cost','Req. Work','Act. Work');
+Result=sprintf('% 11.2f  % 11.2f % 15.2f'  ,   Cost,WorkDesire,WorkActuator);
+disp('-------------------------------------------------------')
+disp(Title)
+disp(Result)
+
+%%
+figure('name','Path (3DoF)')
+    plot(XEF,YEF,'linewidth',2.5,'linestyle','-','color','g')
+    hold on 
+    plot(RPosVal(1,:),RPosVal(2,:),'linewidth',2,'linestyle','-.','color','b')
+    legend('Desired','Static Path Planing')
+    hold off
+    axis equal
+
+figure('name','Passive Torques')
+    subplot(3,3,1)
+    plot(Q1,TorqueDesQ1-TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Q1,TorquePassiveOptimal(1,:),'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_1')
+    ylabel('u_r_1-u_b_1')
+%     legend('Desired Torque','PassiveTorque')
+    subplot(3,3,2)
+    plot(Q1,TorqueActive(1,:),'linewidth',2)
+    grid on
+    xlabel('q_1')
+    ylabel('u_a_1')
+    title('Active Torque')
+    
+    subplot(3,3,4)
+    plot(Q2,TorqueDesQ2-TorqueBicepsOptimal(1,:)-TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Q2,TorquePassiveOptimal(2,:),'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_2')
+    ylabel('u_r_2-u_b_1-u_b_2')
+%     legend('Desired Torque','PassiveTorque')
+    subplot(3,3,5)
+    plot(Q2,TorqueActive(2,:),'linewidth',2)
+    grid on
+    xlabel('q_2')
+    ylabel('u_a_2')
+    title('Active Torque')
+    
+    subplot(3,3,7)
+%     plot(Q3,TorqueDesQ3-TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-','color','b')
+%     hold on
+%     plot(Q3,TorquePassiveOptimal(3,:),'linewidth',2,'linestyle','-.','color','r')
+%     hold off
+%     grid on
+%     xlabel('q_3')
+%     ylabel('u_r_3-u_b_2')
+% %     legend('Desired Torque','PassiveTorque')
+%     subplot(3,3,8)
+%     plot(Q3,TorqueActive(3,:),'linewidth',2)
+%     grid on
+%     xlabel('q_3')
+%     ylabel('u_a_3')
+%     title('Active Torque')
+    
+    subplot(3,3,3)
+    plot(Qhat1,TorqueDesQ1+TorqueDesQ2-TorquePassiveOptimal(1,:)-TorquePassiveOptimal(2,:)-TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Qhat1,2*TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_1+q_2')
+    ylabel('u_r_1+u_r_2-u_u_1-u_u_2-u_b_2')
+%     legend('Desired Torque','PassiveTorque')
+
+    subplot(3,3,6)
+    plot(Qhat2,TorqueDesQ2+TorqueDesQ3-TorquePassiveOptimal(2,:)-TorquePassiveOptimal(3,:)-TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Qhat2,2*TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-.','color','r')
+    hold off
+    grid on
+    xlabel('q_2+q_3')
+    ylabel('u_r_2+u_r_3-u_u_2-u_u_3-u_b_1')
+
+    
+figure('name','Compare Torques')
+    subplot(3,1,1)
+    plot(Q1,TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
+    xlabel('q_1')
+    ylabel('u_1')
+    hold on
+    plot(Q1,TorqueActive(1,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    subplot(3,1,2)
+    plot(Q2,TorqueDesQ2,'linewidth',2,'linestyle','-','color','b')
+    xlabel('q_2')
+    ylabel('u_2')
+    hold on
+    plot(Q2,TorqueActive(2,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    subplot(3,1,3)
+    plot(Q3,TorqueDesQ3,'linewidth',2,'linestyle','-','color','b')
+    xlabel('q_3')
+    ylabel('u_3')
+    hold on
+    plot(Q3,TorqueActive(3,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    
+    
+
+    
+figure('name','Time Torques')
+    subplot(3,1,1)
+    plot(Time,TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Time,TorquePassiveOptimal(1,:),'linewidth',2,'linestyle','-.','color','g')
+    plot(Time,TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-.','Color',[0.75 0 0.75])
+    plot(Time,TorqueActive(1,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    Llg=legend('u_r_1','u_u_1','u_b_1','u_a_1');
+    set(Llg,'orientation','horizontal')
+    xlim([Time(1) Time(end)])
+    subplot(3,1,2)
+    plot(Time,TorqueDesQ2,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Time,TorquePassiveOptimal(2,:),'linewidth',2,'linestyle','-.','color','g')
+    plot(Time,TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-.','Color',[0.75 0 0.75])
+    plot(Time,TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-.','Color',[0.75 .75 0.75])
+    plot(Time,TorqueActive(2,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    Llg=legend('u_r_2','u_u_2','u_b_1','u_b_2','u_a_2');
+    set(Llg,'orientation','horizontal')
+    xlim([Time(1) Time(end)])
+    subplot(3,1,3)
+    plot(Time,TorqueDesQ3,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Time,TorquePassiveOptimal(3,:),'linewidth',2,'linestyle','-.','color','g')
+    plot(Time,TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-.','Color',[0.75 .75 0.75])
+    plot(Time,TorqueActive(3,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    Llg=legend('u_r_3','u_u_3','u_b_2','u_a_3');
+    set(Llg,'orientation','horizontal')
+    xlim([Time(1) Time(end)])
+    
+%  toc
+ 
+ 
 
 %%
 % DoF system

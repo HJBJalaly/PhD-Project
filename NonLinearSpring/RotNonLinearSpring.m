@@ -1,4 +1,4 @@
-function RotNonLinearSpring(ThetaS,tau,K,R,l0,lOde,FigName)
+function RotNonLinearSpring(ThetaS,tau,K,R,l0,lOde,FigName,Xlabel)
 
 
 
@@ -79,11 +79,11 @@ hss=subplot(1,3,3);
     p(3) = p(3) + 0.075;
     set(hss, 'pos', p);
     hold on
-    title('\tau')
+%     title('\tau')
     plot(rad2deg(ThetaS),tau,'linewidth',2)
     StarTau=plot(rad2deg(ThetaS(1)),tau(1),'linestyle','none','marker','*','markersize',8);
-    xlabel('\theta_s (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-    ylabel('\tau (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    xlabel([Xlabel,' (deg)'],'FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     axis
     grid on
     set(gca,'FontSize',18)

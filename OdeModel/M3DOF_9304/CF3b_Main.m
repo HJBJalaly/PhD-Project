@@ -17,10 +17,10 @@ clc
 g=9.81*1;
 % parameters of robot
 m=1;
-L=1;
+L=1;c
 % EF motion
 A=.75;
-% 
+ 
 % % Circle motion
 % f=0.5;
 % phi=pi/2;
@@ -38,42 +38,42 @@ A=.75;
 % q2=deg2rad(48.031);
 % q3=deg2rad(-51.317);
   
-% % Line motion: Horizontal
-% f=1;
-% phi=0;
-% Tres=0.002;
-% time=0:Tres:21/f;
-% Middle1=ceil(19*length(time)/21);
-% Middle2=ceil(20*length(time)/21);
-% xef=A*cos(2*pi*f*time+phi);
-% yef=2.5*ones(size(time));
-% Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
-% Dyef= 2*zeros(size(time));
-% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
-% D2yef= 2*zeros(size(time));
-% q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
-% q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
-% q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
+% Line motion: Horizontal
+f=1;
+phi=0;
+Tres=0.002;
+time=0:Tres:21/f;
+Middle1=ceil(19*length(time)/21);
+Middle2=ceil(20*length(time)/21);
+xef=A*cos(2*pi*f*time+phi);
+yef=2.5*ones(size(time));
+Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
+Dyef= 2*zeros(size(time));
+D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
+D2yef= 2*zeros(size(time));
+q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
+q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
+q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
 
-% Ellipose motion
-f=0.5;
-phi=pi/2;
-Tres=0.01;
-time=0:Tres:41/f;
-Middle1=ceil(39*length(time)/41);
-Middle2=ceil(40*length(time)/41);
-Start=20;
-xef=A*cos(2*pi*f*time)+0;
-yef=A/2*sin(2*pi*f*time)+1.5;
-Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
-Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
-D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
-D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
-q1=deg2rad(-60);
-q2=deg2rad(48.031);
-q3=deg2rad(-48.031);
-
-
+% % Ellipose motion
+% f=0.5;
+% phi=pi/2;
+% Tres=0.01;
+% time=0:Tres:41/f;
+% Middle1=ceil(39*length(time)/41);
+% Middle2=ceil(40*length(time)/41);
+% Start=20;
+% xef=A*cos(2*pi*f*time)+0;
+% yef=A/2*sin(2*pi*f*time)+1.5;
+% Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+% Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
+% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+% D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
+% q1=deg2rad(-60);
+% q2=deg2rad(48.031);
+% q3=deg2rad(-48.031);
+% 
+% 
 
 
 % % Line motion: Vertical
@@ -191,7 +191,7 @@ figure('name','Desired Torque vs Time')
 
 
 figure('name','Desired Torque vs Angle')
-    subplot(3,1,1)
+    subplot(1,3,1)
     plot(rad2deg(q1(Middle1:Middle2)),torqueDesire(1,Middle1:Middle2),...
         'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
     title('Initial Required Torque-Angle Profile','FontSize',16);
@@ -200,16 +200,16 @@ figure('name','Desired Torque vs Angle')
     set(gca,'YMinorGrid','on')
     grid on
     
-    subplot(3,1,2)
-    plot(InRangeShifter(rad2deg(q2(Middle1:Middle2))),torqueDesire(2,Middle1:Middle2),...
+    subplot(1,3,2)
+    plot(rad2deg(InRangeShifter(q2(Middle1:Middle2))),torqueDesire(2,Middle1:Middle2),...
             'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
     xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     set(gca,'YMinorGrid','on')
     grid on
     
-    subplot(3,1,3)
-    plot(rad2deg(q3(Middle1:Middle2)),torqueDesire(3,Middle1:Middle2),...
+    subplot(1,3,3)
+    plot(( rad2deg(InRangeShifter(q3(Middle1:Middle2)))),torqueDesire(3,Middle1:Middle2),...
         'Color',[0.87058824300766 0.490196079015732 0],'linewidth',2)
     xlabel('q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     ylabel('u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
@@ -229,9 +229,9 @@ tic
 % DoF system
 nn=3; % number of joints
 % DoF of Optimization 
-rQ=8; % Degree of joint trajectory
+rQ=40; % Degree of joint trajectory
 rU=3; % Degree of passive torque
-rB=0;
+rB=3;
 % WeightMatrix
 Weight=[3 2 1]';
 Weight=Weight*1;
@@ -241,11 +241,10 @@ SampleRate=10;
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[0 1];
-Landa=[.05 1e-7 .05 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+% Landa=[.1 1e-7 .1 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
-% Landa=[.000002 1e-7 .000002 1e-7];   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
-                           %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
-
+ Landa=[1e-6 1e-7 1e-6 1e-7]*1; % for linear
+%%
 
 Time=time(Middle1:Middle2)-time(Middle1);
 Q1=q1(Middle1:Middle2);
@@ -290,6 +289,14 @@ RPosVal=L*[cos(Q1val)+cos(Q1val+Q2val)+cos(Q1val+Q2val+Q3val);
 [BetaOptimal,ThetaOptimal,CostActuation,CostD2Q,CostParaReg,TorquePassiveOptimal,TorqueBicepsOptimal]= ...
             OptimalParam(QJ,QhatJ,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate);
 
+CostRequired=0;
+ for i=1:nn
+    CostRequired=CostRequired + ...
+          Weight(i)*( 1/2*(TorqueDesire(i,:)')'*TorqueDesire(i,:)');
+ end
+CostRequired*Tres
+           
+        
 Cost=(CostActuation+ Landa(1:2:4)*CostParaReg+Landa(2:2:4)*CostD2Q)*Tres;
 % Y=[Q1(1:end)',Q2(1:end)',Q3(1:end)'];
 % AnimBot3DOF(Time,Y,L);
@@ -460,7 +467,7 @@ figure('name','Time Torques')
 %% Optimization
 
 Degree=[nn rQ rU rB];
-% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 % % 
 %  Initial2=Initial;
 %  Initial=x;
@@ -503,10 +510,11 @@ Degree=[nn rQ rU rB];
 [TorqueDesire_X0,TorqueActive_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,ThetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,CostParam_X0,RMSError_X0]=...    
                         ShowTime(Initial,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostCc','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,ThetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,CostParam_Opt,RMSError_Opt]=...
-                        ShowTime(x      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostCc','Optimized');
+                       ShowTime(x      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostCc','Optimized');
                     
 
                     
+
 TotalCost_X0  = (IntU2_X0    + Landa(1:2:3)*CostParam_X0 + Landa(2:2:4)*CostSlopeD2Q_X0 )*Tres;
 TotalCost_Opt = (IntU2_Opt   + Landa(1:2:3)*CostParam_Opt+ Landa(2:2:4)*CostSlopeD2Q_Opt)*Tres;
 
@@ -544,11 +552,10 @@ ThetaS=[];
 ThetaStep=[];
 tau=[];
 
-for Joint=1:nn
+for Joint=1:3
 
-
-    ThetaStep{Joint}=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)))) / (floor(size(Q_Opt,2)/2)));
-    thetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2))) :ThetaStep{Joint}:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2)/2)));
+    ThetaStep{Joint}=( (max(Q_Opt(Joint, 1: floor(size(Q_Opt,2))))  - min(Q_Opt(Joint, 1: floor(size(Q_Opt,2))))) / (floor(size(Q_Opt,2)/2)));
+    thetaS=min(Q_Opt(Joint, 1: floor(size(Q_Opt,2)))) :ThetaStep{Joint}:max(Q_Opt(Joint, 1: floor(size(Q_Opt,2))));
     thetaScale=thetaS-(min(thetaS)+(max(thetaS)-min(thetaS))/2)+pi/2;
     ThetaS{Joint}=thetaScale;
     
@@ -575,11 +582,11 @@ end
 % ParamA={[10000,0.02,.1,.14];
 %         [10000,0.02,.1,.14];
 %         [10000,0.02,.1,.14]};
-ParamA={[5000,0.02,.1,.14];
-        [5000,0.02,.1,.14];
-        [5000,0.02,.1,.14]};
+ParamA={[10000,0.02,.1,.14];
+        [10000,0.02,.1,.14];
+        [10000,0.02,.1,.14]};
     
-for Joint=1:nn
+for Joint=1:3
     K=ParamA{Joint}(1);
     R=ParamA{Joint}(2);
     l0=ParamA{Joint}(3);
@@ -634,14 +641,14 @@ Mid=ceil(length(Time2)/1);
 
 Kp=1*4000;
 Kd=1*400;
-% Kp=1*20000;
-% Kd=1*400;
+Kp=1*20000000;
+Kd=1*400000;
 
 
-OdeOpt= odeset('RelTol',1e-8,'AbsTol',1e-8,'maxstep',1e-3,...
-               'OutputFcn',@(t,Y,flag)TorqueCalculatorControl(t,Y,flag,g,L,m,Qref,DQref,Time2,Kp,Kd,BetaOptimal_Opt*1,rU));
+OdeOpt= odeset('RelTol',1e-4,'AbsTol',1e-4,'maxstep',1e-2,...
+               'OutputFcn',@(t,Y,flag)TorqueCalculatorControlBi(t,Y,flag,g,L,m,Qref,DQref,Time2,Kp,Kd,x,rU,rB));
 [T,Q_ode] =...
-    ode15s(@(t,Y)SirDyn(t,Y,g,L,m,Qref,DQref,Time2,Kp,Kd,BetaOptimal_Opt*1,rU),...
+    ode15s(@(t,Y)SirDynBi(t,Y,g,L,m,Qref,DQref,Time2,Kp,Kd,x,rU,0),...
             Time2,InitState,OdeOpt);
 
 QO1=Q_ode(:,1)';
@@ -653,11 +660,12 @@ RPosODE=L*[cos(QO1)+cos(QO1+QO2)+cos(QO1+QO2+QO3);
 % EnergyABS_Ode=Q_ode(end,end-1)
 % EnergyACT_Ode=Q_ode(end,end)
 
-Torque_Ode=TorqueCalculatorControl([],[],'done');
+Torque_Ode=TorqueCalculatorControlBi([],[],'done');
 TorqueActive_Ode=Torque_Ode(1:3,:);
-TorquePassive_Ode=Torque_Ode(4:6,:);
+TorquePassiveUni_Ode=Torque_Ode(4:6,:);
+TorquePassiveBi_Ode=Torque_Ode(7:9,:);
 
-EnergyABS=sum(sum(abs((TorqueActive_Ode+TorquePassive_Ode)'.*Q_ode(:,4:6)),2))*Tres;
+EnergyABS=sum(sum(abs((TorqueActive_Ode+TorquePassiveUni_Ode+TorquePa)'.*Q_ode(:,4:6)),2))*Tres;
 EnergyACT=sum(sum(abs(TorqueActive_Ode'.*Q_ode(:,4:6)),2))*Tres;
 disp(['Perfect: ',num2str(sum(IntAbsUdqDesire_Opt)*2),'  ,  ',num2str( IntAbsUdqActive_Opt*2)]);
 disp(['PID:     ',num2str(EnergyABS),'  ,  ',num2str( EnergyACT)]);

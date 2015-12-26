@@ -1,17 +1,29 @@
-function DQ=SirDyn(t,Q,g,L,m,Qref,DQref,Time,Kp,Kd,PassiveParam,rU)
+function status=TorqueCalculatorControlBi(t,Y,flag,g,L,m,Qref,DQref,Time,Kp,Kd,PassiveParam,rU,rB)
 
+persistent Torque;
 
-% q1=min(max(Q(1),-pi),pi);
-% q2=min(max(Q(2),-pi),pi);
-% q3=min(max(Q(3),-pi),pi);
+if(strcmp(flag,'init'))
+    Torque=[];
+    t=t(1);
+elseif(strcmp(flag,'done'))
+    status=Torque;
+    return;
+else
+    status=0;
+end
 
-q1=Q(1);
-q2=Q(2);
-q3=Q(3);
+% t
+% q1=min(max(Y(1),-pi),pi);
+% q2=min(max(Y(2),-pi),pi);
+% q3=min(max(Y(3),-pi),pi);
 
-D1q1=Q(4);
-D1q2=Q(5);
-D1q3=Q(6);
+q1=Y(1);
+q2=Y(2);
+q3=Y(3);
+
+D1q1=Y(4);
+D1q2=Y(5);
+D1q3=Y(6);
 D1Q=[D1q1 D1q2 D1q3]';
 
 mL1=m;
@@ -40,10 +52,14 @@ GG= [g*(mL3*LL3*cos(q1+q2+q3)+2*LL2*cos(q1+q2)*mL3+LL2*cos(q1+q2)*mL2+2*cos(q1)*
 
 
 %%  FeedForward Law Control
-TorquePassiveQ1=polyval(PassiveParam(0*(rU+1)+1:1*(rU+1)),q1);
-TorquePassiveQ2=polyval(PassiveParam(1*(rU+1)+1:2*(rU+1)),q2);
-TorquePassiveQ3=polyval(PassiveParam(2*(rU+1)+1:3*(rU+1)),q3);
-TorquePassive=[TorquePassiveQ1; TorquePassiveQ2; TorquePassiveQ3];
+TorquePassiveQ1Uni=polyval(PassiveParam(0*(rU+1)+1:1*(rU+1)),q1);
+TorquePassiveQ2Uni=polyval(PassiveParam(1*(rU+1)+1:2*(rU+1)),q2);
+TorquePassiveQ3Uni=polyval(PassiveParam(2*(rU+1)+1:3*(rU+1)),q3);
+TorquePassiveUni=[TorquePassiveQ1Uni; TorquePassiveQ2Uni; TorquePassiveQ3Uni];
+
+TorquePassiveQ12Bi=polyval(PassiveParam(3*(rU+1)+0*(rB+1)+1:3*(rU+1)+1*(rB+1)),q1+q2);
+TorquePassiveQ23Bi=polyval(PassiveParam(3*(rU+1)+1*(rB+1)+1:3*(rU+1)+2*(rB+1)),q2+q3);
+TorquePassiveBi=[ TorquePassiveQ12Bi; TorquePassiveQ23Bi];
 
 % TorqueActiveQ1=interp1(Time,FF_Torque(1,:),t,'spline');
 % TorqueActiveQ2=interp1(Time,FF_Torque(2,:),t,'spline');
@@ -57,28 +73,8 @@ DQ1ref=interp1(Time,DQref(1,:),t,'spline');
 DQ2ref=interp1(Time,DQref(2,:),t,'spline');
 DQ3ref=interp1(Time,DQref(3,:),t,'spline');
 
- TorqueActive=Kp*([Q1ref Q2ref Q3ref]'-[q1 q2 q3]')+...
-              Kd*([DQ1ref DQ2ref DQ3ref]'-D1Q);
+Torque= [Torque,[Kp*([Q1ref Q2ref Q3ref]'-[q1 q2 q3]')+Kd*([DQ1ref DQ2ref DQ3ref]'-D1Q); TorquePassiveUni;[TorquePassiveBi;0]+[0;TorquePassiveBi]]];
     
  
- 
-TorqueFB=0;
-
-
-
-%% Apply Torqe
-
-F=[5,4]';
-JJ=L*[-sin(q1)-sin(q1+q2)-sin(q1+q2+q3), -sin(q1+q2)-sin(q1+q2+q3), -sin(q1+q2+q3);
-           cos(q1)+cos(q1+q2)+cos(q1+q2+q3),  cos(q1+q2)+cos(q1+q2+q3),  cos(q1+q2+q3)]; 
-
-
-TorqueDis=JJ'*F*(t>1.5)*(t<2.5)*1;
-
-
-D2Q= MM^-1*(-CC*D1Q-GG + TorqueFB*0+ TorqueActive*(1)+TorquePassive*(1)+TorqueDis);
-DeReq=abs((TorqueFB+ TorqueActive+TorquePassive)'*D1Q);
-DeAct=abs(TorqueActive'*D1Q);
-DQ=[D1Q;D2Q;DeReq;DeAct];
 
 end

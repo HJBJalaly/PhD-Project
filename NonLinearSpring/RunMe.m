@@ -1,1 +1,1 @@
-RotNonLinearSpring(ThetaS{Joint}',tau{Joint}',K,R,l0,l0de,['up_',num2str(Joint)]);
+RotNonLinearSpring(ThetaS{Joint}',tau{Joint}',K,R,l0,l0de,['u_u_',num2str(Joint)],['q_',num2str(Joint)]);
