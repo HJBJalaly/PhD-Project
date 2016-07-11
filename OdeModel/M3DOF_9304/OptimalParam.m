@@ -81,12 +81,12 @@ if (rB>0)
 %     
     % for i=1 to n-2
     for i=1:nn-2
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*ones(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*((QQ{i}'*QQ{i})));
 
         B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
         B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*((QQhat{i}'*QQhat{i}));
         D((i-1)*rBp+1:(i)*rBp,(i)*rBp+1:(i+1)*rBp)=Weight(i+1)*QQhat{i}'*QQhat{i+1};
         D((i)*rBp+1:(i+1)*rBp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQhat{i+1}'*QQhat{i};
 
@@ -95,18 +95,18 @@ if (rB>0)
     end
     % for i=n-1
         i=nn-1;
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*((QQ{i}'*QQ{i})));
 
         B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
         B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*((QQhat{i}'*QQhat{i}));
 
         Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
         Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
     % for i=n
         i=nn;
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*((QQ{i}'*QQ{i})));
 
         Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
 

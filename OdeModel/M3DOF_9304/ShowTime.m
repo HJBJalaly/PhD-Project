@@ -1,4 +1,4 @@
-function [TorqueDesire,TorqueActive,Qq,D1Qq,D2Qq,BetaOptimal,ThetaOptimal, IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlopeD1Q,CostSlopeD2Q,CostParamReg ,RMS]=...
+function [TorqueDesire,TorqueActive,TorquePassiveOptimal,TorqueBicepsOptimal,Qq,D1Qq,D2Qq,BetaOptimal,ThetaOptimal, IntU2,IntUdq,IntAbsUdq,IntAbsUdqDesire,CostSlopeD1Q,CostSlopeD2Q,CostParamReg ,RMS]=...
                 ShowTime(Alpha,Time,Tres,Degree,Weight,Landa,SampleRate,Sat,QQ,B,Xef,Yef,m,L,g,MinSinValue,ShowFlag,Period,Mode,Name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
@@ -132,6 +132,41 @@ if(strcmp(ShowFlag,'Show'))
         xlabel('Time (s)','fontsize',12,'FontName','mwa_cmb10');
         ylabel('q_3 (rad)','fontsize',14,'FontName','mwa_cmb10');
 
+    figure('name',['Joints Velocity : ',Name])
+        subplot(3,1,1)
+        plot(Time,D1Q1,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
+            hold on
+            plot(Time+Time(end),D1Q1,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
+        title('Jonits Velocity','FontWeight','bold','FontName','mwa_cmb10');
+        grid on
+        xlabel('Time (s)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('Dq_1 (rad/s)','fontsize',14,'FontName','mwa_cmb10');
+
+        subplot(3,1,2)
+        plot(Time,D1Q2,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
+            hold on
+            plot(Time+Time(end),D1Q2,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
+        grid on
+        xlabel('Time (s)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('Dq_2 (rad/s)','fontsize',14,'FontName','mwa_cmb10');
+
+        subplot(3,1,3)
+        plot(Time,D1Q3,'linewidth',2)
+        if(strcmp(Period,'2Cycle'))
+            hold all
+            plot(Time+Time(end),D1Q3,'linewidth',2,'color','r','linestyle','-.')
+            hold off
+        end
+        grid on
+        xlabel('Time (s)','fontsize',12,'FontName','mwa_cmb10');
+        ylabel('Dq_3 (rad/s)','fontsize',14,'FontName','mwa_cmb10');
+
 end
 %% Torque
 
@@ -242,6 +277,7 @@ elseif(strcmp(Mode,'CostB'))   % for CF2
     TorquePassiveQ2valOptimal=polyval(BetaOptimal(rU+1+1: 2*(rU+1)),Q2);
     TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
     TorquePassiveOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
+    TorqueBicepsOptimal=[];
     TorqueActive=TorqueDesire-TorquePassiveOptimal;
     
     IntAbsUdqDesire=(sum(abs(TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
@@ -276,6 +312,7 @@ elseif(strcmp(Mode,'CostC'))   % for CF3
     TorquePassiveQ2valOptimal=polyval(BetaOptimal(1*(rU+1)+1:2*(rU+1)),Q2);
     TorquePassiveQ3valOptimal=polyval(BetaOptimal(2*(rU+1)+1:3*(rU+1)),Q3);
     TorquePassiveOptimal=[TorquePassiveQ1valOptimal; TorquePassiveQ2valOptimal; TorquePassiveQ3valOptimal];
+    TorqueBicepsOptimal=[];
     TorqueActive=TorqueDesire-TorquePassiveOptimal;
     
     IntAbsUdqDesire=(sum(abs(TorqueDesire.*[D1Q1;D1Q2;D1Q3]),2).*Weight)*Tres/sum(Weight);
@@ -577,7 +614,7 @@ if(strcmp(ShowFlag,'Show'))
                 grid on
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-                Llg=legend('u_r_1','u_u_1','u_b_1','u_a_1');
+                Llg=legend('u_r_1','u_m_1','u_b_1','u_a_1');
                 set(Llg,'orientation','horizontal')
                 xlim([Time(1) Time(end)])
                 %
@@ -592,7 +629,7 @@ if(strcmp(ShowFlag,'Show'))
                 grid on
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-                Llg=legend('u_r_2','u_u_2','u_b_1','u_b_2','u_a_2');
+                Llg=legend('u_r_2','u_m_2','u_b_1','u_b_2','u_a_2');
                 set(Llg,'orientation','horizontal')
                 xlim([Time(1) Time(end)])
                 %
@@ -606,7 +643,7 @@ if(strcmp(ShowFlag,'Show'))
                 grid on
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 ylabel('u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-                Llg=legend('u_r_3','u_u_3','u_b_2','u_a_3');
+                Llg=legend('u_r_3','u_m_3','u_b_2','u_a_3');
                 set(Llg,'orientation','horizontal')
                 xlim([Time(1) Time(end)])
                 xlabel('time (s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
@@ -734,7 +771,7 @@ if(strcmp(ShowFlag,'Show'))
                 hold on
                 plot(rad2deg( Q1),TorqueDesire(1,:)-TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-.')
                 hold off
-                legend('u_u_1','u_r_1-u_b_1','Orientation','horizontal')
+                legend('u_m_1','u_r_1-u_b_1','Orientation','horizontal')
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 %
                 subplot(3,3,5,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
@@ -746,7 +783,7 @@ if(strcmp(ShowFlag,'Show'))
                 hold on
                 plot(rad2deg( Q2),TorqueDesire(2,:)-TorqueBicepsOptimal(1,:)-TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-.')
                 hold off
-                legend('u_u_2','u_r_2-u_b_1-u_b_2','Orientation','horizontal')
+                legend('u_m_2','u_r_2-u_b_1-u_b_2','Orientation','horizontal')
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 %
                 subplot(3,3,6,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
@@ -758,7 +795,7 @@ if(strcmp(ShowFlag,'Show'))
                 hold on
                 plot(rad2deg(Q3),TorqueDesire(3,:)-TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-.')
                 hold off
-                legend('u_u_3','u_r_3-u_b_2','Orientation','horizontal')
+                legend('u_m_3','u_r_3-u_b_2','Orientation','horizontal')
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 
 
@@ -775,7 +812,7 @@ if(strcmp(ShowFlag,'Show'))
                     hold on
                     plot(rad2deg(Q1+Q2),TorqueDesire(1,:)+TorqueDesire(2,:)-TorquePassiveOptimal(1,:)-TorquePassiveOptimal(2,:)-TorqueBicepsOptimal(2,:),'linewidth',2,'linestyle','-.')
                     hold off
-                    legend('2\times u_b_1','u_r_1+u_r_2-u_u_1-u_u_2-u_b_2','Orientation','horizontal')
+                    legend('2\times u_b_1','u_r_1+u_r_2-u_m_1-u_m_2-u_b_2','Orientation','horizontal')
                     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                     
                     sh2=subplot(339);
@@ -789,7 +826,7 @@ if(strcmp(ShowFlag,'Show'))
                     hold on
                     plot(rad2deg(Q2+Q3),TorqueDesire(2,:)+TorqueDesire(3,:)-TorquePassiveOptimal(2,:)-TorquePassiveOptimal(3,:)-TorqueBicepsOptimal(1,:),'linewidth',2,'linestyle','-.')
                     hold off
-                    legend('2\times u_b_2','u_r_2+u_r_3-u_u_2-u_u_3-u_b_1','Orientation','horizontal')
+                    legend('2\times u_b_2','u_r_2+u_r_3-u_m_2-u_m_3-u_b_1','Orientation','horizontal')
                     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 
 

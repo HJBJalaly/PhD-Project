@@ -23,8 +23,8 @@ L=1;
 % EF motion
 A=.75;
 Tres=0.005;
-f=1;
-phi=0;
+f=.5;
+phi=pi/2;
 
 %%
 % Circle motion
@@ -43,20 +43,20 @@ D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
 D2yef=-(2*pi*f)^2*A*sin(2*pi*f*time);
 
  
-% % Ellipose motion
-% Name='Ellipose';
-% f=0.5;
-% phi=pi/2;
-% Tres=0.005;
-% time=0:Tres:40/f;
-% Middle=ceil(38*length(time)/40);
-% Start=20;
-% xef=A*cos(2*pi*f*time)+0;
-% yef=A/2*sin(2*pi*f*time)+2;
-% Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
-% Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
-% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
-% D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
+% Ellipose motion
+Name='Ellipose';
+f=0.5;
+phi=pi/2;
+Tres=0.005;
+time=0:Tres:100/f;
+Middle=ceil(2*length(time)/100);
+Start=1;
+xef=A*cos(2*pi*f*time)+0;
+yef=A/2*sin(2*pi*f*time)+2;
+Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
+D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
 % 
  
 % % Rose motion
@@ -114,7 +114,10 @@ for ii=1:1
     q1=rand*2*pi;
     q2=rand*2*pi;
     q3=rand*2*pi;
-    
+    q1=deg2rad(-60);
+    q2=deg2rad(48.031);
+    q3=deg2rad(-48.031);
+
    
    
 
@@ -135,7 +138,10 @@ for ii=1:1
         q3(tt+1)=q3(tt)+dq(3);
 
     end
-
+    
+    q1=InRangeShifter(q1);
+    q2=InRangeShifter(q2);
+    q3=InRangeShifter(q3);
     RPosVal=L*[cos(q1)+cos(q1+q2)+cos(q1+q2+q3);
             sin(q1)+sin(q1+q2)+sin(q1+q2+q3)];
 
@@ -250,30 +256,30 @@ for ii=1:1
 
     figure(hPoincare)
         subplot(3,1,1)
-        hp=plot(rad2deg(q(1,Middle:end)),rad2deg(Dq(1,Middle:end)),'linewidth',2);
+        hp=plot(rad2deg(q(1,Middle:10:end)),rad2deg(Dq(1,Middle:10:end)),'linewidth',2);
         hold all
         plot(rad2deg(q(1,Middle)),rad2deg(Dq(1,Middle)),'linestyle','none','marker','*',...
-            'markersize',10,'markerfacecolor',get(hp,'color'),'markeredgecolor',get(hp,'color'))
+            'markersize',10,'markerfacecolor',get(hp,'color'),'markeredgecolor','k');%get(hp,'color')),get(hp,'color'))
         xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
         ylabel('Dq_1 (deg/s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
         set(gca,'YMinorGrid','on')
         grid on
 
         subplot(3,1,2)
-        hp=plot(rad2deg(q(2,Middle:end)),rad2deg(Dq(2,Middle:end)),'linewidth',2);
+        hp=plot(rad2deg(q(2,Middle:10:end)),rad2deg(Dq(2,Middle:10:end)),'linewidth',2);
         hold all
         plot(rad2deg(q(2,Middle)),rad2deg(Dq(2,Middle)),'linestyle','none','marker','*',...
-            'markersize',10,'markerfacecolor',get(hp,'color'),'markeredgecolor',get(hp,'color'))
+            'markersize',10,'markerfacecolor',get(hp,'color'),'markeredgecolor','k');%get(hp,'color')),get(hp,'color'))
         xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
         ylabel('Dq_2 (deg/s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
         set(gca,'YMinorGrid','on')
         grid on
 
         subplot(3,1,3)
-        hp=plot(rad2deg(q(3,Middle:end)),rad2deg(Dq(3,Middle:end)),'linewidth',2);
+        hp=plot(rad2deg(q(3,Middle:10:end)),rad2deg(Dq(3,Middle:10:end)),'linewidth',2);
         hold all
         plot(rad2deg(q(3,Middle)),rad2deg(Dq(3,Middle)),'linestyle','none','marker','*', ...
-            'markersize',10,'markerfacecolor',get(hp,'color'),'markeredgecolor',get(hp,'color'))
+            'markersize',10,'markerfacecolor',get(hp,'color'),'markeredgecolor','k');%get(hp,'color'))
         xlabel('q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
         ylabel('Dq_3 (deg/s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
         set(gca,'YMinorGrid','on')

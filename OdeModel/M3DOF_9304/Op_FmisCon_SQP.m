@@ -1,4 +1,4 @@
-function [x,fval,exitflag,output,lambda,grad,hessian] = FmisCon_SQP(CostFun,NonCons,x0,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm)
+function [x,fval,exitflag,output,lambda,grad,hessian] = Op_FmisCon_SQP(CostFun,NonCons,x0,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm)
 %% This is an auto generated MATLAB file from Optimization Tool.
 
 %% Start with the default options
