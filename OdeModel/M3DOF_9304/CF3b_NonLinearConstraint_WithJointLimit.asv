@@ -69,21 +69,17 @@ end
     
     
     
-Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00000005;
+Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00005;
       InRangeShifter(Q1(1:SampleRate:end))'-Q_limit(1,2);
      -InRangeShifter(Q1(1:SampleRate:end))'+Q_limit(1,1);
       InRangeShifter(Q2(1:SampleRate:end))'-Q_limit(2,2);
      -InRangeShifter(Q2(1:SampleRate:end))'+Q_limit(2,1);
       InRangeShifter(Q3(1:SampleRate:end))'-Q_limit(3,2);
      -InRangeShifter(Q3(1:SampleRate:end))'+Q_limit(3,1);
-      D1Q1(1:SampleRate:end)'-DQ_limit(1,2);
-     -D1Q1(1:SampleRate:end)'+DQ_limit(1,1);
-      D1Q2(1:SampleRate:end)'-DQ_limit(2,2);
-     -D1Q2(1:SampleRate:end)'+DQ_limit(2,1);
-      D1Q3(1:SampleRate:end)'-DQ_limit(3,2);
-     -D1Q3(1:SampleRate:end)'+DQ_limit(3,1)];
+      D1Q1(1:SampleRate:end)'-
      
-
+     
+     ];
 Middle1=ceil(1*length(Time)/8);
 Middle2=ceil(2*length(Time)/8);
 Middle3=ceil(3*length(Time)/8);

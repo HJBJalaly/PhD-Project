@@ -58,7 +58,7 @@ A=.75;
 % Ellipose motion
 f=0.5;
 phi=pi/2;
-Tres=0.001;
+Tres=0.005;
 time=0:Tres:41/f;
 Middle1=ceil(39*length(time)/41);
 Middle2=ceil(40*length(time)/41);
@@ -234,20 +234,20 @@ rB=2;
 Weight=[3 2 1]';
 Weight=Weight*1;
 Sat=[1,1,1];
-SampleRate=100;
+SampleRate=20;
 
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[0 1];
-Landa=[1e-3 1e-2 1e-3 1e-2]*10;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+Landa=1*[2e-8 1e-2 2e-8 1e-2]*.1;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
 %  Landa=[1e-6 1e-7 1e-6 1e-7]*1; % for linear
 
 
 Time=time(Middle1:Middle2)-time(Middle1);
-Q1=q1(Middle1:Middle2);
-Q2=q2(Middle1:Middle2);
-Q3=q3(Middle1:Middle2);
+Q1=InRangeShifter(q1(Middle1:Middle2));
+Q2=InRangeShifter(q2(Middle1:Middle2));
+Q3=InRangeShifter(q3(Middle1:Middle2));
 QJ=[Q1;Q2;Q3];
 
 Qhat1=Q1+Q2;
@@ -466,10 +466,10 @@ figure('name','Time Torques')
 %% Optimization
 
 Degree=[nn rQ rU rB];
-Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 
-QLimit=deg2rad([-300,300;-300,300;-300,300]);
-DQLimit=deg2rad([-180,180;-180,180;-180,180]);
+QLimit=deg2rad([-300,300;-300,300;-300,300]/2);
+DQLimit=deg2rad([-120,120;-120,120;-120,120]*1.2);
 % % 
 %  Initial2=Initial;
 %  Initial=x;
@@ -498,13 +498,11 @@ NewInit=Initial+Rand*(randn(1,3*(rQ+length(rQ))));
 
 CostFun   = @(Alpha)CF3b_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,LL1,LL2,LL3);
 % NonConstr = @(Alpha)CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
-NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit,DQLimit);
+NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit,DQLimit,SampleRate);
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
     Op_FmisCon_SQP(CostFun,NonConstr,NewInit,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
-
-
 
 
 %% ShowTime
@@ -513,7 +511,7 @@ Degree=[nn rQ rU rB];
 [TorqueDesire_X0,TorqueActive_X0,TorquePassiveOptimal_X0,TorqueBicepsOptimal_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,ThetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,CostParam_X0,RMSError_X0]=...    
                         ShowTime(Initial,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostCc','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,TorquePassiveOptimal_Opt,TorqueBicepsOptimal_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,ThetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,CostParam_Opt,RMSError_Opt]=...
-                       ShowTime(x      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostCc','Optimized');
+                       ShowTime(x      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostCc','Optimized');
                     
 
                     

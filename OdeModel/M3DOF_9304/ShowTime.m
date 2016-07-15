@@ -99,10 +99,10 @@ if(strcmp(ShowFlag,'Show'))
     
     figure('name',['Joints trajectory : ',Name])
         subplot(3,1,1)
-        plot(Time,Q1,'linewidth',2)
+        plot(Time,InRangeShifter(Q1),'linewidth',2)
         if(strcmp(Period,'2Cycle'))
             hold on
-            plot(Time+Time(end),Q1,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),InRangeShifter(Q1),'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         title('Jonits Trajectory','FontWeight','bold','FontName','mwa_cmb10');
@@ -111,10 +111,10 @@ if(strcmp(ShowFlag,'Show'))
         ylabel('q_1 (rad)','fontsize',14,'FontName','mwa_cmb10');
 
         subplot(3,1,2)
-        plot(Time,Q2,'linewidth',2)
+        plot(Time,InRangeShifter(Q2),'linewidth',2)
         if(strcmp(Period,'2Cycle'))
             hold on
-            plot(Time+Time(end),Q2,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),InRangeShifter(Q2),'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         grid on
@@ -122,10 +122,10 @@ if(strcmp(ShowFlag,'Show'))
         ylabel('q_2 (rad)','fontsize',14,'FontName','mwa_cmb10');
 
         subplot(3,1,3)
-        plot(Time,Q3,'linewidth',2)
+        plot(Time,InRangeShifter(Q3),'linewidth',2)
         if(strcmp(Period,'2Cycle'))
             hold all
-            plot(Time+Time(end),Q3,'linewidth',2,'color','r','linestyle','-.')
+            plot(Time+Time(end),InRangeShifter(Q3),'linewidth',2,'color','r','linestyle','-.')
             hold off
         end
         grid on
