@@ -1,10 +1,12 @@
-function Cost=CF3b_TorqueCost_4R_3D(Alpha,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4)
+function Cost=CF3b_TorqueCost_4R_3D(Alpha,Alpha_Q1,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4)
    
 % Torque=zeros(3,length(Time));
 nn=Degree(1);
 rQ=Degree(2);
 rU=Degree(3);
 rB=Degree(4);
+
+% Alpha=[Alpha_Q1 Alpha];
 
 Alpha_Q1=Alpha(0*(rQ+1)+1:1*(rQ+1));
 Alpha_Q2=Alpha(1*(rQ+1)+1:2*(rQ+1));

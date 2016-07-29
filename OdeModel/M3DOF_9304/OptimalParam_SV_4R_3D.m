@@ -1,6 +1,6 @@
 function  Cost=OptimalParam_SV_4R_3D(Qq,Qhatq,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate)
 
-                
+% Landa=Landa*0;                
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% rU>0 : Filling Trajectory Matrices
 if (rB>0)                
@@ -179,6 +179,7 @@ if (rB>0)
     CostParaReg=[ BetaOptimal'*BetaOptimal,
                   ThetaOptimal'*ThetaOptimal ];
               
+    Landa=Landa*0;
     Cost=CostActuation+Landa(1)*sum(CostParaReg)+Landa(2)*sum(CostD2Q);
                 
         
@@ -255,8 +256,7 @@ else
     
     CostParaReg = [BetaOptimal'*BetaOptimal;  0 ];
     
-    % Torque
-
+    Landa=Landa*0;
     Cost=(CostActuation+Landa(1)*sum(CostParaReg)+Landa(2)*sum(CostD2Q));
     
 end

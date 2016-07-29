@@ -236,7 +236,8 @@ subplot(2,2,3)
 plot3(0,0,0);
 xlabel('x')
 zlabel('z')
-set(gca,'CameraPosition', [0 -17.3205 0]) % x z
+set(gca,'CameraPosition', [0 -17.3205 0] ) % x z
+set(gca,'cameratarget',[0 0 0])
 set(gca, 'DrawMode',   'fast', ...
     'Visible',      'on', ...
     'Color',     [0 0 0], ...

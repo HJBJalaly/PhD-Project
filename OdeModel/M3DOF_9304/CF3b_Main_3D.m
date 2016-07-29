@@ -31,14 +31,14 @@ A=.3;
  
 % 3D Ellipose motion
 f=0.5;
-Tres=0.001;
+Tres=0.005;
 Repeat=10;
 time=0:Tres:Repeat/f;
 Middle1=ceil((Repeat-2) *length(time)/Repeat);
 Middle2=ceil((Repeat-1)*length(time)/Repeat);
-xef= A/2*sin(2*pi*f*time)+.5;
+xef= A/2*sin(2*pi*f*time)+.7;
 yef= A*cos(2*pi*f*time)+.1;
-zef=-A/4*cos(4*pi*f*time)+.75;
+zef=-A/4*cos(4*pi*f*time)+.5;
 
 Dxef= (2*pi*f)*A/2*cos(2*pi*f*time);
 Dyef=-(2*pi*f)*A*sin(2*pi*f*time);
@@ -192,16 +192,16 @@ tic
 % DoF system
 nn=4; % number of joints
 % DoF of Optimization 
-rQ=20; % Degree of joint trajectory
-rM=4; % Degree of passive torque
+rQ=9; % Degree of joint trajectory
+rM=2; % Degree of passive torque
 rB=2;
 % WeightMatrix
 Weight=[1 3 2 1]';
 Weight=Weight*1;
-SampleRate=100;
+SampleRate=25;
 
 % Landa for [DQ  D2q ]
-Landa=[1e-2 1e-2 1e-2 1e-2]*20;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+Landa=[1e-1 1e-3 1e-1 1e-3]*1;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
 %  Landa=[1e-6 1e-7 1e-6 1e-7]*1; % for linear
 
@@ -235,10 +235,14 @@ TorqueDesQ4=torqueDesire(4,Middle1:Middle2);
 TorqueDesire=[TorqueDesQ1;TorqueDesQ2;TorqueDesQ3;TorqueDesQ4];
 
 
-[Alpha_Q1,BezireCoef_q1]= BezierCoeffinet(Time,Q1,rQ);
-[Alpha_Q2,BezireCoef_q2]= BezierCoeffinet(Time,Q2,rQ);
-[Alpha_Q3,BezireCoef_q3]= BezierCoeffinet(Time,Q3,rQ);
-[Alpha_Q4,BezireCoef_q4]= BezierCoeffinet(Time,Q4,rQ);
+% [Alpha_Q1,BezireCoef_q1]= BezierCoeffinet([Time Time(2:end)+Time(1) ],[Q1 Q1(2:end)],rQ);
+% [Alpha_Q2,BezireCoef_q2]= BezierCoeffinet(Time,Q2,rQ);
+% [Alpha_Q3,BezireCoef_q3]= BezierCoeffinet(Time,Q3,rQ);
+% [Alpha_Q4,BezireCoef_q4]= BezierCoeffinet(Time,Q4,rQ);
+[Alpha_Q1,BezireCoef_q1]= BezierCoeffinet([Time Time(2:end)+Time(1) ],[Q1 Q1(2:end)],rQ);
+[Alpha_Q2,BezireCoef_q2]= BezierCoeffinet([Time Time(2:end)+Time(1) ],[Q2 Q2(2:end)],rQ);
+[Alpha_Q3,BezireCoef_q3]= BezierCoeffinet([Time Time(2:end)+Time(1) ],[Q3 Q3(2:end)],rQ);
+[Alpha_Q4,BezireCoef_q4]= BezierCoeffinet([Time Time(2:end)+Time(1) ],[Q4 Q4(2:end)],rQ);
 
 Q1val=polyval(Alpha_Q1,Time);
 Q2val=polyval(Alpha_Q2,Time);
@@ -466,10 +470,11 @@ figure('name','Time Torques')
 %% Optimization
 
 Degree=[nn rQ rM rB];
-Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3 Alpha_Q4];
+% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3 Alpha_Q4];
+% Initial=[Alpha_Q2 Alpha_Q3 Alpha_Q4];
 
-QLimit=deg2rad([-300,300;-300,300;-300,300;-300,300]);
-DQLimit=deg2rad([-180,180;-180,180;-180,180;-180,180]);
+QLimit=deg2rad([-170,170;-96,135;-5,156;-20,110]);
+DQLimit=deg2rad([-300,300;-225,225;-225,225;-300,300]);
 % % 
 %  Initial2=Initial;
 %  Initial=x;
@@ -483,15 +488,15 @@ MaxFunEvals_Data=5000*(rQ);
 MaxIter_Data=1000;
 TolFun_Data=1e-9;
 TolX_Data=1e-9;
-TolCon_Data=1e-7;
+TolCon_Data=1e-8;
 Algorithm='sqp';
 Algorithm='interior-point';
-Rand=5000*1e-6;
+Rand=5000*1e-10;
 NewInit=Initial+Rand*(randn(1,4*(rQ+length(rQ))));
 
-CostFun   = @(Alpha)CF3b_TorqueCost_4R_3D(Alpha,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4);
+CostFun   = @(Alpha)CF3b_TorqueCost_4R_3D(Alpha,Alpha_Q1,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4);
 % NonConstr = @(Alpha)CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
-NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit_4R_3D(Alpha,Time,Tres,Degree,XEF,YEF,ZEF,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,QLimit,DQLimit,SampleRate);
+NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit_4R_3D(Alpha,Alpha_Q1,Time,Tres,Degree,XEF,YEF,ZEF,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,QLimit,DQLimit,SampleRate);
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
@@ -502,11 +507,12 @@ NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit_4R_3D(Alpha,Time,Tre
 
 %% ShowTime
 Degree=[nn rQ rM rB];
+Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3 Alpha_Q4];
 
 [TorqueDesire_X0,TorqueActive_X0,TorqueMonoOptimal_X0,TorqueBicepsOptimal_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,ThetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,CostParam_X0,RMSError_X0]=...    
-                        ShowTime_4R_3D(Initial,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,ZEF,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,g,[],'Show','2Cycle','CostCc','Initial');
+                        ShowTime_4R_3D([ Initial],Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,ZEF,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,g,[],'DntShow','2Cycle','CostCc','Initial');
 [TorqueDesire_Opt,TorqueActive_Opt,TorqueMonoOptimal_Opt,TorqueBicepsOptimal_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,ThetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,CostParam_Opt,RMSError_Opt]=...
-                       ShowTime_4R_3D(Initial      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,ZEF,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,g,[],'DntShow','2Cycle','CostCc','Optimized');
+                       ShowTime_4R_3D([ x]      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,ZEF,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,g,[],'Show','2Cycle','CostCc','Optimized');
                     
 
                     
@@ -540,7 +546,8 @@ IntAbsUdqDesire=sum(sum(abs(TorqueDesire.*Dq(:,Middle1:Middle2)),2))*Tres;
 disp([IntAbsUdqActive IntAbsUdqDesire ])
 
 % toc
-
+disp(sum(   max(D1Q_Opt')>DQLimit(:,2)' +min(D1Q_Opt')<DQLimit(:,1)'+max(Q_Opt')>QLimit(:,2)'+min(Q_Opt')<QLimit(:,1)' ) )
+%%
 
 %% Analysis of Robustness
 

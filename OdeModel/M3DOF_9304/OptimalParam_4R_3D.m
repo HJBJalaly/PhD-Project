@@ -192,7 +192,7 @@ if (rB>0)
     
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
-  %% rB>0 : Optimize the compliance of first joint
+  %% rB=0 : Optimize the compliance of first joint
     
         
     

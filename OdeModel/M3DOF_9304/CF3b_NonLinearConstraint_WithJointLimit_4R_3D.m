@@ -1,12 +1,15 @@
-function [Cneq,Ceq]=CF3b_NonLinearConstraint_WithJointLimit_4R_3D(Alpha,Time,Tres,Degree,Xef,Yef,Zef,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,Q_limit,DQ_limit,SampleRate)
+function [Cneq,Ceq]=CF3b_NonLinearConstraint_WithJointLimit_4R_3D(Alpha,Alpha_Q1,Time,Tres,Degree,Xef,Yef,Zef,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4,Q_limit,DQ_limit,SampleRate)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 
 Pos=[Xef;Yef;Zef];
 
+[Tt,Rr,Zz]=cart2pol(Xef,Yef,Zef);
+
 rQ=Degree(2);
 
+% Alpha=[Alpha_Q1 Alpha];
 Alpha_Q1=Alpha(0*(rQ+1)+1:1*(rQ+1));
 Alpha_Q2=Alpha(1*(rQ+1)+1:2*(rQ+1));
 Alpha_Q3=Alpha(2*(rQ+1)+1:3*(rQ+1));
@@ -42,21 +45,25 @@ D2Qq=[D2Q1;D2Q2;D2Q3;D2Q4];
 
 
 RPos=FK_RzRyRyRy_3D(Q1,Q2,Q3,Q4,LL1,LL2,LL3,LL4);
+[tt,rr,zz]=cart2pol(RPos(1,:),RPos(2,:),RPos(3,:));
  
 TorqueDesire=TorqueCalculator_4R_3D(D2Qq,D1Qq,Qq,g,mL1,mL2,mL3,mL4,LL1,LL2,LL3,LL4);    
     
     
-Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00000005;
-      InRangeShifter(Q1(1:SampleRate:end))'-Q_limit(1,2);
-     -InRangeShifter(Q1(1:SampleRate:end))'+Q_limit(1,1);
+Cneq=[ sum((tt-Tt).^2)*Tres-.00000001;
+       sum((zz-Zz).^2)*Tres-.00000001;
+       sum((rr-Rr).^2)*Tres-.00000001;
+    %sum(sum((RPos-Pos).^2))*Tres-.000000005;
+%       InRangeShifter(Q1(1:SampleRate:end))'-Q_limit(1,2);
+%      -InRangeShifter(Q1(1:SampleRate:end))'+Q_limit(1,1);
       InRangeShifter(Q2(1:SampleRate:end))'-Q_limit(2,2);
      -InRangeShifter(Q2(1:SampleRate:end))'+Q_limit(2,1);
       InRangeShifter(Q3(1:SampleRate:end))'-Q_limit(3,2);
      -InRangeShifter(Q3(1:SampleRate:end))'+Q_limit(3,1);
       InRangeShifter(Q4(1:SampleRate:end))'-Q_limit(4,2);
      -InRangeShifter(Q4(1:SampleRate:end))'+Q_limit(4,1);
-      D1Q1(1:SampleRate:end)'-DQ_limit(1,2);
-     -D1Q1(1:SampleRate:end)'+DQ_limit(1,1);
+%       D1Q1(1:SampleRate:end)'-DQ_limit(1,2);
+%      -D1Q1(1:SampleRate:end)'+DQ_limit(1,1);
       D1Q2(1:SampleRate:end)'-DQ_limit(2,2);
      -D1Q2(1:SampleRate:end)'+DQ_limit(2,1);
       D1Q3(1:SampleRate:end)'-DQ_limit(3,2);
@@ -64,22 +71,22 @@ Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00000005;
       D1Q4(1:SampleRate:end)'-DQ_limit(4,2);
      -D1Q4(1:SampleRate:end)'+DQ_limit(4,1)];
      
-
-Middle1=ceil(1*length(Time)/8);
-Middle2=ceil(2*length(Time)/8);
-Middle3=ceil(3*length(Time)/8);
-Middle4=ceil(4*length(Time)/8);
+% 
+% Middle1=ceil(1*length(Time)/8);
+% Middle2=ceil(2*length(Time)/8);
+% Middle3=ceil(3*length(Time)/8);
+% Middle4=ceil(4*length(Time)/8);
 Middle5=ceil(5*length(Time)/8);
-Middle6=ceil(6*length(Time)/8);
-Middle7=ceil(7*length(Time)/8);
+% Middle6=ceil(6*length(Time)/8);
+% Middle7=ceil(7*length(Time)/8);
 Ceq=[RPos(:,1)-Pos( :,1);
-    (RPos(:,Middle1)-Pos( :,Middle1))*1;
-     RPos(:,Middle2)-Pos( :,Middle2);
-    (RPos(:,Middle3)-Pos( :,Middle3))*.1;
-     RPos(:,Middle4)-Pos( :,Middle4);
-     RPos(:,Middle5)-Pos( :,Middle5);
-     RPos(:,Middle6)-Pos( :,Middle6);
-     RPos(:,Middle7)-Pos( :,Middle7);
+%      (RPos(:,Middle1)-Pos( :,Middle1))*.25;
+%        (RPos(:,Middle2)-Pos( :,Middle2))*.1;
+%      (RPos(:,Middle3)-Pos( :,Middle3))*.25;
+%        (RPos(:,Middle4)-Pos( :,Middle4))*.1;
+      (RPos(:,Middle5)-Pos( :,Middle5))*.25;
+%        (RPos(:,Middle6)-Pos( :,Middle6))*.1;
+%      (RPos(:,Middle7)-Pos( :,Middle7))*.25;
 %      RPos(:,end)-Pos(:,end);
      Q1(1)-Q1(end);
      Q2(1)-Q2(end);
@@ -93,5 +100,5 @@ Ceq=[RPos(:,1)-Pos( :,1);
      D2Q2(1)-D2Q2(end);
      D2Q3(1)-D2Q3(end);
      D2Q4(1)-D2Q4(end);
-    (diff(TorqueDesire([1],1:2)')'-diff(TorqueDesire([1],end-1:end)')')*(1e-100)];
+    (diff(TorqueDesire([2:3],1:2)')'-diff(TorqueDesire([2:3],end-1:end)')')*(1e-10)];
 end
