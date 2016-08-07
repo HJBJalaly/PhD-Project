@@ -69,7 +69,7 @@ end
     
     
     
-Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00000005;
+Cneq=[sum(sum((RPos-Pos).^2))*Tres*20-.00000005;
       (Q1(1:SampleRate:end))'-Q_limit(1,2);
      -(Q1(1:SampleRate:end))'+Q_limit(1,1);
       (Q2(1:SampleRate:end))'-Q_limit(2,2);
@@ -109,5 +109,5 @@ Ceq=[RPos(:,1)-Pos( :,1);
      D2Q1(1)-D2Q1(end);
      D2Q2(1)-D2Q2(end);
      D2Q3(1)-D2Q3(end);
-    (diff(TorqueDesire([1],1:2)')'-diff(TorqueDesire([1],end-1:end)')')*(1e-100)];
+    (diff(TorqueDesire([1,2],1:2)')'-diff(TorqueDesire([1,2],end-1:end)')')*(1e-50)];
 end

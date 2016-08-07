@@ -38,41 +38,41 @@ A=.75;
 % q2=deg2rad(48.031);
 % q3=deg2rad(-51.317);
   
-% % Line motion: Horizontal
-% f=1;
-% phi=0;
-% Tres=0.002;
-% time=0:Tres:21/f;
-% Middle1=ceil(19*length(time)/21);
-% Middle2=ceil(20*length(time)/21);
-% xef=A*cos(2*pi*f*time+phi);
-% yef=2.5*ones(size(time));
-% Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
-% Dyef= 2*zeros(size(time));
-% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
-% D2yef= 2*zeros(size(time));
-% q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
-% q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
-% q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
-
-% Ellipose motion
-f=0.5;
-phi=pi/2;
+% Line motion: Horizontal
+f=1;
+phi=0;
 Tres=0.005;
-time=0:Tres:41/f;
-Middle1=ceil(39*length(time)/41);
-Middle2=ceil(40*length(time)/41);
-Start=20;
-xef=A*cos(2*pi*f*time)+0;
-yef=A/2*sin(2*pi*f*time)+1.5;
-Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
-Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
-D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
-D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
-q1=deg2rad(-60);
-q2=deg2rad(48.031);
-q3=deg2rad(-48.031);
+time=0:Tres:21/f;
+Middle1=ceil(19*length(time)/21);
+Middle2=ceil(20*length(time)/21);
+xef=A*cos(2*pi*f*time+phi);
+yef=2.5*ones(size(time));
+Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
+Dyef= 2*zeros(size(time));
+D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
+D2yef= 2*zeros(size(time));
+q1=deg2rad( 22.7023); % 41.7023 deg for y=2.5m  ,  22.2 deg for y=2.0m
+q2=deg2rad(29.2663); % 18.2663 deg for y=2.5m  ,  29.468 deg for y=2.0m
+q3=deg2rad(80.3377); % 44.3377 deg for y=2.5m  ,  71.431 deg for y=2.0m
 
+% % Ellipose motion
+% f=0.5;
+% phi=pi/2;
+% Tres=0.005;
+% time=0:Tres:41/f;
+% Middle1=ceil(39*length(time)/41);
+% Middle2=ceil(40*length(time)/41);
+% Start=20;
+% xef=A*cos(2*pi*f*time)+0;
+% yef=A/2*sin(2*pi*f*time)+1.5;
+% Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
+% Dyef= (2*pi*f)*A/2*cos(2*pi*f*time);
+% D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
+% D2yef=-(2*pi*f)^2*A/2*sin(2*pi*f*time);
+% q1=deg2rad(-60);
+% q2=deg2rad(48.031);
+% q3=deg2rad(-48.031);
+% 
 
 % % Line motion: Vertical
 % phi=0;
@@ -227,23 +227,23 @@ tic
 % DoF system
 nn=3; % number of joints
 % DoF of Optimization 
-rQ=8; % Degree of joint trajectory
-rU=4; % Degree of passive torque
-rB=2;
+rQ=15; % Degree of joint trajectory
+rM=4; % Degree of passive torque
+rB=4;
 % WeightMatrix
 Weight=[3 2 1]';
 Weight=Weight*1;
 Sat=[1,1,1];
-SampleRate=20;
+SampleRate=1;
 
 % Landa for [DQ  D2q ]
 SeletcStr={'DQ','D2Q'};
 SelectLanda=[0 1];
-Landa=1*[2e-8 1e-2 2e-8 1e-2]*.1;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
+Landa=1*[1e-6 1e-6 1e-6 1e-6]*10;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(D2Q*Beta)
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
 %  Landa=[1e-6 1e-7 1e-6 1e-7]*1; % for linear
 
-
+%%
 Time=time(Middle1:Middle2)-time(Middle1);
 Q1=InRangeShifter(q1(Middle1:Middle2));
 Q2=InRangeShifter(q2(Middle1:Middle2));
@@ -285,7 +285,7 @@ RPosVal=L*[cos(Q1val)+cos(Q1val+Q2val)+cos(Q1val+Q2val+Q3val);
 
     
 [BetaOptimal,ThetaOptimal,CostActuation,CostD2Q,CostParaReg,TorquePassiveOptimal,TorqueBicepsOptimal]= ...
-            OptimalParam(QJ,QhatJ,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate);
+            OptimalParam(QJ,QhatJ,TorqueDesire,nn,rM,rB,Landa,Weight,SampleRate);
 
 CostRequired=0;
  for i=1:nn
@@ -465,17 +465,13 @@ figure('name','Time Torques')
 
 %% Optimization
 
-Degree=[nn rQ rU rB];
-% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+Degree=[nn rQ rM rB];
+Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+% Initial2=Initial;
+% Initial=x;
 
-QLimit=deg2rad([-300,300;-300,300;-300,300]/2);
-DQLimit=deg2rad([-120,120;-120,120;-120,120]*1.2);
-% % 
-%  Initial2=Initial;
-%  Initial=x;
-
-% WeightMatrix
-% Weight=[ 10 1 1]';
+QLimit=deg2rad([-160,160;-160,160;-160,160])*1;
+DQLimit=deg2rad([-180,180;-180,180;-180,180])*15/18;
 
 % dynamic parameters
 mL1=m;
@@ -497,8 +493,8 @@ Rand=5000*1e-6;
 NewInit=Initial+Rand*(randn(1,3*(rQ+length(rQ))));
 
 CostFun   = @(Alpha)CF3b_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,LL1,LL2,LL3);
-% NonConstr = @(Alpha)CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
-NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit,DQLimit,SampleRate);
+NonConstr = @(Alpha)CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
+% NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit,DQLimit,SampleRate);
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
@@ -506,11 +502,11 @@ NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degr
 
 
 %% ShowTime
-Degree=[nn rQ rU rB];
+Degree=[nn rQ rM rB];
 
-[TorqueDesire_X0,TorqueActive_X0,TorquePassiveOptimal_X0,TorqueBicepsOptimal_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,ThetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,CostParam_X0,RMSError_X0]=...    
+[TorqueDesire_X0,TorqueActive_X0,TorqueMonoOptimal_X0,TorqueBicepsOptimal_X0,Q_X0,D1Q_X0,D2Q_X0,BetaOptimal_X0,ThetaOptimal_X0,IntU2_X0,IntUdq_X0,IntAbsUdq_X0,IntAbsUdqDesire_X0,CostSlopeD1Q_X0,CostSlopeD2Q_X0,CostParam_X0,RMSError_X0]=...    
                         ShowTime(Initial,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'DntShow','2Cycle','CostCc','Initial');
-[TorqueDesire_Opt,TorqueActive_Opt,TorquePassiveOptimal_Opt,TorqueBicepsOptimal_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,ThetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,CostParam_Opt,RMSError_Opt]=...
+[TorqueDesire_Opt,TorqueActive_Opt,TorqueMonoOptimal_Opt,TorqueBicepsOptimal_Opt,Q_Opt,D1Q_Opt,D2Q_Opt,BetaOptimal_Opt,ThetaOptimal_Opt,IntU2_Opt,IntUdq_Opt,IntAbsUdq_Opt,IntAbsUdqDesire_Opt,CostSlopeD1Q_Opt,CostSlopeD2Q_Opt,CostParam_Opt,RMSError_Opt]=...
                        ShowTime(x      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostCc','Optimized');
                     
 
@@ -524,10 +520,10 @@ IntAbsUdqDesire_Opt=sum(sum(abs(TorqueDesire_Opt.*D1Q_Opt),2))*Tres;
 IntAbsUdqActive_X0=sum(sum(abs(TorqueActive_X0.*D1Q_X0),2))*Tres;
 IntAbsUdqActive_Opt=sum(sum(abs(TorqueActive_Opt.*D1Q_Opt),2))*Tres;
 
-DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n   Requlation Type:  %s\n ',rQ,rU, 'Cast 2b',SeletcStr{find(SelectLanda)});
+DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n   Requlation Type:  %s\n ',rQ,rM, 'Cast 2b',SeletcStr{find(SelectLanda)});
 Title=sprintf('%22s  % 11s %11s % 8s % 12s % 15s % 15s'  ,   'IntU2','C.S.(D2)','ParamReg','Total','RMS Err','Req. Work','Actuator Work');
-Result_X0 =sprintf('%-11s %11.2e %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e  ',   'Initial:',  IntU2_X0, sum(CostSlopeD2Q_X0) , sum(CostParam_X0)   , TotalCost_X0 , RMSError_X0, sum(IntAbsUdqDesire_X0), IntAbsUdqActive_X0);
-Result_Opt=sprintf('%-11s %11.2e %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e\n',   'Optimized:',IntU2_Opt,sum(CostSlopeD2Q_Opt), sum(CostParam_Opt)  , TotalCost_Opt, RMSError_Opt,sum(IntAbsUdqDesire_Opt),IntAbsUdqActive_Opt);
+Result_X0 =sprintf('%-11s %11.2e %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e  ',   'Initial:',  IntU2_X0*Tres, sum(CostSlopeD2Q_X0)*Tres , sum(CostParam_X0)*Tres   , TotalCost_X0 , RMSError_X0, sum(IntAbsUdqDesire_X0), IntAbsUdqActive_X0);
+Result_Opt=sprintf('%-11s %11.2e %11.2e %11.2e % 10.2e % 10.2e % 15.2e % 14.2e\n',   'Optimized:',IntU2_Opt*Tres,sum(CostSlopeD2Q_Opt)*Tres, sum(CostParam_Opt)*Tres  , TotalCost_Opt, RMSError_Opt,sum(IntAbsUdqDesire_Opt),IntAbsUdqActive_Opt);
 % display(output.message)
 disp(DegreeStr)
 disp(Title)
@@ -542,10 +538,17 @@ IntAbsUdqDesire=sum(sum(abs(TorqueDesire.*Dq(:,Middle1:Middle2)),2))*Tres;
 % % RmsErrorX0=sqrt(sum(sum((rPosVal(:,Middle1:Middle2)-pos(:,Middle-1:end-1)).^2)*Tres/(time(end)-time(Middle))));
 % % MaxErrorX0=max(sqrt(sum((rPosVal(:,Middle1:Middle2)-pos(:,Middle-1:end-1)).^2)));
 % disp([RmsErrorX0 MaxErrorX0 ]*100)
-disp([IntAbsUdqActive IntAbsUdqDesire ])
-
-%% Analysis of Robustness
-load testCc_eli_3(ForPaper_JustOnWindows)
+disp([ActCost IntAbsUdqActive IntAbsUdqDesire ])
+Violate=[];
+for i=1:nn
+   Violate(i,1)=(min(D1Q_Opt(i,:))<DQLimit(i,1)');
+   Violate(i,2)=(max(D1Q_Opt(i,:))>DQLimit(i,2)');
+   Violate(i,3)=(min(InRangeShifter(Q_Opt(i,:)))<QLimit(i,1)');
+   Violate(i,4)=(max(InRangeShifter(Q_Opt(i,:)))>QLimit(i,2)');
+end
+disp(sum(Violate,2)')
+%% Analysis of Robustness : Define New Task
+% load Test9504_b_DQ=180
 % % main Ellipose motion
 xefm=A*cos(2*pi*f*Time)+0;
 yefm=A/2*sin(2*pi*f*Time)+1.5;
@@ -555,8 +558,8 @@ D2xefm=-(2*pi*f)^2*A*cos(2*pi*f*Time);
 D2yefm=-(2*pi*f)^2*A/2*sin(2*pi*f*Time);
 
 % New similar Task
-A1=A*1.05;
-A2=A/2*.95;
+A1=A*.8;
+A2=A/2*.8;
 xefn=A1*cos(2*pi*f*Time)+0;
 yefn=A2*sin(2*pi*f*Time)+1.5;
 Dxefn=-(2*pi*f)*A1*sin(2*pi*f*Time);
@@ -569,6 +572,8 @@ figure
 plot(xefm,yefm)
 hold all
 plot(xefn,yefn)
+legend('main','new')
+axis equal
 
 mL1=m;
 mL2=m;
@@ -581,12 +586,13 @@ LL3=L;
                        ShowTime(x      ,Time,Tres,Degree,Weight,Landa,SampleRate,[],[],[],XEF,YEF,m,L,g,[],'Show','2Cycle','CostCc','Optimized');
 
 
-Initial_n=x;
 QLimitTemp=[    min(Q_m')' max(Q_m')' ];
-QLimit_n= ([mean(QLimitTemp,2)-1.2*diff(QLimitTemp,[],2)/2,mean(QLimitTemp,2)+1.2*diff(QLimitTemp,[],2)/2]);
-DQLimit_n=deg2rad([-180,180;-180,180;-180,180]*1.5);
+AA=1.2;
+QLimit_n= ([mean(QLimitTemp,2)-AA*diff(QLimitTemp,[],2)/2,mean(QLimitTemp,2)+AA*diff(QLimitTemp,[],2)/2]);
+DQLimit_n=DQLimit*1;
 
-%%
+%% Analysis of Robustness : Find The Trajectory
+% Initial_n=x;
 % Initial_n=xn;
 MaxFunEvals_Data=5000*(rQ);
 MaxIter_Data=1000;
@@ -598,7 +604,6 @@ Algorithm='interior-point';
 Rand=5000*1e-6;
 
 CostFun   = @(Alpha)PathOptimizer(Alpha,BetaOptimal_m,ThetaOptimal_m,Time,Degree,Tres,Weight,g,mL1,mL2,mL3,LL1,LL2,LL3);
-% NonConstr = @(Alpha)CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonConstr = @(Alpha)PathConstraint(Alpha,Time,Tres,Degree,L,xefn,yefn,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit_n,DQLimit_n,SampleRate);
 
 NewInit_n=Initial_n+Rand*(randn(1,3*(rQ+length(rQ))));
@@ -607,7 +612,36 @@ NewInit_n=Initial_n+Rand*(randn(1,3*(rQ+length(rQ))));
     Op_FmisCon_SQP(CostFun,NonConstr,NewInit_n,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
+exexitexit
+%% Analysis of Robustness : Show Time 
+[TorqueDesire_n,TorqueActive_n,TorqueActive_o,TorqueMono_n,TorqueBiceps_n,Q_n,D1Q_n,D2Q_n,IntU2_n,IntAbsUdq_n,IntU2_o,IntAbsUdq_o,IntAbsUdqDesire_n,RMSError_n]=...
+                   ShowTimePathOptimizer(xn,BetaOptimal_m,ThetaOptimal_m      ,Time,Tres,Degree,Weight,Landa*1,SampleRate,xefn,yefn,m,L,g,'Show','2Cycle','Optimized');
+                   
+IntAbsUdqDesire_n=sum(sum(abs(TorqueDesire_n.*D1Q_n),2))*Tres;
+IntAbsUdqActive_n=sum(sum(abs(TorqueActive_n.*D1Q_n),2))*Tres;
+IntAbsUdqActive_o=sum(sum(abs(TorqueActive_o.*D1Q_n),2))*Tres;
 
+DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n   Requlation Type:  %s\n ',rQ,rM, 'Cast 2b',SeletcStr{find(SelectLanda)});
+Title_n=sprintf('%22s  % 12s % 15s % 15s'  ,   'IntU2','Req. Work','Actuator Work','RMS Err');
+Result_m=sprintf('%-11s %11.2e %12.2e %14.2e % 13.2e',   'Main:',IntU2_Opt*Tres,sum(IntAbsUdqDesire_Opt),IntAbsUdqActive_Opt, RMSError_Opt);
+Result_n=sprintf('%-11s %11.2e %12.2e %14.2e % 13.2e',   'New:',IntU2_n,sum(IntAbsUdqDesire_n),IntAbsUdqActive_n, RMSError_n);
+Result_o=sprintf('%-11s %11.2e %12.2e %14.2e % 13.2e\n',   'Optimal:',IntU2_o*Tres,sum(IntAbsUdqDesire_n),IntAbsUdqActive_o, RMSError_n);
+% display(output.message)
+disp(Title_n)
+disp(Result_m)
+disp(Result_n)
+disp(Result_o)
+
+Violate=[];
+for i=1:nn
+   Violate(i,1)=(min(D1Q_n(i,:))<DQLimit(i,1)');
+   Violate(i,2)=(max(D1Q_n(i,:))>DQLimit(i,2)');
+   Violate(i,3)=(min(InRangeShifter(Q_n(i,:)))<QLimit(i,1)');
+   Violate(i,4)=(max(InRangeShifter(Q_n(i,:)))>QLimit(i,2)');
+   Violate(i,5)=(min((Q_n(i,:)))<QLimit_n(i,1)');
+   Violate(i,6)=(max((Q_n(i,:)))>QLimit_n(i,2)');
+end
+disp(sum(Violate,2)')
 %% Scale Profile for Nonlinear Spring
 
 ThetaS=[];
@@ -622,7 +656,7 @@ for Joint=1:3
     ThetaS{Joint}=thetaScale;
     
 
-    tau{Joint}=polyval(BetaOptimal_Opt((rU+1)*(Joint-1)+1: (Joint)*(rU+1)),thetaS);    
+    tau{Joint}=polyval(BetaOptimal_Opt((rM+1)*(Joint-1)+1: (Joint)*(rM+1)),thetaS);    
     
 
     figure('name',['Joint ', num2str( Joint)])
@@ -674,9 +708,9 @@ Kd=1*400000;
 
 
 OdeOpt= odeset('RelTol',1e-4,'AbsTol',1e-4,'maxstep',1e-2,...
-               'OutputFcn',@(t,Y,flag)TorqueCalculatorControlBi(t,Y,flag,g,L,m,Qref,DQref,Time2,Kp,Kd,x,rU,rB));
+               'OutputFcn',@(t,Y,flag)TorqueCalculatorControlBi(t,Y,flag,g,L,m,Qref,DQref,Time2,Kp,Kd,x,rM,rB));
 [T,Q_ode] =...
-    ode15s(@(t,Y)SirDynBi(t,Y,g,L,m,Qref,DQref,Time2,Kp,Kd,x,rU,0),...
+    ode15s(@(t,Y)SirDynBi(t,Y,g,L,m,Qref,DQref,Time2,Kp,Kd,x,rM,0),...
             Time2,InitState,OdeOpt);
 
 QO1=Q_ode(:,1)';

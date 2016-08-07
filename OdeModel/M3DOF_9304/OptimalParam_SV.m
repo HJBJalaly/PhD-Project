@@ -77,7 +77,7 @@ if (rB>0)
     rBp=rB+1;
     % for i=1 to n-2
     for i=1:nn-2
-        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*ones(size(QQ{i}'*QQ{i})));
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
         B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
         B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};

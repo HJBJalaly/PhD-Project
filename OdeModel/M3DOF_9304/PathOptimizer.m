@@ -80,5 +80,6 @@ Cost=0;
 for i=1:nn
     Cost=Cost + ...
           Weight(i)*( 1/2*(TorqueActive(i,:)')'*TorqueActive(i,:)')*Tres;
- end
+end
+
 end

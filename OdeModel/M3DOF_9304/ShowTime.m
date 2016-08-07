@@ -10,36 +10,36 @@ function [TorqueDesire,TorqueActive,TorquePassiveOptimal,TorqueBicepsOptimal,Qq,
 %% Regerate Trjectory from Coef
 
 if(strcmp(Mode,'CostA'))
-    rQ=Degree(1);
+    rM=Degree(1);
     SubplotNUM=1;
 elseif(strcmp(Mode,'CostB'))
     nn=Degree(1);
-    rQ=Degree(2) ;
+    rM=Degree(2) ;
     rU=Degree(3) ;
     SubplotNUM=2;
 elseif(strcmp(Mode,'CostC'))
     nn=Degree(1);
-    rQ=Degree(2);
+    rM=Degree(2);
     rU=Degree(3);
     SubplotNUM=2;    
 elseif(strcmp(Mode,'CostCc'))
     nn=Degree(1);
-    rQ=Degree(2);
+    rM=Degree(2);
     rU=Degree(3);
     rB=Degree(4);
     SubplotNUM=3;    
 end
 
 
-Alpha_Q1=Alpha(1:(rQ+1));
-Alpha_Q2=Alpha((rQ+1)+1:2*(rQ+1));
-Alpha_Q3=Alpha(2*(rQ+1)+1:3*(rQ+1));
-Alpha_D1Q1=Alpha_Q1(1:end-1).*(rQ:-1:1);
-Alpha_D1Q2=Alpha_Q2(1:end-1).*(rQ:-1:1);
-Alpha_D1Q3=Alpha_Q3(1:end-1).*(rQ:-1:1);
-Alpha_D2Q1=Alpha_D1Q1(1:end-1).*(rQ-1:-1:1);
-Alpha_D2Q2=Alpha_D1Q2(1:end-1).*(rQ-1:-1:1);
-Alpha_D2Q3=Alpha_D1Q3(1:end-1).*(rQ-1:-1:1);
+Alpha_Q1=Alpha(1:(rM+1));
+Alpha_Q2=Alpha((rM+1)+1:2*(rM+1));
+Alpha_Q3=Alpha(2*(rM+1)+1:3*(rM+1));
+Alpha_D1Q1=Alpha_Q1(1:end-1).*(rM:-1:1);
+Alpha_D1Q2=Alpha_Q2(1:end-1).*(rM:-1:1);
+Alpha_D1Q3=Alpha_Q3(1:end-1).*(rM:-1:1);
+Alpha_D2Q1=Alpha_D1Q1(1:end-1).*(rM-1:-1:1);
+Alpha_D2Q2=Alpha_D1Q2(1:end-1).*(rM-1:-1:1);
+Alpha_D2Q3=Alpha_D1Q3(1:end-1).*(rM-1:-1:1);
 
 Q1=polyval(Alpha_Q1,Time);
 Q2=polyval(Alpha_Q2,Time);
@@ -737,7 +737,7 @@ if(strcmp(ShowFlag,'Show'))
                 legend('u_r_1','u_a_1','Orientation','horizontal')
                 set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 %
-                subplot(2+(rB>0),3,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+                subplot(3,3,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
                 plot(rad2deg( Q2),TorqueDesire(2,:),'linewidth',2)
                 xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
                 ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');

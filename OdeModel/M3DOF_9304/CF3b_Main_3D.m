@@ -192,8 +192,8 @@ tic
 % DoF system
 nn=4; % number of joints
 % DoF of Optimization 
-rQ=9; % Degree of joint trajectory
-rM=2; % Degree of passive torque
+rQ=10; % Degree of joint trajectory
+rM=4; % Degree of passive torque
 rB=2;
 % WeightMatrix
 Weight=[1 3 2 1]';
@@ -205,7 +205,7 @@ Landa=[1e-1 1e-3 1e-1 1e-3]*1;   % [landa_1* Beta'*Beta    Landa_2*(D2Q*Beta)'*(
                            %  landa_3* Theta'*Theta  Landa_4*(D2Qhat*Theta)'*(D2Qhat*Theta) ]          
 %  Landa=[1e-6 1e-7 1e-6 1e-7]*1; % for linear
 
-
+%%
 Time=time(Middle1:Middle2)-time(Middle1);
 Q1=q1(Middle1:Middle2);
 Q2=q2(Middle1:Middle2);
