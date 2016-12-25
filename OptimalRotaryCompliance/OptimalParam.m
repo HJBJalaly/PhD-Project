@@ -1,9 +1,8 @@
-function  [BetaOptimal,ThetaOptimal,CostActuation,CostD2Q,CostParaReg,TorqueMonoOptimal,TorqueBicepsOptimal]=...
-                    OptimalParam_4R_3D(Qq,Qhatq,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate)
+function  [BetaOptimal,ThetaOptimal,CostActuation,CostD2Q,CostParaReg,TorquePassiveOptimal,TorqueBicepsOptimal]=...
+                    OptimalParam(Qq,Qhatq,TorqueDesire,nn,rU,rB,Landa,Weight,SampleRate)
 
                 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% rU>0 : Filling Trajectory Matrices
+                
 if (rB>0)                
     QQ={};
     QQhat={};
@@ -70,81 +69,58 @@ if (rB>0)
     D2Qc{nn}=D2Qc_i;
 
 
-    
-    rUp=rU+1;
-    rBp=rB+1;
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% rB>0 : Optimize the compliance of first joint
-    
-    A=[];
-    Y=[];
-
-    i=1;
-    A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
-    Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-    
-    OptimalSpring_FirstJoint=A\Y;
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% rB>0 : Optimize the compliance of first joint
     A=[];
     B=[];
     D=[];
     Y=[];
 
-    NumberOfLastJoints=nn-1;
-    
+    rUp=rU+1;
+    rBp=rB+1;
+%     EYEU=[zeros(rU,rUp); zeros(1,rU),1 ]
+%     EYEB=[zeros(rU,rUp); zeros(1,rU),1 ]
+%     
     % for i=1 to n-2
-    for i=2:nn-2
-        im=i-1;
-        A((im-1)*rUp+1:(im)*rUp,(im-1)*rUp+1:(im)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+    for i=1:nn-2
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*ones(size((QQ{i}'*QQ{i}))));
 
-        B((im-1)*rUp+1:(im)*rUp,(im-1)*rBp+1:(im)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
-        B((im)*rUp+1:(im+1)*rUp,(im-1)*rBp+1:(im)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
+        B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
+        B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((im-1)*rBp+1:(im)*rBp,(im-1)*rBp+1:(im)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
-        D((im-1)*rBp+1:(im)*rBp,(im)*rBp+1:(im+1)*rBp)=Weight(i+1)*QQhat{i}'*QQhat{i+1};
-        D((im)*rBp+1:(im+1)*rBp,(im-1)*rBp+1:(im)*rBp)=Weight(i+1)*QQhat{i+1}'*QQhat{i};
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i)*rBp+1:(i+1)*rBp)=Weight(i+1)*QQhat{i}'*QQhat{i+1};
+        D((i)*rBp+1:(i+1)*rBp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQhat{i+1}'*QQhat{i};
 
-        Y((im-1)*rUp+1:(im)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-        Y((NumberOfLastJoints)*rUp+(im-1)*rBp+1:((NumberOfLastJoints)*rUp)+(im)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
     end
     % for i=n-1
-    i=nn-1;
-    im=i-1;
-        A((im-1)*rUp+1:(im)*rUp,(im-1)*rUp+1:(im)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        i=nn-1;
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
-        B((im-1)*rUp+1:(im)*rUp,(im-1)*rBp+1:(im)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
-        B((im)*rUp+1:(im+1)*rUp,(im-1)*rBp+1:(im)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
+        B((i-1)*rUp+1:(i)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i)*QQ{i}'*QQhat{i};
+        B((i)*rUp+1:(i+1)*rUp,(i-1)*rBp+1:(i)*rBp)=Weight(i+1)*QQ{i+1}'*QQhat{i};
 
-        D((im-1)*rBp+1:(im)*rBp,(im-1)*rBp+1:(im)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
+        D((i-1)*rBp+1:(i)*rBp,(i-1)*rBp+1:(i)*rBp)=(Weight(i)+Weight(i+1))*QQhat{i}'*QQhat{i}+Landa(4)*D2Qhat{i}'*D2Qhat{i}+Landa(3)*eye(size(QQhat{i}'*QQhat{i}));
 
-        Y((im-1)*rUp+1:(im)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
-        Y((NumberOfLastJoints)*rUp+(im-1)*rBp+1:((NumberOfLastJoints)*rUp)+(im)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y(nn*rUp+(i-1)*rBp+1:(nn*rUp)+(i)*rBp,1)=QQhat{i}'*(Weight(i)*TorqueDesire(i,1:SampleRate:end)'+Weight(i+1)*TorqueDesire(i+1,1:SampleRate:end)');
     % for i=n
-    i=nn;
-    im=i-1;
-        A((im-1)*rUp+1:(im)*rUp,(im-1)*rUp+1:(im)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
+        i=nn;
+        A((i-1)*rUp+1:(i)*rUp,(i-1)*rUp+1:(i)*rUp)=inv(Weight(i)*QQ{i}'*QQ{i}+Landa(2)*D2Q{i}'*D2Q{i}+Landa(1)*eye(size(QQ{i}'*QQ{i})));
 
-        Y((im-1)*rUp+1:(im)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
+        Y((i-1)*rUp+1:(i)*rUp,1)=Weight(i)*QQ{i}'*TorqueDesire(i,1:SampleRate:end)';
 
 
     
     Ai=(A);
     Delta=inv(D-B'*Ai*B);
 
-    OptimalSpring_Last3Joint=[Ai+Ai*(B*Delta)*B'*Ai,  -Ai*(B*Delta);
-                              -(Delta*B')*Ai       ,   (Delta)      ]*Y;
+    OptimalSpring=[Ai+Ai*(B*Delta)*B'*Ai,  -Ai*(B*Delta);
+                 -(Delta*B')*Ai       ,   (Delta)        ]*Y;
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    BetaOptimal=[OptimalSpring_FirstJoint ;OptimalSpring_Last3Joint(1:(NumberOfLastJoints)*(rUp))];
-    ThetaOptimal=[zeros(rBp,1); OptimalSpring_Last3Joint((NumberOfLastJoints)*(rUp)+1:end)];
+    BetaOptimal=OptimalSpring(1:nn*(rU+1));
+    ThetaOptimal=OptimalSpring(nn*(rU+1)+1:end);
 
-    
-    
-    
     % Cost
     CostActuation=0;
     CostD2Q=0;
@@ -177,23 +153,21 @@ if (rB>0)
           Weight(i)*([ BetaOptimal((i-1)*(rUp)+1:(i)*(rUp))'*(D2Qc{i}'*D2Qc{i})*BetaOptimal((i-1)*(rUp)+1:(i)*(rUp)),
                         0]);
     
-    CostParaReg=[ BetaOptimal'*BetaOptimal,
+    CostParaReg=[  BetaOptimal'*BetaOptimal,
                   ThetaOptimal'*ThetaOptimal ];
                 
     % Torque
     
     for i=1:nn-1
-        TorqueMonoOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
+        TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
 
         TorqueBicepsOptimal(i,:)=polyval(ThetaOptimal((i-1)*(rBp)+1:(i)*(rBp)),Qhatq(i,:));
     end
     i=nn;
-    TorqueMonoOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
+    TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
     
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
-  %% rB=0 : Optimize the compliance of first joint
-    
+%%    
         
     
     QQ={};
@@ -267,10 +241,37 @@ else
     % Torque
 
     for i=1:nn
-        TorqueMonoOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
+        TorquePassiveOptimal(i,:)=polyval(BetaOptimal((i-1)*(rUp)+1:i*(rUp)),Qq(i,:));
         
     end
     TorqueBicepsOptimal=zeros(nn-1,size(Qq,2));
 end
+
+
+%%
+% 
+% if(rU>0)
+%     if(rB>0)
+%         Temp=(eye(length(PQ))- PQ*((PQ'*PQ)\PQ'));
+%     else
+%         Temp=eye(length(PQ));
+%     end
+%     Beta=((QQ'*Temp*QQ))\( QQ'*Temp*Torque(1:SampleRate:end));
+% else
+%     Beta=[0 0];
+% end
+% 
+% 
+% if(rB>0)
+%     if(rU>0)
+% %         Gamma=(eye(length(PQ))- PQ*((PQ'*PQ)\PQ'));
+%         Theta=(PQ'*PQ)\( PQ'*Torque(1:SampleRate:end)-PQ'*QQ*Beta );
+%     else
+%         Theta=((PQ'*PQ))\( PQ'*Torque(1:SampleRate:end));
+%     end
+% else
+%     Theta=[0 0];
+% end
+
 
 end

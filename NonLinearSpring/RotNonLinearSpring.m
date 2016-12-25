@@ -2,8 +2,6 @@ function RotNonLinearSpring(ThetaS,tau,K,R,l0,lOde,FigName,Xlabel)
 
 
 
-
-
 %%
 home
 % close all

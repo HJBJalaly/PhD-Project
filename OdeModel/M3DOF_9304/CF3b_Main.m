@@ -466,7 +466,7 @@ figure('name','Time Torques')
 %% Optimization
 
 Degree=[nn rQ rM rB];
-Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 % Initial2=Initial;
 % Initial=x;
 
@@ -558,8 +558,8 @@ D2xefm=-(2*pi*f)^2*A*cos(2*pi*f*Time);
 D2yefm=-(2*pi*f)^2*A/2*sin(2*pi*f*Time);
 
 % New similar Task
-A1=A*.8;
-A2=A/2*.8;
+A1=A*1.1;
+A2=A/2*1.1;
 xefn=A1*cos(2*pi*f*Time)+0;
 yefn=A2*sin(2*pi*f*Time)+1.5;
 Dxefn=-(2*pi*f)*A1*sin(2*pi*f*Time);
@@ -569,9 +569,9 @@ D2yefn=-(2*pi*f)^2*A2*sin(2*pi*f*Time);
 
 
 figure
-plot(xefm,yefm)
+plot(xefm,yefm,'linewidth',2)
 hold all
-plot(xefn,yefn)
+plot(xefn,yefn,'linewidth',2)
 legend('main','new')
 axis equal
 
@@ -612,7 +612,7 @@ NewInit_n=Initial_n+Rand*(randn(1,3*(rQ+length(rQ))));
     Op_FmisCon_SQP(CostFun,NonConstr,NewInit_n,MaxFunEvals_Data,MaxIter_Data,TolFun_Data,TolX_Data,TolCon_Data,Algorithm);
 
 
-exexitexit
+
 %% Analysis of Robustness : Show Time 
 [TorqueDesire_n,TorqueActive_n,TorqueActive_o,TorqueMono_n,TorqueBiceps_n,Q_n,D1Q_n,D2Q_n,IntU2_n,IntAbsUdq_n,IntU2_o,IntAbsUdq_o,IntAbsUdqDesire_n,RMSError_n]=...
                    ShowTimePathOptimizer(xn,BetaOptimal_m,ThetaOptimal_m      ,Time,Tres,Degree,Weight,Landa*1,SampleRate,xefn,yefn,m,L,g,'Show','2Cycle','Optimized');
@@ -621,6 +621,9 @@ IntAbsUdqDesire_n=sum(sum(abs(TorqueDesire_n.*D1Q_n),2))*Tres;
 IntAbsUdqActive_n=sum(sum(abs(TorqueActive_n.*D1Q_n),2))*Tres;
 IntAbsUdqActive_o=sum(sum(abs(TorqueActive_o.*D1Q_n),2))*Tres;
 
+
+
+%%
 DegreeStr=sprintf('\n   rQ:%3d\n   rU:%3d\n   Cost Type:  %s\n   Requlation Type:  %s\n ',rQ,rM, 'Cast 2b',SeletcStr{find(SelectLanda)});
 Title_n=sprintf('%22s  % 12s % 15s % 15s'  ,   'IntU2','Req. Work','Actuator Work','RMS Err');
 Result_m=sprintf('%-11s %11.2e %12.2e %14.2e % 13.2e',   'Main:',IntU2_Opt*Tres,sum(IntAbsUdqDesire_Opt),IntAbsUdqActive_Opt, RMSError_Opt);
@@ -642,6 +645,15 @@ for i=1:nn
    Violate(i,6)=(max((Q_n(i,:)))>QLimit_n(i,2)');
 end
 disp(sum(Violate,2)')
+
+IntU2req_n=0;
+for i=1:nn
+    IntU2req_n=IntU2req_n + ...
+          Weight(i)*( 1/2*(TorqueDesire_n(i,:)')'*TorqueDesire_n(i,:)')*Tres;
+end
+
+disp(['ImprovmentWork-->  new: ',num2str((IntAbsUdqDesire_n-IntAbsUdqActive_n)/IntAbsUdqDesire_n*100),'  opt: ',num2str((IntAbsUdqDesire_n-IntAbsUdqActive_o)/IntAbsUdqDesire_n*100)])
+disp(['ImprovmentU2  -->  new: ',num2str((IntU2req_n-IntU2_n)/IntU2req_n*100),'  opt: ',num2str((IntU2req_n-IntU2_o*Tres)/IntU2req_n*100)])
 %% Scale Profile for Nonlinear Spring
 
 ThetaS=[];

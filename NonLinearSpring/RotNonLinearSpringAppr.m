@@ -7,25 +7,26 @@ function RotNonLinearSpringAppr(ThetaS,tau,K,R,l0,lOde,m,FigName,Xlabel)
 %%
 home
 if(nargin==0)
-    ThetaS=deg2rad(0:.05:270)';
+    ThetaS=deg2rad(0:.05:180)';
 % linear
 %     tau=.125*(ThetaS)-.1178*2.5; 
 % constant
-%      tau=.3*ones(size(ThetaS));
+     tau=.3*ones(size(ThetaS));
 % exp
 %     tau=(2*(1-exp((-ThetaS) )))/2;
 % tanh
-%     tau=.15*(tanh(-(-ThetaS+3*pi/4)*1));
+%      tau=.149*(tanh(-(-ThetaS+3*pi/4)*1));
 % Cubic
-    tau=.02*(ThetaS-3*pi/4).^3;
+%     tau=.02*(ThetaS-3*pi/4).^3;
 % Sine
-%     tau=.25*(sin(2*(ThetaS-3*pi/4)));
+      tau=.25*(sin(2*(ThetaS-3*pi/4)));
+      tau=2.5*(sin(1*(ThetaS)));
 plot(tau)
     m=.0385;
-    K=5000;
+    K=15000;
     R=.015/2;
-    l0=.04;
-    lOde=.05;
+    l0=.022;
+    lOde=.025;
     FigName='Test';
     Xlabel='q';
 % Bearing:  http://www.astbearings.com/product.html?product=696H    
@@ -88,7 +89,7 @@ hss=subplot(3,2,5);
     grid on
     set(gca,'FontSize',10,'FontWeight','bold','FontName','mwa_cmb10')
     xlim([0 270])
-    ylim([min(tau) max(tau)]*1.2)
+%     ylim([min(tau) max(tau)]*1.2)
     set(gca,'XTickLabel',{'0','','','90','','','180','','','270'},...
     'XTick',[0 30 60 90 120 150 180 210 240 270])
 
@@ -99,7 +100,7 @@ hss=subplot(3,2,6);
     xlabel([Xlabel,' (deg)'],'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
     set(gca,'FontSize',10,'FontWeight','bold','FontName','mwa_cmb10')
     xlim([0 270])
-    ylim([min(diff(tau(1:end))./diff(ThetaS(1:end))) max(diff(tau(1:end))./diff(ThetaS(1:end)))]*1.2)
+%     ylim([min(diff(tau(1:end))./diff(ThetaS(1:end))) max(diff(tau(1:end))./diff(ThetaS(1:end)))]*1.2)
     set(gca,'XTickLabel',{'0','','','90','','','180','','','270'},...
     'XTick',[0 30 60 90 120 150 180 210 240 270])
 
@@ -193,7 +194,7 @@ plot([0 100*(r_thetaR(1)+2*R)*cos(ThetaR(1))],[0,100*(r_thetaR(1)+2*R)*sin(Theta
 %%
 figure('units','normalized','outerposition',[0 0 1 1])
 
-subplot(3,3,3)
+subplot(3,3,9)
 xlim(rad2deg([min(ThetaS) max(ThetaS)]))
 ylim(K*([min(L_ThetaS) max(L_ThetaS)]-l0))
 hold on
@@ -217,7 +218,7 @@ ylabel('N (N)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
 grid on
 hold off
 
-subplot(3,3,9)
+subplot(3,3,3)
 xlim(rad2deg([min(ThetaS) max(ThetaS)]))
 ylim(([min(tau)-.1 max(tau)+.1]))
 hold on
@@ -239,7 +240,7 @@ legend('r','L','Orientation','horizontal','location','best')
 StarR=plot(rad2deg(ThetaS(1)),r_thetaR(1)*100,'linestyle','none','marker','*','markersize',8);
 StarL=plot(rad2deg(ThetaS(1)),(L_ThetaS(1))*100,'r','linestyle','none','marker','*','markersize',8);
 xlabel('\theta_s (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-ylabel(' (cm)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+ylabel('Length (cm)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
 grid on
 hold off
 
@@ -253,7 +254,7 @@ legend('\phi','\phi-\alpha','Orientation','horizontal')
 StarPhi=plot(rad2deg(ThetaS(1)),rad2deg(Phi(1)),'linestyle','none','marker','*','markersize',8);
 StarPhiAlpha=plot(rad2deg(ThetaS(1)),rad2deg(Phi(1)-Alpha(1)),'r','linestyle','none','marker','*','markersize',8);
 xlabel('\theta_s (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-ylabel('(deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+ylabel('Angle (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
 grid on
 hold off
 
@@ -264,16 +265,35 @@ set(hh1,'linewidth',2);
 hold on
 hh=Mypolar([ThetaR; ThetaR(1)],[ 100*r_thetaR ;100*r_thetaR(1)]);
 set(hh,'linewidth',3);
+hh=Mypolar([ThetaR(end); ThetaR(1)],[ 100*r_thetaR(end) ;100*r_thetaR(1)]);
+set(hh,'linewidth',3,'linestyle','--');
 
-StepT=floor(length(ThetaS)/100);
+
+% Create a VideoWriter object to write the video out to a new, different file.
+% writerObj = VideoWriter('tanhyper.avi');
+% open(writerObj);
+% Need to change from the default renderer to zbuffer to get it to work right.
+% openGL doesn't work and Painters is way too slow.
+set(gcf, 'renderer', 'zbuffer');
+
+
+StepT=floor(length(ThetaS)/50);
+% loops = length(1:StepT:length(ThetaS));
+% F(loops) = struct('cdata',[],'colormap',[]);
+FramesFolder = './ImageExmaple';
+frame=0;
+
 for i=1:StepT:length(ThetaS)
-    
+    frame=frame+1;
     subplot(3,3,[1,2,4,5])
     hh1=polar(0,(max(L_ThetaS)+2*R)*100);
     set(hh1,'linewidth',2)
     hold on
     hh=polar(ThetaR,r_thetaR*100);
     set(hh,'linewidth',3)
+    hh=Mypolar([ThetaR(end); ThetaR(1)],[ 100*r_thetaR(end) ;100*r_thetaR(1)]);
+    set(hh,'linewidth',3,'linestyle','--');
+
     
     hold all
     hhh=polar(ThetaS(1:StepT:i),L_ThetaS(1:StepT:i)*100);
@@ -304,6 +324,13 @@ for i=1:StepT:length(ThetaS)
     set(StarPhiAlpha, 'XData',rad2deg(ThetaS(i)), 'YData',rad2deg(Phi(i)-Alpha(i)));
     
     drawnow
+%     print(spintf('-r%d',90*4), '-djpeg', sprintf('%s/t_%03d', FramesFolder,i) );
+%     SavePdfFast(sprintf('%s/Constnt_%02d', FramesFolder,frame));
+%     F(i) = getframe(gcf);
+	% Write this frame out to a new video file.
+%   	writeVideo(writerObj, F(i));
+	
+
 end
 
 %%

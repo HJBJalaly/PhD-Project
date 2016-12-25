@@ -155,7 +155,7 @@ MotionDataMulti=[];
 p_tib2 =[];
 v_hip =[];
     
-for step=1:2*2
+for step=1:2*8
     step
     
     
