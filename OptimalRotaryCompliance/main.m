@@ -19,7 +19,7 @@ scale=2*pi;
 [BetaOptimal,CostAct,CostD2Q,Up]=...
                     OptimalRotaryCompliance(phase9,t9,rp,gamma,omega,delta,SampleRate,scale);               
 Ua=t9-Up;
-%%
+%% 
 disp('  ')
 figure
 plot(phase9,t9,'linewidth',2)
@@ -49,7 +49,7 @@ disp(Title)
 disp(Result_Req)
 disp(Result_Act)
 disp(['Conservative Condition: ',num2str(SumCompliance,'%3.2e')])
-%%
+%% Bernsteine
 
 clear all
 load t9conserv.mat
@@ -96,7 +96,7 @@ load phase9Damper.mat
 figure
 plot(phase9,t9,'linewidth',2)
 hold on
-for nn=20%:100:100
+for nn=5:5:20
     a=[];
     b=[];
     DeltaPhi=diff(phase9(1:2));
@@ -148,32 +148,39 @@ disp(Result_Req)
 disp(Result_Act)
 disp(['Conservative Condition: ',num2str(SumCompliance,'%3.2e')])
 %% Sine --> LS based
-% clear all
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+disp('waiting ....')
+
+clear all
 % load t9conserv.mat
 % load phase9conserv.mat
 
 load t9Damper.mat
 load phase9Damper.mat
 
+SampleRate=20;
+nn=20;
+gamma=2e-7;
+omega=9;
+
 figure
 plot(phase9,t9,'linewidth',2)
 hold all
 
-SampleRate=1;
-nn=20;
 PHI=[];
 PHIc=[];
-
 for i=1:SampleRate:length(phase9)
-    PHI(:,end+1) = [cos((1:nn)*phase9(i)) sin((1:nn)*phase9(i))]' ;
-%     D = ([Qq(i).^(rp-2:-1:0) 0 0].*(rp:-1:0).*(rp-1:-1:-1))';
-%    DD=DD+D*D';
+    PHI(:,end+1) = [cos((1:nn)*phase9(i)) sin((1:nn)*phase9(i))]';
 end
-  
-Beta=(PHI*PHI')\(PHI*t9(1:SampleRate:length(phase9)));
-Up=PHI'*Beta;
+for i=1:length(phase9)
+    PHIc(:,end+1) = [cos((1:nn)*phase9(i)) sin((1:nn)*phase9(i))]';
+end
+R=diag([(nn:-1:1).^2 (nn:-1:1).^2]);
 
-Ua=t9(1:SampleRate:length(phase9))-Up;
+Beta=(PHI*PHI'+omega*gamma*R*(PHI*PHI')*R)\(PHI*t9(1:SampleRate:length(phase9)));
+
+Up=PHIc'*Beta;
+Ua=t9-Up;
 
 SumCompliance=sum(Up)*2*pi/length(Up);
 
@@ -184,17 +191,19 @@ CostReq=1/2*t9'*t9;
 SumAct=sum(Ua)*2*pi/length(phase9);
 WorkAct=sum(abs(Ua))*2*pi/length(phase9);
 CostAct=1/2*Ua'*Ua;
-Title=sprintf('%22s  % 11s %10s % 9s % 10s'  ,   'IntU2','Work','Area');
-Result_Req=sprintf('%-11s %11g  % 10.2e  % 10.2e  ',   'Required: ',CostReq  , WorkReq , SumReq);
-Result_Act=sprintf('%-11s %11g  % 10.2e  % 10.2e\n',  'Actuation:',CostAct,WorkAct,SumAct);
+CostD2Q=(PHI'*R*Beta)'*(PHI'*R*Beta);
+
+Title=sprintf('%22s  % 11s %10s % 9s % 10s'  ,   'IntU2','C.S.(D2)','Total','Work','Area');
+Result_Req=sprintf('%-11s %11g %11.2e %11.2e % 10.2e  % 10.2e  ',   'Required: ',CostReq, 0 , CostReq   , WorkReq , SumReq);
+Result_Act=sprintf('%-11s %11g %11.2e %11.2e % 10.2e  % 10.2e\n',  'Actuation:',CostAct,CostD2Q,CostAct+gamma*CostD2Q,WorkAct,SumAct);
 disp(Title)
 disp(Result_Req)
 disp(Result_Act)
 disp(['Conservative Condition: ',num2str(SumCompliance,'%3.2e')])
 
 
-plot(phase9(1:SampleRate:length(phase9)),Up,'linewidth',2)
-plot(phase9(1:SampleRate:length(phase9)),Ua,'linewidth',2)
+plot(phase9,Up,'linewidth',2)
+plot(phase9,Ua,'linewidth',2)
 grid on
 grid on
 xlabel('\phi (rad)','fontsize',12,'FontWeight','bold')
