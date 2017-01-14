@@ -401,3 +401,68 @@ figure(13)
     hold off
     xlabel('Dq_5 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
     ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+
+    
+figure(17)
+    subplot(2,1,1)
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time(indx1:indx2),MotionData(1,indx1:indx2),'linewidth',2)
+        hold on
+        plot(Time(indx2+1:indx3),MotionData(2,indx2+1:indx3),'r','linewidth',2)
+        hold off
+        grid on
+        xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ylabel('u_1 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    subplot(2,1,2)
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time(indx1:indx2),MotionData(3,indx1:indx2),'linewidth',2)
+        hold on
+        plot(Time(indx2+1:indx3),MotionData(4,indx2+1:indx3),'r','linewidth',2)
+        hold off
+        grid on
+        xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ylabel('u_3 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+
+figure(18)
+    subplot(2,1,1)
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time(indx1:indx2),MotionData(1,indx1:indx2)'.*DQq(indx1:indx2  ,1),'linewidth',2)
+        hold on
+        plot(Time(indx2+1:indx3),MotionData(2,indx2+1:indx3)'.*DQq(indx2+1:indx3  ,2),'r','linewidth',2)
+        hold off
+        grid on
+        xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ylabel('power_h_i_p (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    subplot(2,1,2)
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time(indx1:indx2),MotionData(3,indx1:indx2)'.*DQq(indx1:indx2  ,3),'r','linewidth',2)
+        hold on
+        plot(Time(indx2+1:indx3),MotionData(4,indx2+1:indx3)'.*DQq(indx2+1:indx3  ,4),'linewidth',2)
+        grid on
+        hold off
+        xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ylabel('power_k_n_e_e (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+
+
+figure(19)
+    subplot(2,1,1)
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time(indx1:indx2),rad2deg(Qq(indx1:indx2  ,1)),'linewidth',2)
+        hold on
+        plot(Time(indx2+1:indx3),rad2deg(Qq(indx2+1:indx3  ,2)),'r','linewidth',2)
+        grid on
+        hold off
+        xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ylabel('q_1 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    subplot(2,1,2)
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(Time(indx1:indx2),rad2deg(Qq(indx1:indx2  ,3)),'linewidth',2)
+        hold on
+        plot(Time(indx2+1:indx3),rad2deg(Qq(indx2+1:indx3  ,4)),'r','linewidth',2)
+        grid on
+        hold off
+        xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ylabel('q_3 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+
+
+    

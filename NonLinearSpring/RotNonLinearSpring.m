@@ -12,12 +12,14 @@ if(nargin==0)
     tau=3*ones(size(ThetaS));
     tau=2*(1-exp(-ThetaS))+1;
     tau=.2*(sin((ThetaS-3*pi/4)*2));
+    tau=10*(sin((ThetaS-3*pi/4)*2));
 
-    K=3000;
+    K=60000;
     R=.009*1;
     l0=.04*1;
-    lOde=.05*1;
+    lOde=.06*1;
     FigName='Test';
+    Xlabel='test';
 end
 
 OdeOpt= odeset('RelTol',1e-4,'AbsTol',1e-4);
