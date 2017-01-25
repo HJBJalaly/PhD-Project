@@ -3,6 +3,11 @@ function Error=CostError(x,DataLinkagePos)
 Data5LinkageQReal();
 DataLinkagePos();
 
+Xm(114)=[];
+Ym(114)=[];
+Q1(114)=[];
+Q2(114)=[];
+
 L0=300+x(1);% DL0
 L1=400+x(2);% DL1;
 L2=400+x(3);% DL2;
@@ -29,4 +34,7 @@ Xr=L2*cosd(Q2e)+x4;
 Yr=L2*sind(Q2e)+y4;
 
 
-Error=sqrt(mean((Xr-Xm).^2+(Yr-Ym).^2));
+Error=sqrt(mean((Xr-Xm).^2+(Yr-Ym).^2))
+% Mean=mean(sqrt((Xr-Xm).^2+(Yr-Ym).^2))
+ MaxError=max(sqrt((Xr-Xm).^2+(Yr-Ym).^2))
+% MinError=min(sqrt((Xr-Xm).^2+(Yr-Ym).^2))

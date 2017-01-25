@@ -1,9 +1,10 @@
 clc
 
-Upper=[15 15 15 15 15 5 5]';
+Upper=[15 15 15 15 15 7.5 7.5]'*1;
+% Upper=[10 10 10 10 10 10 10]'*1;
 Lower=-Upper;
-DataLinkagePos=@Data5LinkagePosDeterministic;
-PopulationSize=1000;
+DataLinkagePos=@Data5LinkagePosBNoisy_Var_10;
+PopulationSize=2000;
 
 [x,fval,exitflag,output,population,score] =...
     GaCalibration(Lower,Upper,PopulationSize,DataLinkagePos);
@@ -50,3 +51,4 @@ y3=L2*sind(q2)+y4-L1*sind(q1);
 tic
 CostError(0,0,0,0,0,0,0)
 toc
+
