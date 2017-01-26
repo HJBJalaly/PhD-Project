@@ -1,3 +1,4 @@
+%% Calibration
 clc
 
 Upper=[15 15 15 15 15 7.5 7.5]'*1;
@@ -10,45 +11,157 @@ PopulationSize=2000;
     GaCalibration(Lower,Upper,PopulationSize,DataLinkagePos);
 
 
-%%
+%% Estimation Forward Kinematics
 
-L0=300;
-L1=400;
-L2=400;
-L3=550;
-L4=550;
+clear all
 
-%%
-q1= 117.59;
-q2= 88.4;
-q3= 310.68;
-q4= 33.76;
-%%
-Deltay=( L1*sind(q1)+L3*sind(q1+q3) ) - ( L2*sind(q2)+L4*sind(q2+q4) )
-Deltax=( L1*cosd(q1)+L3*cosd(q1+q3)-L0 ) - ( L2*cosd(q2)+L4*cosd(q2+q4) )
+% Calibrated Parameters
+x=[4.4879    2.1247    1.1852    8.7946   -1.5202    1.0727   -6.8509];
+L0=300+x(1);
+L1=400+x(2);
+L2=400+x(3);
+L3=550+x(4);
+L4=550+x(5);
+
+Data5LinkageQReal;
+Data5LinkagePosReal;
+[Xr,Yr]=DataGeneration(x(1),x(2),x(3),x(4),x(5),x(6),x(7));
+Q1(114)=[]; Q2(114)=[];   Xm(114)=[];Ym(114)=[];    Xr(114)=[];Yr(114)=[]; 
+
+%
+figure
+plot3(Q1,Q2,Xr,'linestyle','none','marker','*')
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('q_1 (deg)','fontsize',14,'fontweight','bold')
+ylabel('q_2 (deg)','fontsize',14,'fontweight','bold')
+zlabel('x (mm)','fontsize',14,'fontweight','bold')
+
+figure
+plot3(Q1,Q2,Yr,'linestyle','none','marker','*')
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('q_1 (deg)','fontsize',14,'fontweight','bold')
+ylabel('q_2 (deg)','fontsize',14,'fontweight','bold')
+zlabel('y (mm)','fontsize',14,'fontweight','bold')
 
 
-%%
 
-E1='L2*cos(q2)+x4-L1*cos(q1)-x3+L0';
-E2='L2*sin(q2)+y4-L1*sin(q1)-y3';
-E3='x3^2+y3^2-L3^2';
-E4='x4^2+y4^2-L4^2';
 
-% E1+E2+E3-->E5
-E5='L2^2+L4^2+L1^2+L0^2-L3^2+2*L2*x4*cos(q2)+2*L2*y4*sin(q2)-2*L1*L2*cos(q1-q2)-2*L1*x4*cos(q1)-2*L1*y4*sin(q1)+2*L0*L2*cos(q2)+2*L0*x4-2*L0*L1*cos(q1)';
+for i=1:5
+    for j=1:5
+        [fx,gofx]=CreateFit(Q1+x(6),Q2+x(7),Xr,['Poly',num2str(i),num2str(j)],'X','ShowOff');
+        XfitRes{i,j}=fx;
+        XfitError{i,j}=gofx;
+        XfitRMS(i,j)=gofx.rmse;
+        
+        [fy,gofy]=CreateFit(Q1+x(6),Q2+x(7),Yr,['Poly',num2str(i),num2str(j)],'Y','ShowOff');
+        YfitRes{i,j}=fy;
+        YfitError{i,j}=gofy;
+        YfitRMS(i,j)=gofy.rmse;
+        
+        PosfitMaxError(i,j) =max(sqrt(  (fx(Q1+x(6),Q2+x(7))-Xr).^2+ (fy(Q1+x(6),Q2+x(7))-Yr).^2 ));
+        PosfitmeanError(i,j)=mean(sqrt( (fx(Q1+x(6),Q2+x(7))-Xr).^2+ (fy(Q1+x(6),Q2+x(7))-Yr).^2 ));
+    end
+end
 
-Sol=solve(E5,E4,'x4','y4')
+mesh(XfitRMS)
 
-%%
-y4=(L0^2*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L1^3*sind(q1) - L2^3*sind(q2) + L0^2*L1*sind(q1) + L1*L2^2*sind(q1) - L0^2*L2*sind(q2) - L1*L3^2*sind(q1) - L1^2*L2*sind(q2) + L1*L4^2*sind(q1) + L2*L3^2*sind(q2) - L2*L4^2*sind(q2) + L1^2*cosd(q1)^2*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L2^2*cosd(q2)^2*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L1^2*sind(q1)^2*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L2^2*sind(q2)^2*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - L0*L1^2*sind(2*q1) - L0*L2^2*sind(2*q2) - 2*L1^2*L2*cosd(q1 - q2)*sind(q1) + 2*L1*L2^2*cosd(q1 - q2)*sind(q2) - 2*L0*L1*cosd(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + 2*L0*L2*cosd(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L1*L2*cosd(q1)*cosd(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L1*L2*sind(q1)*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + 2*L0*L1*L2*cosd(q1)*sind(q2) + 2*L0*L1*L2*cosd(q2)*sind(q1))/(2*(L0^2 - 2*cosd(q1)*L0*L1 + 2*cosd(q2)*L0*L2 + L1^2 - 2*cosd(q1 - q2)*L1*L2 + L2^2));
-x4=-(L1^4*cosd(q1)^2 + L2^4*cosd(q2)^2 + L0^4 + L0^2*L1^2 + L0^2*L2^2 - L0^2*L3^2 + L0^2*L4^2 - 2*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 2*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - L1^3*sind(q1)^3*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L2^3*sind(q2)^3*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L0*L1^3*cosd(q1)^3 + 2*L0*L2^3*cosd(q2)^3 + 5*L0^2*L1^2*cosd(q1)^2 + 5*L0^2*L2^2*cosd(q2)^2 + L1^2*L2^2*cosd(q1)^2 + L1^2*L2^2*cosd(q2)^2 - L1^2*L3^2*cosd(q1)^2 + L1^2*L4^2*cosd(q1)^2 - L2^2*L3^2*cosd(q2)^2 + L2^2*L4^2*cosd(q2)^2 - L1^3*cosd(q1)^2*sind(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L2^3*cosd(q2)^2*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - L0^2*L1*sind(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L0^2*L2*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L0*L1*L2^2*cosd(q1) + 2*L0*L1*L3^2*cosd(q1) + 2*L0*L1^2*L2*cosd(q2) - 2*L0*L1*L4^2*cosd(q1) - 2*L0*L2*L3^2*cosd(q2) + 2*L0*L2*L4^2*cosd(q2) - 2*L1^3*L2*cosd(q1 - q2)*cosd(q1)^2 - 2*L1*L2^3*cosd(q1 - q2)*cosd(q2)^2 - 2*L0^2*L1*L2*cosd(q1 - q2) - 2*L1*L2^3*cosd(q1)*cosd(q2) - 2*L1^3*L2*cosd(q1)*cosd(q2) + 2*L0*L1^2*cosd(q1)*sind(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + 2*L0*L2^2*cosd(q2)*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 10*L0^2*L1*L2*cosd(q1)*cosd(q2) + 2*L1*L2*L3^2*cosd(q1)*cosd(q2) - 2*L1*L2*L4^2*cosd(q1)*cosd(q2) + 4*L1^2*L2^2*cosd(q1 - q2)*cosd(q1)*cosd(q2) - L1*L2^2*cosd(q2)^2*sind(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + L1^2*L2*cosd(q1)^2*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + 4*L0*L1^2*L2*cosd(q1 - q2)*cosd(q1) - 4*L0*L1*L2^2*cosd(q1 - q2)*cosd(q2) - 3*L1*L2^2*sind(q1)*sind(q2)^2*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) + 3*L1^2*L2*sind(q1)^2*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 6*L0*L1*L2^2*cosd(q1)*cosd(q2)^2 + 6*L0*L1^2*L2*cosd(q1)^2*cosd(q2) + 2*L1^2*L2*cosd(q1)*cosd(q2)*sind(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L1*L2^2*cosd(q1)*cosd(q2)*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L0*L1*L2*cosd(q1)*sind(q2)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2) - 2*L0*L1*L2*cosd(q2)*sind(q1)*(-((L0 - L1*cosd(q1) + L2*cosd(q2))^2*(L0^4 + L1^4 + L2^4 + L3^4 + L4^4 + 4*L0^2*L1^2 + 4*L0^2*L2^2 - 2*L0^2*L3^2 + 4*L1^2*L2^2 - 2*L0^2*L4^2 - 2*L1^2*L3^2 - 2*L1^2*L4^2 - 2*L2^2*L3^2 - 2*L2^2*L4^2 - 2*L3^2*L4^2 + 2*L1^2*L2^2*cosd(2*q1 - 2*q2) - 4*L0*L1^3*cosd(q1) - 4*L0^3*L1*cosd(q1) + 4*L0*L2^3*cosd(q2) + 4*L0^3*L2*cosd(q2) - 4*L1*L2^3*cosd(q1 - q2) - 4*L1^3*L2*cosd(q1 - q2) + 2*L0^2*L1^2*cosd(2*q1) + 2*L0^2*L2^2*cosd(2*q2) + 4*L0*L1^2*L2*cosd(2*q1 - q2) - 4*L0^2*L1*L2*cosd(q1 + q2) - 8*L0*L1*L2^2*cosd(q1) + 4*L0*L1*L3^2*cosd(q1) + 8*L0*L1^2*L2*cosd(q2) + 4*L0*L1*L4^2*cosd(q1) - 4*L0*L2*L3^2*cosd(q2) - 4*L0*L2*L4^2*cosd(q2) - 8*L0^2*L1*L2*cosd(q1 - q2) - 4*L0*L1*L2^2*cosd(q1 - 2*q2) + 4*L1*L2*L3^2*cosd(q1 - q2) + 4*L1*L2*L4^2*cosd(q1 - q2)))/(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2))^2)^(1/2))/((2*L0 - 2*L1*cosd(q1) + 2*L2*cosd(q2))*(L0^2 + L1^2 + L2^2 - 2*L0*L1*cosd(q1) + 2*L0*L2*cosd(q2) - 2*L1*L2*cosd(q1 - q2)));
+figure
+plot(XfitRes{4,4},[Q1+x(6),Q2+x(7)],Xr)
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('q_1 (deg)','fontsize',14,'fontweight','bold')
+ylabel('q_2 (deg)','fontsize',14,'fontweight','bold')
+zlabel('x (mm)','fontsize',14,'fontweight','bold')
 
-x3=L2*cosd(q2)+x4-L1*cosd(q1)+L0;
-y3=L2*sind(q2)+y4-L1*sind(q1);
-%%
+figure
+plot(YfitRes{4,4},[Q1+x(7),Q2+x(7)],Yr)
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('q_1 (deg)','fontsize',14,'fontweight','bold')
+ylabel('q_2 (deg)','fontsize',14,'fontweight','bold')
+zlabel('y (mm)','fontsize',14,'fontweight','bold')
 
-tic
-CostError(0,0,0,0,0,0,0)
-toc
+%% Estimation Inverse Kinematics
 
+clear all
+
+% Calibrated Parameters
+x=[4.4879    2.1247    1.1852    8.7946   -1.5202    1.0727   -6.8509];
+L0=300+x(1);
+L1=400+x(2);
+L2=400+x(3);
+L3=550+x(4);
+L4=550+x(5);
+
+Data5LinkageQReal;
+Data5LinkagePosReal;
+[Xr,Yr]=DataGeneration(x(1),x(2),x(3),x(4),x(5),x(6),x(7));
+Q1(114)=[]; Q2(114)=[];   Xm(114)=[];Ym(114)=[];    Xr(114)=[];Yr(114)=[]; 
+Q1=Q1+x(6);
+Q2=Q2+x(7);
+
+
+Q2In=atan2d(Yr,Xr)-acosd((L2^2+Xr.^2+Yr.^2-L4^2)./(2*sqrt(Xr.^2+Yr.^2)*L2));
+Q2-Q2In;
+
+figure
+plot3(Xr,Yr,Q1,'linestyle','none','marker','*')
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('x (mm)','fontsize',14,'fontweight','bold')
+ylabel('y (mm)','fontsize',14,'fontweight','bold')
+zlabel('q_1 (deg)','fontsize',14,'fontweight','bold')
+
+figure
+plot3(Xr,Yr,Q2,'linestyle','none','marker','*')
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('x (mm)','fontsize',14,'fontweight','bold')
+ylabel('y (mm)','fontsize',14,'fontweight','bold')
+zlabel('q_2 (deg)','fontsize',14,'fontweight','bold')
+
+
+
+
+for i=1:5
+    for j=1:5
+        [fq1,gofq1]=CreateFit(Xr+L0,Yr,Q1,['Poly',num2str(i),num2str(j)],'q_1','ShowOff');
+        Q1fitRes{i,j}=fq1;
+        Q1fitError{i,j}=gofq1;
+        Q1fitRMS(i,j)=gofq1.rmse;
+        
+        [fq2,gofq2]=CreateFit(Xr,Yr,Q2,['Poly',num2str(i),num2str(j)],'q_2','ShowOff');
+        Q2fitRes{i,j}=fq2;
+        Q2fitError{i,j}=gofq2;
+        Q2fitRMS(i,j)=gofq2.rmse;
+        
+        Q1fitMaxError(i,j) =max(abs(fq1(Xr+L0,Yr)-Q1 ));
+        Q2fitMaxError(i,j) =max(abs(fq2(Xr,Yr)-Q2 ));
+    end
+end
+
+figure
+plot(Q1fitRes{4,4},[Xr+L0 Yr],Q1)
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('x(mm)','fontsize',14,'fontweight','bold')
+ylabel('y (mm)','fontsize',14,'fontweight','bold')
+zlabel('q_1 (deg)','fontsize',14,'fontweight','bold')
+
+figure
+plot(Q2fitRes{4,4},[Xr Yr],Q2)
+grid on
+set(gca,'fontsize',12)
+set(gca,'fontsize',12,'fontweight','bold')
+xlabel('x(mm)','fontsize',14,'fontweight','bold')
+ylabel('y (mm)','fontsize',14,'fontweight','bold')
+zlabel('q_2 (deg)','fontsize',14,'fontweight','bold')
