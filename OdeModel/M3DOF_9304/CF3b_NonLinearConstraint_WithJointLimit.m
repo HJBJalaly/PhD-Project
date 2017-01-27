@@ -69,7 +69,7 @@ end
     
     
     
-Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00000005;
+Cneq=[sum(sum((RPos-Pos).^2))*Tres-.00000001;
       InRangeShifter(Q1(1:SampleRate:end))'-Q_limit(1,2);
      -InRangeShifter(Q1(1:SampleRate:end))'+Q_limit(1,1);
       InRangeShifter(Q2(1:SampleRate:end))'-Q_limit(2,2);

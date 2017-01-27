@@ -228,8 +228,8 @@ tic
 nn=3; % number of joints
 % DoF of Optimization 
 rQ=15; % Degree of joint trajectory
-rM=4; % Degree of passive torque
-rB=4;
+rM=1; % Degree of passive torque
+rB=1;
 % WeightMatrix
 Weight=[3 2 1]';
 Weight=Weight*1;
@@ -466,7 +466,7 @@ figure('name','Time Torques')
 %% Optimization
 
 Degree=[nn rQ rM rB];
-% Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
+Initial=[Alpha_Q1 Alpha_Q2 Alpha_Q3];
 % Initial2=Initial;
 % Initial=x;
 
@@ -494,7 +494,7 @@ NewInit=Initial+Rand*(randn(1,3*(rQ+length(rQ))));
 
 CostFun   = @(Alpha)CF3b_TorqueCost(Alpha,Time,Degree,Tres,Weight,Landa,SampleRate,g,mL1,mL2,mL3,LL1,LL2,LL3);
 NonConstr = @(Alpha)CF3b_NonLinearConstraint(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3);
-% NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit,DQLimit,SampleRate);
+NonConstr = @(Alpha)CF3b_NonLinearConstraint_WithJointLimit(Alpha,Time,Tres,Degree,L,XEF,YEF,g,mL1,mL2,mL3,LL1,LL2,LL3,QLimit,DQLimit,SampleRate);
 
 
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
@@ -550,6 +550,7 @@ disp(sum(Violate,2)')
 %% Analysis of Robustness : Define New Task
 % load Test9504_b_DQ=180
 % % main Ellipose motion
+% elispoid
 xefm=A*cos(2*pi*f*Time)+0;
 yefm=A/2*sin(2*pi*f*Time)+1.5;
 Dxefm=-(2*pi*f)*A*sin(2*pi*f*Time);
@@ -558,15 +559,26 @@ D2xefm=-(2*pi*f)^2*A*cos(2*pi*f*Time);
 D2yefm=-(2*pi*f)^2*A/2*sin(2*pi*f*Time);
 
 % New similar Task
-A1=A*1.1;
-A2=A/2*1.1;
-xefn=A1*cos(2*pi*f*Time)+0;
-yefn=A2*sin(2*pi*f*Time)+1.5;
-Dxefn=-(2*pi*f)*A1*sin(2*pi*f*Time);
-Dyefn= (2*pi*f)*A2*cos(2*pi*f*Time);
-D2xefn=-(2*pi*f)^2*A1*cos(2*pi*f*Time);
-D2yefn=-(2*pi*f)^2*A2*sin(2*pi*f*Time);
-
+% Elispoid
+    A1=A*1.1;
+    A2=A/2*1.1;
+    xefn=A1*cos(2*pi*f*Time)+0;
+    yefn=A2*sin(2*pi*f*Time)+1.5;
+% Inf
+    A1=A*.8;
+    A2=A/2*.8;
+    xefn=A1*cos(2*pi*f*Time)+0;
+    yefn=A2*sin(4*pi*f*Time)+1.5;
+% % Curve w
+%     A1=A*1;
+%     A2=A/2*.6;
+%     xefn=A1*cos(2*pi*f*Time)+0;
+%     yefn=A2*(sin(4*pi*f*Time)).^2+1.35;
+% % Curve u
+%     A1=A*1;
+%     A2=A/2*1.5;
+%     xefn=A1*cos(2*pi*f*Time)+0;
+%     yefn=A2*(sin(2*pi*f*Time)).^2+1.3;
 
 figure
 plot(xefm,yefm,'linewidth',2)
@@ -574,7 +586,7 @@ hold all
 plot(xefn,yefn,'linewidth',2)
 legend('main','new')
 axis equal
-
+%%
 mL1=m;
 mL2=m;
 mL3=m;
@@ -587,9 +599,9 @@ LL3=L;
 
 
 QLimitTemp=[    min(Q_m')' max(Q_m')' ];
-AA=1.2;
+AA=3;
 QLimit_n= ([mean(QLimitTemp,2)-AA*diff(QLimitTemp,[],2)/2,mean(QLimitTemp,2)+AA*diff(QLimitTemp,[],2)/2]);
-DQLimit_n=DQLimit*1;
+DQLimit_n=DQLimit*3;
 
 %% Analysis of Robustness : Find The Trajectory
 % Initial_n=x;
@@ -615,12 +627,11 @@ NewInit_n=Initial_n+Rand*(randn(1,3*(rQ+length(rQ))));
 
 %% Analysis of Robustness : Show Time 
 [TorqueDesire_n,TorqueActive_n,TorqueActive_o,TorqueMono_n,TorqueBiceps_n,Q_n,D1Q_n,D2Q_n,IntU2_n,IntAbsUdq_n,IntU2_o,IntAbsUdq_o,IntAbsUdqDesire_n,RMSError_n]=...
-                   ShowTimePathOptimizer(xn,BetaOptimal_m,ThetaOptimal_m      ,Time,Tres,Degree,Weight,Landa*1,SampleRate,xefn,yefn,m,L,g,'Show','2Cycle','Optimized');
+                   ShowTimePathOptimizer(xn,BetaOptimal_m,ThetaOptimal_m      ,Time,Tres,Degree,Weight,Landa*1,SampleRate,xefn,yefn,m,L,g,'DntShow','2Cycle','Optimized');
                    
 IntAbsUdqDesire_n=sum(sum(abs(TorqueDesire_n.*D1Q_n),2))*Tres;
 IntAbsUdqActive_n=sum(sum(abs(TorqueActive_n.*D1Q_n),2))*Tres;
 IntAbsUdqActive_o=sum(sum(abs(TorqueActive_o.*D1Q_n),2))*Tres;
-
 
 
 %%
