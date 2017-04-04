@@ -1,7 +1,7 @@
 function AnimBot3DOF(T,Y,L)
 
 FigName= '3DoF Manipulator Simulation Model';
-
+FramesFolder = './ImageExmaple';
 
 % Initialize Figure
 % -----------------
@@ -13,8 +13,8 @@ AnimBot_Init(FigName);
 FigHndl = findobj('Type', 'figure',  'Name', FigName);
 
 % set figure axis range
-ViewWin = 4*L;  %[m]
-axis([-ViewWin ViewWin -ViewWin ViewWin]);
+ViewWin = 2*L;  %[m]
+axis([-ViewWin ViewWin -.5*L ViewWin]);
 
 
 % Initialize Plot Handle, i.e. create plot dummy
@@ -45,14 +45,6 @@ P2Hndl = plot(d, d, 'r', 'EraseMode','normal', ...
     'LineStyle','none');
 % Link 2
 L2Hndl = plot(d, d, 'y', 'EraseMode','normal', 'LineWidth',4);
-% pin3
-P3Hndl = plot(d, d, 'r', 'EraseMode','normal', ...
-    'MarkerFaceColor',[0 1 1 ],'MarkerEdgeColor',[0 1 1],...
-    'MarkerSize',10,...
-    'Marker','o',...
-    'LineStyle','none');
-% Link 3
-L3Hndl = plot(d, d, 'y', 'EraseMode','normal', 'LineWidth',4);
 
 % EF
 EFHndl = plot(d, d, 'r', 'EraseMode','normal', ...
@@ -71,9 +63,7 @@ set(gca,   'UserData', P1Hndl);
 set(P1Hndl,'UserData', L1Hndl);
 set(L1Hndl,'UserData', P2Hndl);
 set(P2Hndl,'UserData', L2Hndl);
-set(L2Hndl,'UserData', P3Hndl);
-set(P3Hndl,'UserData', L3Hndl);
-set(L3Hndl,'UserData', EFHndl);
+set(L2Hndl,'UserData', EFHndl);
 set(EFHndl,'UserData', GRHndl);
 set(GRHndl,'UserData', MOHndl);
 set(MOHndl,'UserData', TrackHandl);
@@ -135,7 +125,9 @@ if any( get(0,'Children') == FigHndl )
 
         Pin1Pos=[0 0];
         Tracker=[];
-        for i=1:length(T)-1
+%         frame=0;
+        for i=1:1:length(T)-1
+%             frame=frame+1;
             Link1PosA =[Pin1Pos(1)                   , Pin1Pos(2)];
             Link1PosB =[Pin1Pos(1)+(L)*cos(Y(i,1))   , Pin1Pos(2)+(L)*sin(Y(i,1))];
             
@@ -143,11 +135,8 @@ if any( get(0,'Children') == FigHndl )
             Link2PosA = Pin2Pos;
             Link2PosB =[Pin2Pos(1)+(L)*cos(Y(i,2)+Y(i,1))  , Pin2Pos(2)+(L)*sin(Y(i,2)+Y(i,1))];
             
-            Pin3Pos   = Link2PosB;
-            Link3PosA = Pin3Pos;
-            Link3PosB =[Pin3Pos(1)+(L)*cos(Y(i,3)+Y(i,2)+Y(i,1))  , Pin3Pos(2)+(L)*sin(Y(i,3)+Y(i,2)+Y(i,1))];
             
-            EFPos     =Link3PosB;
+            EFPos     =Link2PosB;
             
             Tracker=[Tracker;EFPos];
 
@@ -156,14 +145,13 @@ if any( get(0,'Children') == FigHndl )
             set(L1Hndl,'XData', [Link1PosA(1) Link1PosB(1)]  , 'YData', [Link1PosA(2) Link1PosB(2)]);
             set(P2Hndl,'XData',  Pin2Pos(1)                  , 'YData', Pin2Pos(2));
             set(L2Hndl,'XData', [Link2PosA(1) Link2PosB(1)]  , 'YData', [Link2PosA(2) Link2PosB(2)]);
-            set(P3Hndl,'XData',  Pin3Pos(1)                  , 'YData', Pin3Pos(2));
-            set(L3Hndl,'XData', [Link3PosA(1) Link3PosB(1)]  , 'YData', [Link3PosA(2) Link3PosB(2)]);
-            
+
             set(EFHndl,'XData', EFPos(1)                     , 'YData', EFPos(2));
             
             set(TrackHandl,'XData', Tracker(:,1), 'YData', Tracker(:,2));
 
             drawnow;
+%             SavePdfFast(sprintf('%s/Circle_%02d', FramesFolder,frame))            
 %             pause((T(i+1)-T(i)))
         end
     end

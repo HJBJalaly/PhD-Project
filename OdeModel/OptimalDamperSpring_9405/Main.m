@@ -26,9 +26,10 @@ f=0.5;
 phi=pi/2;
 Tres=0.01;
 time=0:Tres:40/f;
-Middle=ceil(39*length(time)/40);
+Middle =ceil(39*length(time)/40);
+Middle2=ceil(38*length(time)/40);
 xef=A*cos(2*pi*f*time)+0;
-yef=A*sin(2*pi*f*time)+.5;
+yef=A*sin(2*pi*f*time)+.65;
 Dxef=-(2*pi*f)*A*sin(2*pi*f*time);
 Dyef= (2*pi*f)*A*cos(2*pi*f*time);
 D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time);
@@ -42,8 +43,9 @@ q2=deg2rad(48.031);
 % Tres=0.002;
 % time=0:Tres:20/f;
 % Middle=ceil(19*length(time)/20);
+% Middle2=ceil(38*length(time)/40);
 % xef=A*cos(2*pi*f*time+phi);
-% yef=2.5*ones(size(time));
+% yef=.25*ones(size(time));
 % Dxef=-(2*pi*f)*A*sin(2*pi*f*time+phi);
 % Dyef= 2*zeros(size(time));
 % D2xef=-(2*pi*f)^2*A*cos(2*pi*f*time+phi);
@@ -195,8 +197,8 @@ figure('name','Desired Torque vs Angle')
     set(gca,'YMinorGrid','on')
     grid on
     
-Y=[q1(1:end)',q2(1:end)'];
-% AnimBot3DOF(time(1:end),Y,L);
+Y=[q1(Middle:end)',q2(Middle:end)'];
+AnimBot3DOF(time(Middle:end),Y,L);
 
 IntAbsUdqDesire_Opt=sum(sum(abs(torqueDesire(:,Middle:end).*Dq(:,Middle:end)),2))*Tres
 
@@ -207,8 +209,8 @@ IntAbsUdqDesire_Opt=sum(sum(abs(torqueDesire(:,Middle:end).*Dq(:,Middle:end)),2)
 nn=2; % number of joints
 % DoF of Optimization 
 % rQ=20; % Degree of joint trajectory
-rP=3; % Degree of passive torque
-rD=3; % Degree of passive torque
+rP=10; % Degree of Compliance polunomial torque
+rD=0; % Degree of Damper polynomial torque
 % WeightMatrix
 % Weight=[1 1]';
 
@@ -218,23 +220,23 @@ rD=3; % Degree of passive torque
 % Landa=[1e-3 1e-3];
 
 
-Time=time(Middle:end)-time(Middle);
-Q1=q1(Middle:end);
-Q2=q2(Middle:end);
+Time=time(Middle-15:end-15)-time(Middle-15);
+Q1=q1(Middle-15:end-15);
+Q2=q2(Middle-15:end-15);
 QJ=[Q1;Q2];
-DQ1=Dq(1,Middle:end);
-DQ2=Dq(2,Middle:end);
+DQ1=Dq(1,Middle-15:end-15);
+DQ2=Dq(2,Middle-15:end-15);
 DQJ=[DQ1;DQ2];
 
 
-XEF=xef(Middle:end);
-YEF=yef(Middle:end);
-DXEF=Dxef(Middle:end);
-DYEF=Dyef(Middle:end);
-D2XEF=D2xef(Middle:end);
-D2YEF=D2yef(Middle:end);
-TorqueDesQ1=torqueDesire(1,Middle:end);
-TorqueDesQ2=torqueDesire(2,Middle:end);
+XEF=xef(Middle-15:end-15);
+YEF=yef(Middle-15:end-15);
+DXEF=Dxef(Middle-15:end-15);
+DYEF=Dyef(Middle-15:end-15);
+D2XEF=D2xef(Middle-15:end-15);
+D2YEF=D2yef(Middle-15:end-15);
+TorqueDesQ1=torqueDesire(1,Middle-15:end-15);
+TorqueDesQ2=torqueDesire(2,Middle-15:end-15);
 TorqueDesire=[TorqueDesQ1;TorqueDesQ2];
 
 
@@ -249,8 +251,8 @@ TorqueDesire=[TorqueDesQ1;TorqueDesQ2];
 %         sin(Q1val)+sin(Q1val+Q2val)];
 
     
-[BetaOp1,ThetaOp1] = LSParamPoly(Q1',DQ1,TorqueDesQ1',rP,rD);
-[BetaOp2,ThetaOp2] = LSParamPoly(Q2',DQ2,TorqueDesQ2',rP,rD);
+[BetaOp1,ThetaOp1] = LSParamPoly(Q1',DQ1,TorqueDesQ1',rP,rD,0);
+[BetaOp2,ThetaOp2] = LSParamPoly(Q2',DQ2,TorqueDesQ2',rP,rD,0);
 BetaOptimal=[BetaOp1;BetaOp2];
 ThetaOptimal=[ThetaOp1;ThetaOp2];
 
@@ -366,6 +368,122 @@ figure('name','Passive Torques')
     ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
     legend('Required Torque','Damper Torque')
 
+figure('name','Passive Torques')
+    subplot(2,1,1)
+    plot(Time,TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Time,TorquePassiveOptimalQ1,'linewidth',2,'linestyle','-.','color','g')
+    plot(Time,TorqueDamperOptimalQ1,'linewidth',2,'linestyle','-.','Color',[0.75 0 0.75])
+    plot(Time,TorqueActive(1,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    L=legend('Required Torque','Spring Torque','Damper Torque','Actuator Torque');
+    set(L,'orientation','horizontal')
+    subplot(2,1,2)
+    plot(Time,TorqueDesQ2,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(Time,TorquePassiveOptimalQ2,'linewidth',2,'linestyle','-.','color','g')
+    plot(Time,TorqueDamperOptimalQ2,'linewidth',2,'linestyle','-.','Color',[0.75 0 0.75])
+    plot(Time,TorqueActive(2,:),'linewidth',2,'linestyle','-','color','r')
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    xlabel('Time (s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    L=legend('Required Torque','Spring Torque','Damper Torque','Actuator Torque');
+    set(L,'orientation','horizontal')
+    
+    
+figure('name','Substitude Toruq')
+    subplot(2,2,1)
+    plot(rad2deg(Q1),TorqueDesQ1-TorqueDamperOptimalQ1,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(rad2deg(Q1),TorquePassiveOptimalQ1,'linewidth',2,'linestyle','-.','color','g')
+    hold off
+    grid on
+    title('Parallel Compliance','FontWeight','bold','FontSize',15,'FontName','mwa_cmb10');
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_1-ud_1^* (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    legend('Required Torque','Spring Torque')
+    subplot(2,2,2)
+    plot(rad2deg(DQ1),TorqueDesQ1-TorquePassiveOptimalQ1,'linewidth',2)
+    hold on
+    plot(rad2deg(DQ1),TorqueDamperOptimalQ1,'linewidth',2,'linestyle','-.','Color',[0.75 0 0.75])
+    hold off
+    grid on
+    title('Parallel Damper','FontWeight','bold','FontSize',15,'FontName','mwa_cmb10');
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    xlabel('Dq_1 (deg/s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_1-up_1^* (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    legend('Required Torque','Damper Torque')
+    
+    
+    subplot(2,2,3)
+    plot(rad2deg(Q2),TorqueDesQ2-TorqueDamperOptimalQ2,'linewidth',2,'linestyle','-','color','b')
+    hold on
+    plot(rad2deg(Q2),TorquePassiveOptimalQ2,'linewidth',2,'linestyle','-.','color','g')
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_2-ud_2^* (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    legend('Required Torque','Spring Torque')
+    
+    legend('Required Torque','PassiveTorque')
+    subplot(2,2,4)
+    plot(rad2deg(DQ2),TorqueDesQ2-TorquePassiveOptimalQ2,'linewidth',2)
+    hold on
+    plot(rad2deg(DQ2),TorqueDamperOptimalQ2,'linewidth',2,'linestyle','-.','Color',[0.75 0 0.75])
+    hold off
+    grid on
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    xlabel('Dq_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    ylabel('u_2-up_2^* (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+    legend('Required Torque','Damper Torque')
+    
+%%
+
+figure('name','Passive Torques')
+    subplot(2,2,1)
+        plot(rad2deg(Q1),TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
+        hold on
+        plot(rad2deg(Q1),TorquePassiveOptimalQ1,'linewidth',2,'linestyle','-.','color','g')
+        hold off
+        grid on
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        legend('u_r_1','u_p_1')
+    subplot(2,2,2)
+        plot(rad2deg(Q2),TorqueDesQ2,'linewidth',2,'linestyle','-','color','b')
+        hold on
+        plot(rad2deg(Q2),TorquePassiveOptimalQ2,'linewidth',2,'linestyle','-.','color','g')
+        hold off
+        grid on
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        ylabel('u_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        legend('u_r_2','u_p_2')
+    subplot(2,2,3)
+        plot(rad2deg(Q1),TorqueActive(1,:),'linewidth',2,'linestyle','-','color','r')
+        hold off
+        grid on
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        ylabel('u_a_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        legend('u_a_1')
+    subplot(2,2,4)
+        plot(rad2deg(Q2),TorqueActive(2,:),'linewidth',2,'linestyle','-','color','r')
+        hold off
+        grid on
+        set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        xlabel('q_2 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        ylabel('u_a_2 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        legend('u_a_2')
+        
 figure('name','Passive Torques')
     subplot(2,1,1)
     plot(Time,TorqueDesQ1,'linewidth',2,'linestyle','-','color','b')
