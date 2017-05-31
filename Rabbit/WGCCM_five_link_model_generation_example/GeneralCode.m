@@ -13,6 +13,7 @@ XX_fem=1;
 XX_tib=1;
 XX_torso=1;
 g=9.8*1;
+mu=.4;
 
 %% Initialization
 TT = [1   0   0   0  -1;
@@ -23,21 +24,25 @@ TT = [1   0   0   0  -1;
 c=[-1 0 -1/2 0 -1];
 
 % Q_minus=TT*deg2rad([170 240 150 200 -10])'; % 
-angl1=15;
-angl2=10;
-Q_minus=TT*deg2rad([180-angl1+angl2 , 180+angl1+angl2 , 180-angl1+angl2-2*angl2 , 180+angl1+angl2-2*angl2 , -10])'; % This Q_minus
-Q_minus=deg2rad([ 183.5  215.3  -20.1  -19.0   -9.5])';
+angl1=10;
+angl2=6;
+% Q_minus=TT*deg2rad([180-angl1+angl2 , 180+angl1+angl2 , 180-angl1+angl2-2*angl2 , 180+angl1+angl2-2*angl2 , -10])'; % This Q_minus
+%  Q_minus=deg2rad([ 183.5  215.3  -20.1  -19.0   -9.5])';
 % Q_minus=TT*deg2rad([240 , 120 , 120 , 90 , 0])' % This Q_minus
+Q_minus=deg2rad([183.0600  206.9524  -13.1551    -9.5970   -8.9210])';% extracted from a converged walking
 % DQ_minus=10*TT*deg2rad([-10 10 -70 70 -1])'; % This Dq_minus
-DQ_minus=50*deg2rad([-.1  .1  -2 1 -1 ])'; % This Dq_minus --> stable for 10 step
-DQ_minus=1*deg2rad([ 5.5   -1.9  -65.0   27.8  -33.5])';
+% DQ_minus=50*deg2rad([-.1  .1  -2 1 -1 ])'; % This Dq_minus --> stable for 10 step
+% DQ_minus=1*deg2rad([ 5.5   -1.9  -65.0   27.8  -33.5])';
+DQ_minus=deg2rad([ 50.82   -27.49  -91.8   16.57  -56.44])';% extracted from a converged walking
   % DQ_minus=50*deg2rad([ .1 -.2 -1 -1 -.5 ])'; 
 % Impact and Relabaling
 
-[ Q_plus,DQ_plus,V_tib2_plus,F2]=ImpactModel(Q_minus,DQ_minus,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
+[ Q_plus,DQ_plus,V_tib2_plus,F2]=ImpactModel(Q_minus,1*DQ_minus,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
 disp(['Q_plus=[ ',num2str(Q_plus'),']'])
 disp(['DQ_plus=[ ',num2str(DQ_plus'),']'])
 disp(['V_tib2_plus=[ ',num2str(V_tib2_plus'),']']);
+disp(['F2=[ ',num2str(F2'),']']);
+disp(['[F_n*mu,Ft]=[ ',num2str(F2(2)*mu),'>',num2str(F2(1)),']']);
 disp('---------------------')
 
 [KE_minus,PE_minus ] = KineticPotentialEnergy(Q_minus,DQ_minus,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g );
@@ -55,31 +60,36 @@ DTheta_plus=c*DQ_plus;
 DTheta_minus=c*DQ_minus;
 disp(['D_Theta_plus= ',num2str(DTheta_plus')])
 disp(['D_Theta_minus= ',num2str(DTheta_minus')])
+disp('---------------------')
 
 
-Alfa=zeros(4,4);
+Alfa=zeros(4,Ma+1);
 Alfa(:,1)=Q_plus(1:4);
-Alfa(:,4)=Q_minus(1:4);
+Alfa(:,Ma+1)=Q_minus(1:4);
 Alfa(:,2)=DQ_plus(1:4)/(Ma*DTheta_plus)*(Theta_minus-Theta_plus)+Alfa(:,1);
-Alfa(:,3)=-DQ_minus(1:4)/(Ma*DTheta_minus)*(Theta_minus-Theta_plus)+Alfa(:,4);
+Alfa(:,Ma)=-DQ_minus(1:4)/(Ma*DTheta_minus)*(Theta_minus-Theta_plus)+Alfa(:,Ma+1);
 
+for i=2+1:Ma-2+1
+    Alfa(:,i)=(0*Alfa(:,2)+50*Alfa(:,Ma-1+1))/50;
+end
 
 
 Hdr=zeros(4,1);
-DHdr=zeros(4,1);
+DHdr_s=zeros(4,1);
 for Theta=linspace(Theta_plus,Theta_minus,50)
-    [Hdr(:,end+1),DHdr(:,end+1)]=BezierFunction(Theta,Alfa,Theta_plus,Theta_minus);
+    [Hdr(:,end+1),DHdr_s(:,end+1)]=BezierFunction(Ma,Theta,Alfa,Theta_plus,Theta_minus);
 end
 Hdr(:,1)=[];
-DHdr(:,1)=[];
+DHdr_s(:,1)=[];
 SS=((linspace(Theta_plus,Theta_minus,50))-Theta_plus)/(Theta_minus-Theta_plus);
 QQ=[Hdr;zeros(1,length(SS))];
-DQQ=[DHdr;zeros(1,length(SS))];
+DSS=[DHdr_s;zeros(1,length(SS))];
 figure(2)
 plot(c*QQ)
 hold all
-plot(c*DQQ/(Theta_minus-Theta_plus))
+plot((c*diff(QQ')')./diff(SS))
 grid on
+legend('\theta','d(Hd_s)/ds')
 figure(3)
 subplot(2,2,1)
 plot(SS,QQ(1,:))
@@ -100,23 +110,60 @@ ylabel('q_4')
     
 
 % AnimBot3DOF(SS,QQ',1,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso,1)
+%% Stability
+H0=eye(4,5);
+H=[H0;c];
+Hi=H^(-1);
+qz=@(xi)Hi*[BezierFunction_hd_Fast(Ma,xi,Alfa,Theta_plus,Theta_minus);xi];
+subindex = @(q,r) q(r);
+gamma0=@(qz)...
+        [ XX_fem + XX_tib + 2*L_fem^2*M_fem + L_fem^2*M_tib + 2*L_tib^2*M_fem + L_fem^2*M_torso + 2*L_tib^2*M_tib + L_tib^2*M_torso + Lc_fem^2*M_fem + Lc_tib^2*M_tib - 2*L_fem*Lc_fem*M_fem - 2*L_tib*Lc_tib*M_tib - L_fem^2*M_tib*cos(qz(1) - qz(2)) + 4*L_fem*L_tib*M_fem*cos(qz(3)) + 2*L_fem*L_tib*M_tib*cos(qz(3)) + 2*L_fem*L_tib*M_torso*cos(qz(3)) - L_fem*L_torso*M_torso*cos(qz(1)) - 2*L_tib*Lc_fem*M_fem*cos(qz(3)) + L_fem*Lc_torso*M_torso*cos(qz(1)) - L_fem*Lc_tib*M_tib*cos(qz(1) - qz(2) - qz(4)) - L_fem*Lc_fem*M_fem*cos(qz(1) - qz(2)) - L_tib*Lc_tib*M_tib*cos(qz(1) - qz(2) + qz(3) - qz(4)) - L_fem*L_tib*M_tib*cos(qz(1) - qz(2) + qz(3)) - L_tib*Lc_fem*M_fem*cos(qz(1) - qz(2) + qz(3)) - L_tib*L_torso*M_torso*cos(qz(1) + qz(3)) + L_tib*Lc_torso*M_torso*cos(qz(1) + qz(3)), XX_fem + XX_tib + L_fem^2*M_tib + Lc_fem^2*M_fem + Lc_tib^2*M_tib - L_fem^2*M_tib*cos(qz(1) - qz(2)) + 2*L_fem*Lc_tib*M_tib*cos(qz(4)) - L_fem*Lc_tib*M_tib*cos(qz(1) - qz(2) - qz(4)) - L_fem*Lc_fem*M_fem*cos(qz(1) - qz(2)) - L_tib*Lc_tib*M_tib*cos(qz(1) - qz(2) + qz(3) - qz(4)) - L_fem*L_tib*M_tib*cos(qz(1) - qz(2) + qz(3)) - L_tib*Lc_fem*M_fem*cos(qz(1) - qz(2) + qz(3)), XX_tib + 2*L_tib^2*M_fem + 2*L_tib^2*M_tib + L_tib^2*M_torso + Lc_tib^2*M_tib - 2*L_tib*Lc_tib*M_tib + 2*L_fem*L_tib*M_fem*cos(qz(3)) + L_fem*L_tib*M_tib*cos(qz(3)) + L_fem*L_tib*M_torso*cos(qz(3)) - L_tib*Lc_fem*M_fem*cos(qz(3)) - L_tib*Lc_tib*M_tib*cos(qz(1) - qz(2) + qz(3) - qz(4)) - L_fem*L_tib*M_tib*cos(qz(1) - qz(2) + qz(3)) - L_tib*Lc_fem*M_fem*cos(qz(1) - qz(2) + qz(3)) - L_tib*L_torso*M_torso*cos(qz(1) + qz(3)) + L_tib*Lc_torso*M_torso*cos(qz(1) + qz(3)), XX_tib + Lc_tib^2*M_tib + L_fem*Lc_tib*M_tib*cos(qz(4)) - L_fem*Lc_tib*M_tib*cos(qz(1) - qz(2) - qz(4)) - L_tib*Lc_tib*M_tib*cos(qz(1) - qz(2) + qz(3) - qz(4)), 2*XX_fem + 2*XX_tib + XX_torso + 2*L_fem^2*M_fem + 2*L_fem^2*M_tib + 2*L_tib^2*M_fem + L_fem^2*M_torso + 2*L_tib^2*M_tib + L_tib^2*M_torso + L_torso^2*M_torso + 2*Lc_fem^2*M_fem + 2*Lc_tib^2*M_tib + Lc_torso^2*M_torso - 2*L_fem*Lc_fem*M_fem - 2*L_tib*Lc_tib*M_tib - 2*L_torso*Lc_torso*M_torso - 2*L_fem^2*M_tib*cos(qz(1) - qz(2)) + 4*L_fem*L_tib*M_fem*cos(qz(3)) + 2*L_fem*L_tib*M_tib*cos(qz(3)) + 2*L_fem*L_tib*M_torso*cos(qz(3)) - 2*L_fem*L_torso*M_torso*cos(qz(1)) - 2*L_tib*Lc_fem*M_fem*cos(qz(3)) + 2*L_fem*Lc_tib*M_tib*cos(qz(4)) + 2*L_fem*Lc_torso*M_torso*cos(qz(1)) - 2*L_fem*Lc_tib*M_tib*cos(qz(1) - qz(2) - qz(4)) - 2*L_fem*Lc_fem*M_fem*cos(qz(1) - qz(2)) - 2*L_tib*Lc_tib*M_tib*cos(qz(1) - qz(2) + qz(3) - qz(4)) - 2*L_fem*L_tib*M_tib*cos(qz(1) - qz(2) + qz(3)) - 2*L_tib*Lc_fem*M_fem*cos(qz(1) - qz(2) + qz(3)) - 2*L_tib*L_torso*M_torso*cos(qz(1) + qz(3)) + 2*L_tib*Lc_torso*M_torso*cos(qz(1) + qz(3))];
+kappa1=@(xi)c*inv([H0-BezierFunction_Dhd_Fast(Ma,xi,Alfa,Theta_plus,Theta_minus)*c/(Theta_minus-Theta_plus);gamma0(qz(xi))])*[zeros(4,1);1];
+
+% PE=g*(M_tib*(2*y1 - L_fem*cos(q1 + q5) + L_fem*cos(q2 + q5) - L_tib*cos(q1 + q3 + q5) + Lc_tib*cos(q2 + q4 + q5)) - M_fem*(cos(q1 + q5)*(L_fem - Lc_fem) - 2*y1 + L_tib*cos(q1 + q3 + q5)) + M_fem*(2*y1 - L_fem*cos(q1 + q5) + Lc_fem*cos(q2 + q5) - L_tib*cos(q1 + q3 + q5)) + M_torso*(2*y1 - L_fem*cos(q1 + q5) + cos(q5)*(L_torso - Lc_torso) - L_tib*cos(q1 + q3 + q5)) + M_tib*(2*y1 - cos(q1 + q3 + q5)*(L_tib - Lc_tib)))
+% kappa2=-diff(PE,q5) ;
+kappa2=@(qz)g*(M_fem*(sin(qz(4) + qz(5))*(L_fem - Lc_fem) + L_tib*sin(qz(4) + qz(3) + qz(5))) + M_tib*(L_fem*sin(qz(4) + qz(5)) - L_fem*sin(qz(2) + qz(5)) + L_tib*sin(qz(4) + qz(3) + qz(5)) - Lc_tib*sin(qz(2) + qz(4) + qz(5))) + M_fem*(L_fem*sin(qz(4) + qz(5)) - Lc_fem*sin(qz(2) + qz(5)) + L_tib*sin(qz(4) + qz(3) + qz(5))) + M_torso*(L_fem*sin(qz(4) + qz(5)) - sin(qz(5))*(L_torso - Lc_torso) + L_tib*sin(qz(4) + qz(3) + qz(5))) + M_tib*sin(qz(4) + qz(3) + qz(5))*(L_tib - Lc_tib));
+Vzero=0;
+VzeroMax=-inf;
+Dxi=-(Theta_plus-Theta_minus)/50;
+for Xi=linspace(Theta_plus,Theta_minus,50)
+    Vzero=Vzero-kappa2(qz(Xi))/kappa1(Xi);
+    if(Vzero>VzeroMax)
+        VzeroMax=Vzero;
+    end
+end
+Vzero=Vzero*Dxi;
+VzeroMax=VzeroMax*Dxi;
+    
+DeltaDqMinus=@(Q_minus)DeltaDQ(Q_minus,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
+LandaHatDq=@(qm)inv([H0-Ma*(Alfa(:,Ma+1)-Alfa(:,Ma))*c/(Theta_minus-Theta_plus);gamma0(qm)])*[zeros(4,1);1];
+deltaZero=gamma0(Q_plus)*DeltaDqMinus(Q_minus)*LandaHatDq(Q_minus);
+
+disp(['V_zero=    ',num2str(Vzero)])
+disp(['V_zeroMax= ',num2str(VzeroMax)])
+disp(['delta_zero=0<  ',num2str(deltaZero),'  <1'])
+disp(['(deltaZ^2)/(1-deltaZ^2)*Vz+VzMax <0  :',num2str((deltaZero^2)/(1-deltaZero^2)*Vzero+VzeroMax)])
+disp('---------------------')
+
 %% Ode
 Kp=30000;
 Kd=350;
 
-Options = odeset('RelTol',2e-3,'AbsTol',2e-3,'maxstep',2e-3,...
-                 'OutputFcn',@(t,x,flag)ForceTorqueCalculator_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Kp,Kd),...
+Options = odeset('RelTol',1e-3,'AbsTol',1e-3,'maxstep',1e-3,...
+                 'OutputFcn',@(t,x,flag)ForceTorqueCalculator_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Ma,Kp,Kd),...
                  'Events',@(t,x)EventTouchDown(t,x,L_fem, L_tib));
             
-[Tc,SolC] = ode15s(@(t,x)RabitDynamic(t,x,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Kp,Kd),...
+[Tc,SolC] = ode15s(@(t,x)RabitDynamic(t,x,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Ma,Kp,Kd),...
                     [0,2],[Q_plus; DQ_plus],Options);
 
 Q_mns =SolC(end,1:5 )';
 DQ_mns=SolC(end,6:10)';
 
 [Q_pls,DQ_pls,V_tib2_pls,F2]=ImpactModel(Q_mns,DQ_mns,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
-disp(['Q_pls=[ ',num2str(Q_pls'),']'])
-disp(['DQ_pls=[ ',num2str(DQ_pls'),']'])
+disp(['Q_plus=[ ',num2str(Q_pls'),'] (designed)'])
+disp(['Q_pls=[ ',num2str(Q_pls'),'] (real)'])
+disp(['DQ_plus=[ ',num2str(DQ_plus'),'] (designed)'])
+disp(['DQ_pls=[ ',num2str(DQ_pls'),'] (real)'])
 disp(['V_tib2_plus=[ ',num2str(V_tib2_pls'),']']);
                 
 MotionData=ForceTorqueCalculator_5DoF([],[],'done');
@@ -134,57 +181,62 @@ close all
 
 % 
 AnimBot3DOF(Tc  ,SolC(:,1:5),T_impact,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso,2)
-ShowTimeOneStep(Tc,SolC,MotionData,c,Theta_plus,Theta_minus,Alfa,L_fem, L_tib, L_torso);
+ShowTimeOneStep(Tc,SolC,MotionData,c,Theta_plus,Theta_minus,Alfa,L_fem, L_tib, L_torso,mu,Ma);
 %% Multi Ode 
 
-% Kp=4000;
-% Kd=130;
+Kp=100000;
+Kd=1000;
 
 
-Q_pls=Q_plus;
-DQ_pls=DQ_plus;
-Alpha=Alfa;
-Theta_mns= Theta_minus;
-Theta_pls= Theta_plus;
+Q_plsMulti=Q_plus;
+DQ_plsMulti=DQ_plus;
+AlphaMulti=Alfa;
+Theta_mnsMulti= Theta_minus;
+Theta_plsMulti= Theta_plus;
 
 T_impactMulti=[]; 
 QqMulti=[];
 DQqMulti=[];
 TimeMutli=[0];
 MotionDataMulti=[];
-p_tib2 =[];
-v_hip =[];
+p_tib2_Multi =[];
+v_hip_Multi =[];
     
-for step=1:2*8
+for step=1:2*40
     step
     
     
-    Options = odeset('RelTol',1e-2,'AbsTol',1e-2,'maxstep',1e-2,...
-                 'OutputFcn',@(t,x,flag)ForceTorqueCalculator_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alpha,Theta_pls,Theta_mns,Kp,Kd),...
+    Options = odeset('RelTol',1e-3,'AbsTol',1e-3,'maxstep',1e-3,...
+                 'OutputFcn',@(t,x,flag)ForceTorqueCalculator_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,AlphaMulti,Theta_plsMulti,Theta_mnsMulti,Ma,Kp,Kd),...
                  'Events',@(t,x)EventTouchDown(t,x,L_fem, L_tib));
 
-    [TcMulti,SolCMulti] = ode15s(@(t,x)RabitDynamic(t,x,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alpha,Theta_pls,Theta_mns,Kp,Kd),...
-                        [0,2],[Q_pls; DQ_pls],Options);
+    [TcMulti,SolCMulti] = ode15s(@(t,x)RabitDynamic(t,x,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,AlphaMulti,Theta_plsMulti,Theta_mnsMulti,Ma,Kp,Kd),...
+                        [0,2],[Q_plsMulti; DQ_plsMulti],Options);
 
-    Q_mns =SolCMulti(end,1:5 )';
-    DQ_mns=SolCMulti(end,6:10)';
+    Q_mnsMulti =SolCMulti(end,1:5 )';
+    DQ_mnsMulti=SolCMulti(end,6:10)';
 
-    [ Q_pls,DQ_pls,V_tib2_pls,F2]=ImpactModel(Q_mns,DQ_mns,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
+    [ Q_plsMulti,DQ_plsMulti,V_tib2_pls_Multi,F2Multi]=ImpactModel(Q_mnsMulti,DQ_mnsMulti,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
 %     disp(['Q_plus=[ ',num2str(Q_pls'),']']);
 %     disp(['DQ_plus=[ ',num2str(DQ_pls'),']']);
 %     disp(['V_tib2_plus=[ ',num2str(V_tib2_pls'),']']);
 %                 
-    Theta_pls=c*Q_pls;
-    Theta_mns=c*Q_mns;
+    Theta_plsMulti=c*Q_plsMulti;
+    Theta_mnsMulti=c*Q_mnsMulti;
 
-    DTheta_pls=c*DQ_pls;
-    DTheta_mns=c*DQ_mns;
+    DTheta_plsMulti=c*DQ_plsMulti;
+    DTheta_mnsMulti=c*DQ_mnsMulti;
 
-    Alpha=zeros(4,4);
-    Alpha(:,1)=Q_pls(1:4);
-    Alpha(:,4)=Q_mns(1:4);
-    Alpha(:,2)=DQ_pls(1:4)/(Ma*DTheta_pls)*(Theta_mns-Theta_pls)+Alpha(:,1);
-    Alpha(:,3)=-DQ_mns(1:4)/(Ma*DTheta_mns)*(Theta_mns-Theta_pls)+Alpha(:,4);
+    AlphaMulti=zeros(4,Ma+1);
+    AlphaMulti(:,1)=Q_plsMulti(1:4);
+    AlphaMulti(:,Ma+1)=Q_mnsMulti(1:4);
+    AlphaMulti(:,2)=DQ_plsMulti(1:4)/(Ma*DTheta_plsMulti)*(Theta_mnsMulti-Theta_plsMulti)+AlphaMulti(:,1);
+    AlphaMulti(:,Ma)=-DQ_mnsMulti(1:4)/(Ma*DTheta_mnsMulti)*(Theta_mnsMulti-Theta_plsMulti)+AlphaMulti(:,Ma+1);
+    
+    for i=2+1:Ma-2+1
+        AlphaMulti(:,i)=(0*AlphaMulti(:,2)+50*AlphaMulti(:,Ma-1+1))/50;
+    end
+
 
     MotionDataMulti=[MotionDataMulti, ForceTorqueCalculator_5DoF([],[],'done')];
 
@@ -199,13 +251,13 @@ for step=1:2*8
     dq4=SolCMulti(:,9)';
     dq5=SolCMulti(:,10)';
 
-    p_tib2 =[p_tib2,  [ + L_fem*sin(q1 + q5) - L_fem*sin(q2 + q5) + L_tib*sin(q1 + q3 + q5) - L_tib*sin(q2 + q4 + q5),
-                      - L_fem*cos(q1 + q5) + L_fem*cos(q2 + q5) - L_tib*cos(q1 + q3 + q5) + L_tib*cos(q2 + q4 + q5)]];
+    p_tib2_Multi =[p_tib2_Multi,  [ + L_fem*sin(q1 + q5) - L_fem*sin(q2 + q5) + L_tib*sin(q1 + q3 + q5) - L_tib*sin(q2 + q4 + q5),
+                                    - L_fem*cos(q1 + q5) + L_fem*cos(q2 + q5) - L_tib*cos(q1 + q3 + q5) + L_tib*cos(q2 + q4 + q5)]];
 
 
-    v_hip =[v_hip , [dq1.*(L_fem*cos(q1 + q5) + L_tib*cos(q1 + q3 + q5)) - dq2.*(L_fem*cos(q2 + q5) + L_tib*cos(q2 + q4 + q5)) + dq5.*(L_fem*cos(q1 + q5) - L_fem*cos(q2 + q5) + L_tib*cos(q1 + q3 + q5) - L_tib*cos(q2 + q4 + q5)) + L_tib*dq3.*cos(q1 + q3 + q5) - L_tib*dq4.*cos(q2 + q4 + q5)
-        dq1.*(L_fem*sin(q1 + q5) + L_tib*sin(q1 + q3 + q5)) - dq2.*(L_fem*sin(q2 + q5) + L_tib*sin(q2 + q4 + q5)) + dq5.*(L_fem*sin(q1 + q5) - L_fem*sin(q2 + q5) + L_tib*sin(q1 + q3 + q5) - L_tib*sin(q2 + q4 + q5)) + L_tib*dq3.*sin(q1 + q3 + q5) - L_tib*dq4.*sin(q2 + q4 + q5)]];
-        
+    v_hip_Multi =[v_hip_Multi , [dq1.*(L_fem*cos(q1 + q5) + L_tib*cos(q1 + q3 + q5)) - dq2.*(L_fem*cos(q2 + q5) + L_tib*cos(q2 + q4 + q5)) + dq5.*(L_fem*cos(q1 + q5) - L_fem*cos(q2 + q5) + L_tib*cos(q1 + q3 + q5) - L_tib*cos(q2 + q4 + q5)) + L_tib*dq3.*cos(q1 + q3 + q5) - L_tib*dq4.*cos(q2 + q4 + q5)
+                                 dq1.*(L_fem*sin(q1 + q5) + L_tib*sin(q1 + q3 + q5)) - dq2.*(L_fem*sin(q2 + q5) + L_tib*sin(q2 + q4 + q5)) + dq5.*(L_fem*sin(q1 + q5) - L_fem*sin(q2 + q5) + L_tib*sin(q1 + q3 + q5) - L_tib*sin(q2 + q4 + q5)) + L_tib*dq3.*sin(q1 + q3 + q5) - L_tib*dq4.*sin(q2 + q4 + q5)]];
+                
 
     QqMulti =[QqMulti ;SolCMulti(:,1:5)];
     DQqMulti=[DQqMulti ;SolCMulti(:,6:10)];
@@ -217,7 +269,7 @@ end
 TimeMutli(1)=[];
 
 AnimBot3DOF( TimeMutli, QqMulti,T_impactMulti,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso,1)
-ShowTimeMultiStep(TimeMutli,T_impactMulti,QqMulti,DQqMulti,MotionDataMulti,p_tib2,v_hip)
+ShowTimeMultiStep(TimeMutli,T_impactMulti,QqMulti,DQqMulti,MotionDataMulti,p_tib2_Multi,v_hip_Multi,mu,Ma)
 
 %% Optimization damper-spring
 

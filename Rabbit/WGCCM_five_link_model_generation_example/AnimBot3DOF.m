@@ -198,36 +198,53 @@ if any( get(0,'Children') == FigHndl )
         set(foot2Hndl,'XData',   p_foot2(1)               , 'YData',  p_foot2(2));
 
         if(time(i)==T_impact(ImpactCounter))
+            
             p_foot1=p_foot2;
             ImpactCounter=ImpactCounter+1;
+        
+            if(p_foot1(1)>XLimits(2))
+                XLimits=XLimits+11;
+                axis([get(gca, 'XLim')+11 -ViewWin ViewWin]);
+            end
+                
+            
+            if(mod(ImpactCounter,2)==0)
+
+                uistack(Femur1Hndl, 'top')
+                uistack(Knee1Hndl, 'top')
+                uistack(Tibia1Hndl, 'top')
+                uistack(foot1Hndl, 'top')
+                set(Femur1Hndl,'color', 'g');
+                set(Knee1Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
+                set(Tibia1Hndl,'color', 'g');
+                set(foot1Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
+
+                set(Femur2Hndl,'color', 'b');
+                set(Knee2Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
+                set(Tibia2Hndl,'color', 'b');
+                set(foot2Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
+
+            else
+
+                uistack(Femur2Hndl, 'top')
+                uistack(Knee2Hndl, 'top')
+                uistack(Tibia2Hndl, 'top')
+                uistack(foot2Hndl, 'top')
+
+                set(Femur1Hndl,'color', 'b');
+                set(Knee1Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
+                set(Tibia1Hndl,'color', 'b');
+                set(foot1Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
+
+                set(Femur2Hndl,'color', 'g');
+                set(Knee2Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
+                set(Tibia2Hndl,'color', 'g');
+                set(foot2Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
+            end
         end
         
         drawnow;
         pause((time(i+1)-time(i))*PaTi)
-        
-        if(mod(ImpactCounter,2)==0)
-            set(Femur1Hndl,'color', 'g');
-            set(Knee1Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
-            set(Tibia1Hndl,'color', 'g');
-            set(foot1Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
-            
-            set(Femur2Hndl,'color', 'b');
-            set(Knee2Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
-            set(Tibia2Hndl,'color', 'b');
-            set(foot2Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
-            
-        else
-            
-            set(Femur1Hndl,'color', 'b');
-            set(Knee1Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
-            set(Tibia1Hndl,'color', 'b');
-            set(foot1Hndl,'MarkerFaceColor','b','MarkerEdgeColor','b');
-            
-            set(Femur2Hndl,'color', 'g');
-            set(Knee2Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
-            set(Tibia2Hndl,'color', 'g');
-            set(foot2Hndl,'MarkerFaceColor','g','MarkerEdgeColor','g');
-        end
         
 %         if(mod(i,10)==1)
 %             frame=frame+1;

@@ -1,4 +1,4 @@
-function  [BetaOptimal,ThetaOptimal,EtaOptimal,CostActuation,CostD2Q,CostParaReg,TorqueMonoSpring1,TorqueMonoSpring3,TorqueDamper1,TorqueDamper3,TorqueBiSpring13]=...
+function  [CostActuation,CostD2Q,CostParaReg,BetaOptimal,ThetaOptimal,EtaOptimal,TorqueMonoSpring1,TorqueMonoSpring3,TorqueDamper1,TorqueDamper3,TorqueBiSpring13]=...
                     OptimalParam(Time,Q1,Q3,Qhat13,DtQ1,DtQ3,Ur1,Ur3,rM,rB,rD,Landa,Gamma,Weight,SampleRate,Show,estimate)
 
 W1=Weight(1);
@@ -220,11 +220,12 @@ Uactive1=(Ur1 -TorqueMonoSpring1 -TorqueDamper1 -TorqueBiSpring13 );
 Uactive3=(Ur3 -TorqueMonoSpring3 -TorqueDamper3 -TorqueBiSpring13 );
 
 CostActuation=1/2*sum(( W1*(Uactive1.*Uactive1) + W3*(Uactive3.*Uactive3)).*[diff(Time) ;0]);
+% CostRequired=1/2*sum(( W1*(Ur1.*Ur1) + W3*(Ur3.*Ur3)).*[diff(Time) ;0]);
   
 if(Show)
     warning off
     
-    figure(14)
+    figure(20)
         clf
         ap=get(gca,'position');
         % Required
@@ -255,7 +256,7 @@ if(Show)
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         % Mono-articular Spring
     
-    figure(15)
+    figure(21)
         subplot(3,2,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         %title('Optimal Required and Compliance Torque-Angle Profile','FontSize',16);
         plot(rad2deg(Q1),TorqueMonoSpring1,'linewidth',3,'color','g')
@@ -323,7 +324,7 @@ if(Show)
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
 
-    figure(16)
+    figure(22)
         clf
         subplot(2,2,1)
         plot(rad2deg(DtQ1),TorqueDamper1,'linewidth',2)

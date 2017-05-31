@@ -1,4 +1,4 @@
-function status=ForceTorqueCalculator_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Kp,Kd)
+function status=ForceTorqueCalculator_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Ma,Kp,Kd)
 
 persistent Force;
 
@@ -50,15 +50,15 @@ DQ=[dq1;dq2;dq3;dq4;dq5];
 c=[-1 0 -1/2 0 -1];
 H0=eye(4,5);
 Theta=c*Q;
-[Hd,DHd_s,D2Hd_s]= BezierFunction(Theta,Alfa,Theta_plus,Theta_minus);
+[Hd,DHd_s,D2Hd_s]= BezierFunction(Ma,Theta,Alfa,Theta_plus,Theta_minus);
 
-DH_theta=DHd_s/(Theta_minus-Theta_plus);
-DH_q=DH_theta*c;
-Lfg=(H0-DH_q)*(DD\B);
-L2f=[D2Hd_s*c*DQ*c/(Theta_minus-Theta_plus)^2 DH_q  ]* [DQ ;DD^(-1)*(-CC*DQ-GG)] ;
+DHd_theta=DHd_s/(Theta_minus-Theta_plus);
+DHd_q=DHd_theta*c;
+Lfg=(H0-DHd_q)*(DD\B);
+L2f=[D2Hd_s*c*DQ*c/(Theta_minus-Theta_plus)^2 DHd_q  ]* [DQ ;DD^(-1)*(-CC*DQ-GG)] ;
 
 y=H0*Q-Hd;
-Dy_t=H0*DQ-DH_q*DQ;
+Dy_t=H0*DQ-DHd_q*DQ;
 
 v=-Kp*y-Kd*Dy_t;
 u=Lfg\(v-L2f);

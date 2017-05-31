@@ -1,4 +1,4 @@
-function  ShowTimeMultiStep(Time,T_impact,Qq,DQq,MotionData,p_tib2,v_hip)
+function  ShowTimeMultiStep(Time,T_impact,Qq,DQq,MotionData,p_tib2,v_hip,mu,Ma)
 
 
 figure(6)
@@ -20,7 +20,8 @@ figure(6)
 figure(7)
     subplot(3,2,1)
     plot(Time,Qq(:,1))
-    ylabel('q_1')
+    ylabel('q_1(rad)')
+    xlabel('time(s)')
     grid on
     h=get(gca,'YLIM')';
     hold on
@@ -32,7 +33,8 @@ figure(7)
     
     subplot(3,2,2)
     plot(Time,Qq(:,2))
-    ylabel('q_2')
+    ylabel('q_2(rad)')
+    xlabel('time(s)')
     grid on
     h=get(gca,'YLIM')';
     hold on
@@ -44,7 +46,8 @@ figure(7)
     
     subplot(3,2,3)
     plot(Time,Qq(:,3))
-    ylabel('q_3')
+    ylabel('q_3(rad)')
+    xlabel('time(s)')
     grid on
     h=get(gca,'YLIM')';
     hold on
@@ -56,7 +59,8 @@ figure(7)
     
     subplot(3,2,4)
     plot(Time,Qq(:,4))
-    ylabel('q_4')
+    ylabel('q_4(rad)')
+    xlabel('time(s)')
     grid on
     h=get(gca,'YLIM')';
     hold on
@@ -68,7 +72,8 @@ figure(7)
     
     subplot(3,2,5)
     plot(Time,Qq(:,5))
-    ylabel('q_5')
+    ylabel('q_5(rad)')
+    xlabel('time(s)')
     grid on
     hold on
     h=get(gca,'YLIM')';
@@ -82,14 +87,87 @@ figure(7)
     
     subplot(3,2,6)
     plot(0,0)
-    
 
 figure(8)
-    plot(Time,MotionData(5,:))
-    hold all
-    plot(Time,MotionData(6,:))
+    subplot(3,2,1)
+    plot(Time,DQq(:,1))
+    ylabel('Dq_1(rad/s)')
+    xlabel('time(s)')
     grid on
-    legend('F_t','F_n')
+    h=get(gca,'YLIM')';
+    hold on
+    for i=1:length(T_impact)
+        a=line([T_impact(i) T_impact(i)],h);
+        set(a,'color','r','linestyle','-.')
+    end
+    hold off
+    
+    subplot(3,2,2)
+    plot(Time,DQq(:,2))
+    ylabel('Dq_2(rad/s)')
+    xlabel('time(s)')
+    grid on
+    h=get(gca,'YLIM')';
+    hold on
+    for i=1:length(T_impact)
+        a=line([T_impact(i) T_impact(i)],h);
+        set(a,'color','r','linestyle','-.')
+    end
+    hold off
+    
+    subplot(3,2,3)
+    plot(Time,DQq(:,3))
+    ylabel('Dq_3(rad/s)')
+    xlabel('time(s)')
+    grid on
+    h=get(gca,'YLIM')';
+    hold on
+    for i=1:length(T_impact)
+        a=line([T_impact(i) T_impact(i)],h);
+        set(a,'color','r','linestyle','-.')
+    end
+    hold off
+    
+    subplot(3,2,4)
+    plot(Time,DQq(:,4))
+    ylabel('Dq_4(rad/s)')
+    xlabel('time(s)')
+    grid on
+    h=get(gca,'YLIM')';
+    hold on
+    for i=1:length(T_impact)
+        a=line([T_impact(i) T_impact(i)],h);
+        set(a,'color','r','linestyle','-.')
+    end
+    hold off
+    
+    subplot(3,2,5)
+    plot(Time,DQq(:,5))
+    ylabel('Dq_5(rad/s)')
+    xlabel('time(s)')
+    grid on
+    hold on
+    h=get(gca,'YLIM')';
+    for i=1:length(T_impact)
+        a=line([T_impact(i) T_impact(i)],h);
+        set(a,'color','r','linestyle','-.')
+        drawnow
+    end
+    drawnow
+    hold off
+    
+    subplot(3,2,6)
+    plot(0,0)
+
+
+figure(9)
+    plot(Time,MotionData(5,:))% Ft
+    hold all
+    plot(Time,MotionData(6,:))%Fn
+    plot(Time,MotionData(6,:)*mu,'linestyle','--','color','k')%Fn*mu
+    plot(Time,-MotionData(6,:)*mu,'linestyle','--','color','k')%Fn*mu
+    grid on
+    legend('F_t','F_n','\mu*F_n')
     hold off
     xlabel('Time (s)')
     ylabel('GRF (N)')
@@ -102,7 +180,7 @@ figure(8)
     hold off
 
 
-figure(9)
+figure(10)
     subplot(2,1,1)
     plot(Time,p_tib2(1,:))
     hold all
@@ -137,7 +215,7 @@ figure(9)
     end
     hold off
     
-figure(10)
+figure(11)
     subplot(3,2,1)
     plot(Qq(:,1),DQq(:,1))
     grid on
@@ -199,7 +277,7 @@ figure(10)
     xlabel('q_5')
     ylabel('dq_5')
 
-figure(11)
+figure(12)
     
     indx1=1;
     for i=1:length(T_impact)/2
@@ -267,7 +345,7 @@ figure(11)
     subplot(3,2,6)
     hold off
 
-figure(12)    
+figure(13)    
     i=length(T_impact)/2;
     indx1=find(Time==T_impact(2*(i)-2),1)+1;
     indx2=find(Time==T_impact(2*(i)-1),1);
@@ -335,7 +413,7 @@ figure(12)
     ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
    
-figure(13)    
+figure(14)    
     i=length(T_impact)/2;
     indx1=find(Time==T_impact(2*(i)-2),1)+1;
     indx2=find(Time==T_impact(2*(i)-1),1);
@@ -403,7 +481,7 @@ figure(13)
     ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
     
-figure(17)
+figure(15)
     subplot(2,1,1)
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Time(indx1:indx2),MotionData(1,indx1:indx2),'linewidth',2)
@@ -423,7 +501,7 @@ figure(17)
         xlabel('Time (s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         ylabel('u_3 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
-figure(18)
+figure(16)
     subplot(2,1,1)
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Time(indx1:indx2),MotionData(1,indx1:indx2)'.*DQq(indx1:indx2  ,1),'linewidth',2)
@@ -444,7 +522,7 @@ figure(18)
         ylabel('power_k_n_e_e (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
 
-figure(19)
+figure(17)
     subplot(2,1,1)
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(Time(indx1:indx2),rad2deg(Qq(indx1:indx2  ,1)),'linewidth',2)

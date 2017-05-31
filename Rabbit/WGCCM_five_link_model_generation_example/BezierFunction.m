@@ -1,7 +1,6 @@
-function [H,DH,D2H]=BezierFunction(Theta,Alfa,Theta_plus,Theta_minus)
+function [H,DH,D2H]=BezierFunction(Ma,Theta,Alfa,Theta_plus,Theta_minus)
 
 s=(Theta-Theta_plus)/(Theta_minus-Theta_plus);
-Ma=3;
 H=zeros(4,1);
 DH=zeros(4,1);
 D2H=zeros(4,1);

@@ -1,4 +1,4 @@
-function  ShowTimeOneStep(Tc,SolC,MotionData,c,Theta_plus,Theta_minus,Alfa,L_fem, L_tib, L_torso)
+function  ShowTimeOneStep(Tc,SolC,MotionData,c,Theta_plus,Theta_minus,Alfa,L_fem, L_tib, L_torso,mu,Ma)
 
 
 q1=SolC(:,1)' ;q2=SolC(:,2)' ;q3=SolC(:,3)' ;q4=SolC(:,4)' ;q5=SolC(:,5)';
@@ -30,8 +30,8 @@ figure(7)
     Thetar=linspace(Theta_plus,Theta_minus,length(Tc));
     Sr=(Thetar-Theta_plus)/(Theta_minus-Theta_plus);
     for i=1:length(Thetar)
-        [Hds(:,end+1),DHds(:,end+1)]=BezierFunction(Thetas(i),Alfa,Theta_plus,Theta_minus);
-        [Hdr(:,end+1),DHdr(:,end+1)]=BezierFunction(Thetar(i),Alfa,Theta_plus,Theta_minus);
+        [Hds(:,end+1),DHds(:,end+1)]=BezierFunction(Ma,Thetas(i),Alfa,Theta_plus,Theta_minus);
+        [Hdr(:,end+1),DHdr(:,end+1)]=BezierFunction(Ma,Thetar(i),Alfa,Theta_plus,Theta_minus);
     end
     Hds(:,1)=[];
     DHds(:,1)=[];
@@ -80,19 +80,44 @@ figure(7)
     plot(Ss,Thetas)
     ylabel('\theta')
     
-
 figure(8)
-    plot(Tc,MotionData(5,:))
+    subplot(3,2,1)
+    plot(Ss,dq1)
+    set(legend1,'Orientation','horizontal');
+    ylabel('Dq_1')
+    
+    subplot(3,2,2)
+    plot(Ss,dq2)
+    ylabel('Dq_2')
+    
+    subplot(3,2,3)
+    plot(Ss,dq3)
+    ylabel('dq_3')
+    
+    subplot(3,2,4)
+    plot(Ss,dq4)
+    ylabel('dq_4')
+    
+    subplot(3,2,5)
+    plot(Ss,dq5)
+    ylabel('dq_5')
+    
+    
+
+figure(9)
+    plot(Tc,MotionData(5,:))%Ft
     hold all
-    plot(Tc,MotionData(6,:))
+    plot(Tc,MotionData(6,:))%Fn
+    plot(Tc,MotionData(6,:)*mu,'--')%mu*Fn
+    plot(Tc,-MotionData(6,:)*mu,'--')%mu*Fn
     grid on
-    legend('F_t','F_n')
+    legend('F_t','F_n','\mu*Fn')
     hold off
     xlabel('Time (s)')
     ylabel('GRF (N)')
 
     
-figure(9)
+figure(10)
     subplot(2,1,1)
     plot(Tc,p_tib2(1,:))
     hold all
