@@ -16,6 +16,7 @@ options = gaoptimset(options,'PlotFcns', { @gaplotbestf});
 options = gaoptimset(options,'Vectorized', 'off');
 options = gaoptimset(options,'UseParallel', 'always');
 options = gaoptimset(options,'Display', 'iter');
-options = gaoptimset(options,'TolFun',1e-6);
+options = gaoptimset(options,'TolFun',1e-3);
+options = gaoptimset(options,'TolCon',1e-3);
 [x,fval,exitflag,output,population,score] = ...
-ga(CostFun,nvars,[],[],[],[],[],[],ConstraintFun,[],options);
+    ga(CostFun,nvars,[],[],[],[],[],[],ConstraintFun,[],options);

@@ -78,6 +78,9 @@ figure(7)
     ylabel('q_5')
     subplot(3,2,6)
     plot(Ss,Thetas)
+    hold on
+    plot([0 1],[-pi -pi],'r-.')
+    hold off
     ylabel('\theta')
     
 figure(8)

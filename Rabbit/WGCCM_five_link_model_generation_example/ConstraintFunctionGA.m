@@ -1,4 +1,4 @@
-function [Cneq,Ceq]=ConstraintFunctionGA(Param,Ma,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Kp,Kd)
+function [Cneq,Ceq]=ConstraintFunctionGA(Param,Ma,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,mu)
 
 
 angl1=Param(end-7);
@@ -40,8 +40,10 @@ Alfa(:,2+1:Ma-2+1)=reshape(Param(1:(Ma-3)*4),4,Ma-3);
 % q3 and q4
 
 Hdr=zeros(4,1);
+p_tib2_plus=[];
 for Theta=linspace(Theta_plus,Theta_minus,10)
     Hdr(:,end+1)=BezierFunction_hd_Fast(Ma,Theta,Alfa,Theta_plus,Theta_minus);
+    p_tib2_plus(:,end+1) = FoottPositon([Hdr(:,end) ;deg2rad( qTorso)],L_fem, L_tib);
 end
 Hdr(:,1)=[];
 
@@ -110,13 +112,17 @@ Cneq=[ angl1-45;    % in deg
 %      -p_tib2_minus(1);
 %       -p_hip_y_mins;
 %       -p_hip_y_plus;
-      -V_tib2_plus(2);
+      -V_tib2_plus(2); % vertical velocity of foot after the impact moment
       -F2(2);
-       -deltaZero
-        deltaZero-1';
-        (deltaZero^2)/(1-deltaZero^2)*Vzero+VzeroMax;
-        Hdr(3,:)'+0.035;
-        Hdr(4,:)'+0.035];
+      -deltaZero; %stability condition
+       deltaZero-1'; %stability condition
+       (deltaZero^2)/(1-deltaZero^2)*Vzero+VzeroMax; %stability condition
+       Hdr(3,:)'+0.035;%knee joint
+       Hdr(4,:)'+0.035; % knee joint
+      -p_tib2_plus(2,:)'-0.002; % position of swing foot over one step
+       DQ_minus-10; % velocity
+      -DQ_minus-10;
+       abs(F2(1))-abs(F2(2))*mu;]; % non-slippinf condtion at impact
 
 Ceq=[ ];
 
