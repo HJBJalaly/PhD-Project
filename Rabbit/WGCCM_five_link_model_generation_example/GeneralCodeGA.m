@@ -307,7 +307,7 @@ ShowTimeOneStep(TcX,SolCX,MotionDataX,c,Theta_plusX,Theta_mnsX,AlfaX,L_fem, L_ti
 
 % Kp=4000;
 % Kd=130;
-Stride=10;
+Stride=5;
 
 AlphaMultiX=AlfaX;
 
@@ -344,7 +344,7 @@ for step=1:2*Stride
     [ Q_plsMultiX,DQ_plsMultiX,V_tib2_pls_MulitX,F2_MulitX]=ImpactModel(Q_mnsMultiX,DQ_mnsMultiX,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso);
 %     disp(['Q_plus=[ ',num2str(Q_pls'),']']);
     disp(['DQ_plus=[ ',num2str(DQ_plsMultiX'),']']);
-    disp(['F2=[ ',num2str(F2_MulitX'),']']);
+    disp(['F2=[ ',num2str(F2_MulitX'),']  (max Ft=',num2str(F2_MulitX(2)*mu),')']);
 %      
     Theta_plsMultiX=c*Q_plsMultiX;
     Theta_mnsMultiX=c*Q_mnsMultiX;
@@ -403,10 +403,10 @@ DeltaDqMinusM=@(Q_mnsMulti)DeltaDQ(Q_mnsMulti,L_fem, L_tib, L_torso, Lc_fem, Lc_
 LandaHatDqM=@(qm)inv([H0-Ma*(AlphaMultiX(:,Ma+1)-AlphaMultiX(:,Ma))*c/(Theta_mnsMultiX-Theta_plsMultiX);gamma0M(qm)])*[zeros(4,1);1];
 deltaZeroM=gamma0M(Q_plsMultiX)*DeltaDqMinusM(Q_mnsMultiX)*LandaHatDqM(Q_mnsMultiX);
 
-disp(['V_zero=    ',num2str(VzeroM),',   V_zeroMax= ',num2str(VzeroMaxM)])
-disp(['delta_zero=0<  ',num2str(deltaZeroM),'  <1'])
+disp(['V_zero= ',num2str(VzeroM),',  V_zMax= ',num2str(VzeroMaxM),',  delta_zero=0< ',num2str(deltaZeroM),' <1'])
 disp(['(deltaZ^2)/(1-deltaZ^2)*Vz+VzMax <0  :',num2str((deltaZeroM^2)/(1-deltaZeroM^2)*VzeroM+VzeroMaxM)])
-disp(['Vel_hip_x_avg=',num2str(mean(v_hip_MulitX(1,:))),'m/s,    Pos_tib2_y_max=',num2str(max(p_tib2_MulitX(2,:))*100),'cm'])
+disp(['Vel_hip_x_avg=',num2str(sum(v_hip_MulitX(1,end-length(TcMultiX)+2:end).*diff(TcMultiX'))/TcMultiX(end)),'m/s,    Pos_tib2_y_max=',num2str(max(p_tib2_MulitX(2,:))*100),'cm'])
+disp(['ang1=',num2str(angl1),', ang2=',num2str(angl2)])
 disp('---------------------')
 
 TimeMultiX(1)=[];
@@ -640,12 +640,13 @@ disp(Title)
 disp(Result_Init_XSim)
 disp(Result_Opt_XSim)
 
+
 %% Multi Ode on Sim GA
 
 % Kp=4000;
 % Kd=130;
 
-Stride=10;
+Stride=5;
 AlphaMultiXSim=AlfaXSim;
 Q_mnsMultiXSim=Q_minusXSim;
 DQ_mnsMultiXSim=DQ_minusXSim;
@@ -742,7 +743,7 @@ deltaZeroM=gamma0M(Q_plsMultiXSim)*DeltaDqMinusM(Q_mnsMultiXSim)*LandaHatDqM(Q_m
 
 disp(['V_zero= ',num2str(VzeroM),',  V_zMax= ',num2str(VzeroMaxM),',  delta_zero=0< ',num2str(deltaZeroM),' <1'])
 disp(['(deltaZ^2)/(1-deltaZ^2)*Vz+VzMax <0  :',num2str((deltaZeroM^2)/(1-deltaZeroM^2)*VzeroM+VzeroMaxM)])
-disp(['Vel_hip_x_avg=',num2str(mean(v_hip_MulitXSim(1,:))),'m/s,    Pos_tib2_y_max=',num2str(max(p_tib2_MulitXSim(2,:))*100),'cm'])
+disp(['Vel_hip_x_avg=',num2str(sum(v_hip_MulitXSim(1,end-length(TcMultiX)+2:end).*diff(TcMultiXSim'))/TcMultiXSim(end)),'m/s,    Pos_tib2_y_max=',num2str(max(p_tib2_MulitXSim(2,:))*100),'cm'])
 disp(['ang1=',num2str(angl1Sim),', ang2=',num2str(angl2Sim)])
 disp('---------------------')
 
