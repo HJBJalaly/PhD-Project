@@ -188,10 +188,10 @@ InitialPopulation=repmat(Initial',PopulationSize,1)+1*randn(PopulationSize,nvars
 CostFun   = @(Param)CostFunctionGA(Param,Ma,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Kp,Kd,mu);
 NonConstr = @(Param)ConstraintFunctionGA(Param,Ma,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,mu);
 
-for i=27:30
+for i=11:20
     [Xx,fvalXx,exitflagXx,outputXx,populationXx,scoreXx] =...
         Op_GA(CostFun, NonConstr, nvars, InitialPopulation, PopInitRange, PopulationSize,GenerationsLimit,StallGenLimit);
-     save(['Temp_Gait_Loop_multi_',num2str(i),'.mat'])
+     save(['TempMultiOde_Gait_',num2str(i),'.mat'])
 end
 toc
 %% Ode on GA (optimized gait)
@@ -417,9 +417,9 @@ AnimBot3DOF( TimeMultiX, QqMultiX,T_impactMultiX,L_fem, L_tib, L_torso, Lc_fem, 
 %% Optimization damper-spring on Multi GA (optimized gait + Sequential Optimization)
 Weight=[1 1];
 SampleRate=10;   
-rM=3-0;
-rB=3-0;
-rD=1+0-1;
+rM=3;
+rB=0;
+rD=0-1;
 Landa=0.00000005;
 Gamma=0.0005;
 
@@ -468,6 +468,7 @@ disp(Result_InitMultiX)
 disp(Result_OptMultiX)
 %% Simultinous GA
 clear *Xx
+close all
 LastMode='SimGaitGa';
 % Kp=30000;
 % Kd=350;
@@ -487,7 +488,10 @@ StallGenLimit=10;
 nvars=(Ma-3)*4+3+5;
 tic
 
-for i=20:30
+rM=3;
+rB=3;
+rD=0;
+for i=11:20
     InitialPopulation=repmat(Initial',PopulationSize,1)+1*randn(PopulationSize,nvars);
 
     CostFunSim   = @(Param)CostFunctionSimGA(Param,Ma,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Kp,Kd,mu,rM,rB,rD,Landa,Gamma,Weight,SampleRate);
@@ -495,7 +499,7 @@ for i=20:30
 
     [XxSim,fvalXxSim,exitflagXxSim,outputXxSim,populationXxSim,scoreXxSim] =...
         Op_GA(CostFunSim, NonConstr, nvars, InitialPopulation, PopInitRange, PopulationSize,GenerationsLimit,StallGenLimit);
-    save(['Temp_SimGait_Loop_multi_',num2str(i),'.mat'])
+    save(['TempMultiOde_SimGait_MBD_',num2str(i),'.mat'])
 end
 
 
@@ -743,7 +747,7 @@ deltaZeroM=gamma0M(Q_plsMultiXSim)*DeltaDqMinusM(Q_mnsMultiXSim)*LandaHatDqM(Q_m
 
 disp(['V_zero= ',num2str(VzeroM),',  V_zMax= ',num2str(VzeroMaxM),',  delta_zero=0< ',num2str(deltaZeroM),' <1'])
 disp(['(deltaZ^2)/(1-deltaZ^2)*Vz+VzMax <0  :',num2str((deltaZeroM^2)/(1-deltaZeroM^2)*VzeroM+VzeroMaxM)])
-disp(['Vel_hip_x_avg=',num2str(sum(v_hip_MulitXSim(1,end-length(TcMultiX)+2:end).*diff(TcMultiXSim'))/TcMultiXSim(end)),'m/s,    Pos_tib2_y_max=',num2str(max(p_tib2_MulitXSim(2,:))*100),'cm'])
+disp(['Vel_hip_x_avg=',num2str(sum(v_hip_MulitXSim(1,end-length(TcMultiXSim)+2:end).*diff(TcMultiXSim'))/TcMultiXSim(end)),'m/s,    Pos_tib2_y_max=',num2str(max(p_tib2_MulitXSim(2,:))*100),'cm'])
 disp(['ang1=',num2str(angl1Sim),', ang2=',num2str(angl2Sim)])
 disp('---------------------')
 
