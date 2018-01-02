@@ -1,7 +1,7 @@
 function AnimBot3DOF(time,q,T_impact,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso,PaTi)
 
 FigName= 'Rabbit Simulation Model';
-% FramesFolder = './ImageExmaple';
+FramesFolder = './ImageExmaple';
 
 
 % Initialize Figure
@@ -165,7 +165,7 @@ if any( get(0,'Children') == FigHndl )
     ImpactCounter=1;
     p_foot1    =[0 0]';
         
-%     frame=0;
+    frame=0;
     for i=1:1:length(time)-1
         
         q_fem1  = q(i,1)+q(i,5);
@@ -246,10 +246,10 @@ if any( get(0,'Children') == FigHndl )
         drawnow;
         pause((time(i+1)-time(i))*PaTi)
         
-%         if(mod(i,10)==1)
-%             frame=frame+1;
-%             SavePdfFast(sprintf('%s/Walk_%03d', FramesFolder,frame))
-%         end
+         if(mod(i,10)==1)
+             frame=frame+1;
+             SavePdfFast(sprintf('%s/WalkOpt_%03d', FramesFolder,frame))
+         end
     end
     end
 end

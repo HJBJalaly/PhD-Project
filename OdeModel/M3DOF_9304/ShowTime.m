@@ -846,7 +846,44 @@ if(strcmp(ShowFlag,'Show'))
                 set(gca,'YMinorGrid','on')
                 hold on
                 
-                        
+      figure('name','Power')
+        set(gcf,'position',[58         309        1154         389])
+%         subplot(2,1,1)
+            h1=plot(Time(1),TorqueDesire(1,1).*D1Q1(1),'linewidth',2,'marker','^','markersize',8);
+            hold all
+            h2=plot(Time(1),TorqueDesire(2,1).*D1Q2(1),'linewidth',2,'marker','s','markersize',8);
+            h3=plot(Time(1),TorqueDesire(3,1).*D1Q3(1),'linewidth',2,'marker','p','markersize',8);
+            legend('p_r_1','p_r_2','p_r_3','orientation','horizontal')
+            hold on
+            plot(Time,TorqueDesire(1,:).*D1Q1(1,:),'linewidth',2,'color',get(h1,'color'))
+            plot(Time,TorqueDesire(2,:).*D1Q2(1,:),'linewidth',2,'color',get(h2,'color'))
+            plot(Time,TorqueDesire(3,:).*D1Q3(1,:),'linewidth',2,'color',get(h3,'color'))
+            plot(Time(1:30:end),TorqueDesire(1,1:30:end).*D1Q1(1,1:30:end),'linewidth',2,'linestyle','none','marker','^','MarkerEdgeColor',get(h1,'color'),'markersize',8)
+            plot(Time(1:30:end),TorqueDesire(2,1:30:end).*D1Q2(1,1:30:end),'linewidth',2,'linestyle','none','marker','s','MarkerEdgeColor',get(h2,'color'),'markersize',8)
+            plot(Time(1:30:end),TorqueDesire(3,1:30:end).*D1Q3(1,1:30:end),'linewidth',2,'linestyle','none','marker','p','MarkerEdgeColor',get(h3,'color'),'markersize',8)
+            grid on
+            ylabel('P (w)','fontsize',14);
+            xlabel('time (s)','fontsize',14);
+            set(gca,'FontWeight','bold','FontSize',12)
+            hold off 
+%         subplot(2,1,2)
+%             h4=plot(Time(1),TorqueDesire(1,1).*D1Q1(1)+TorqueDesire(2,1).*D1Q2(1),'linewidth',2,'marker','^','markersize',8);
+%             hold all
+%             h5=plot(Time(1),TorqueDesire(2,1).*D1Q2(1)+TorqueDesire(3,1).*D1Q3(1),'linewidth',2,'marker','s','markersize',8);
+%             legend('p_r_1+p_r_2','p_r_2+p_r_3','orientation','horizontal')
+%             hold on
+%             plot(Time,TorqueDesire(1,:).*D1Q1(1,:)+TorqueDesire(2,:).*D1Q2(1,:),'linewidth',2,'color',get(h4,'color'))
+%             plot(Time,TorqueDesire(2,:).*D1Q2(1,:)+TorqueDesire(3,:).*D1Q3(1,:),'linewidth',2,'color',get(h5,'color'))
+%             plot(Time(1:30:end),TorqueDesire(1,1:30:end).*D1Q1(1,1:30:end)+TorqueDesire(2,1:30:end).*D1Q2(1,1:30:end),'linewidth',2,'linestyle','none','marker','^','MarkerEdgeColor',get(h4,'color'),'markersize',8)
+%             plot(Time(1:30:end),TorqueDesire(2,1:30:end).*D1Q2(1,1:30:end)+TorqueDesire(3,1:30:end).*D1Q3(1,1:30:end),'linewidth',2,'linestyle','none','marker','p','MarkerEdgeColor',get(h5,'color'),'markersize',8)
+%             grid on
+%             ylabel('P (w)','fontsize',14,'FontName','mwa_cmb10');
+%             xlabel('time (s)','fontsize',14,'FontName','mwa_cmb10');
+%             set(gca,'FontWeight','bold','FontSize',12)
+%             hold off 
+
+                
+                  
     end
             
 

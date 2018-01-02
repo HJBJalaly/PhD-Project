@@ -1,5 +1,5 @@
 function  [CostActuation,CostD2Q,CostParaReg,BetaOptimal,ThetaOptimal,EtaOptimal,TorqueMonoSpring1,TorqueMonoSpring3,TorqueDamper1,TorqueDamper3,TorqueBiSpring13]=...
-                    OptimalParam(Time,Q1,Q3,Qhat13,DtQ1,DtQ3,Ur1,Ur3,rM,rB,rD,Landa,Gamma,Weight,SampleRate,Show,estimate)
+                    OptimalParam(Time,Q1,Q3,Qhat13,DtQ1,DtQ3,Ur1,Ur3,rM,rB,rD,Landa,Gamma,Weight,SampleRate,SwitchIndex,Show,estimate)
 
 W1=Weight(1);
 W3=Weight(2);
@@ -228,12 +228,13 @@ if(Show)
     figure(20)
         clf
         ap=get(gca,'position');
+        set(gcf,'position',[6 357 1266  195])
         % Required
-        subplot(1,2,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ax1=subplot(1,2,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(rad2deg(Q1),Ur1,'linewidth',2)
-        title('Hip joint')
-        xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+%         title('Hip joint')
+        xlabel('\boldmath$q_1$ (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_1$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
@@ -241,12 +242,24 @@ if(Show)
         hold off
         legend('u_r_1','u_a_1','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        %
-        subplot(1,2,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        plot(rad2deg( Q3),Ur3,'linewidth',2)
-        title('Knee joint')
-        xlabel('q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                  'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(Q1(1:150:SwitchIndex)),Ur1(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(Q1(SwitchIndex+1:75:end)),Ur1(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('Stance','Swing');
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1]);
+        drawnow
+        set(ax2,'visible','off','color','none',...
+                 'box','off',...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
+        
+        ax1=subplot(1,2,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(rad2deg( Q3),Ur3,'linewidth',2);
+%         title('Knee joint')
+        xlabel('\boldmath$q_3$ (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_3$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
@@ -254,14 +267,30 @@ if(Show)
         hold off
         legend('u_r_3','u_a_3','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        % Mono-articular Spring
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(Q3(1:150:SwitchIndex)),Ur3(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(Q3(SwitchIndex+1:75:end)),Ur3(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('Stance','Swing');
+        drawnow
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1],...
+                'fontweight','bold');
+        set(ax2,'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[],...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
+        
     
     figure(21)
-        subplot(3,2,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        % Mono-articular Spring
+        % Mono-articular Spring
+        % Mono-articular Spring
+        ax1=subplot(3,2,1,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         %title('Optimal Required and Compliance Torque-Angle Profile','FontSize',16);
         plot(rad2deg(Q1),TorqueMonoSpring1,'linewidth',3,'color','g')
-        xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        xlabel('\boldmath$q_1$ (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_1$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
@@ -269,11 +298,23 @@ if(Show)
         hold off
         legend('u_m_1','u_r_1-u_b_1-u_d_1','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(Q1(1:150:SwitchIndex)),Ur1(1:150:SwitchIndex)-TorqueBiSpring13(1:150:SwitchIndex)-TorqueDamper1(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(Q1(SwitchIndex+1:75:end)),Ur1(SwitchIndex+1:75:end)-TorqueBiSpring13(SwitchIndex+1:75:end)-TorqueDamper1(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('Stance','Swing');
+        drawnow
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1]);
+        set(ax2,'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[],...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
         %
-        subplot(3,2,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ax1=subplot(3,2,2,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         plot(rad2deg(Q3),TorqueMonoSpring3,'linewidth',3,'color','g')
-        xlabel('q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        xlabel('\boldmath$q_3$ (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_3$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
@@ -281,40 +322,80 @@ if(Show)
         hold off
         legend('u_m_3','u_r_3-u_d_3-u_b_1_3','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        % Bi-articular Spring
-        subplot(3,2,3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(Q3(1:150:SwitchIndex)),Ur3(1:150:SwitchIndex)-TorqueBiSpring13(1:150:SwitchIndex)-TorqueDamper3(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(Q3(SwitchIndex+1:75:end)),Ur3(SwitchIndex+1:75:end)-TorqueBiSpring13(SwitchIndex+1:75:end)-TorqueDamper3(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('Stance','Swing');
+        drawnow
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1]);
+        set(ax2,'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[],...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
+        % Damper
+        % Damper
+        % Damper
+        ax1=subplot(3,2,3,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
         %title('Optimal Required and Compliance Torque-Angle Profile','FontSize',16);
-        plot(rad2deg(Q1),TorqueDamper1,'linewidth',3,'Color',[1 0.7 .4])
-        xlabel('q_1 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_1 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        plot(rad2deg(DtQ1),TorqueDamper1,'linewidth',3,'Color',[1 0.7 .4])
+        xlabel('\boldmath$\dot{q}_1$ (deg/s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_1$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
-        plot(rad2deg( Q1),Ur1-TorqueBiSpring13-TorqueMonoSpring1,'linewidth',2,'linestyle','-.')
+        plot(rad2deg(DtQ1),Ur1-TorqueBiSpring13-TorqueMonoSpring1,'linewidth',2,'linestyle','-.')
         hold off
         legend('u_d_1','u_r_1-u_b_1-u_m_1','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(DtQ1(1:150:SwitchIndex)),Ur1(1:150:SwitchIndex)-TorqueBiSpring13(1:150:SwitchIndex)-TorqueMonoSpring1(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(DtQ1(SwitchIndex+1:75:end)),Ur1(SwitchIndex+1:75:end)-TorqueBiSpring13(SwitchIndex+1:75:end)-TorqueMonoSpring1(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('Stance','Swing');
+        drawnow
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1],...
+                'fontweight','bold');
+        set(ax2,'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[],...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
         %
-        subplot(3,2,4,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-        plot(rad2deg(Q3),TorqueDamper3,'linewidth',3,'Color',[1 0.7 .4])
-        xlabel('q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        ax1=subplot(3,2,4,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        plot(rad2deg(DtQ3),TorqueDamper3,'linewidth',3,'Color',[1 0.7 .4])
+        xlabel('\boldmath$\dot{q}_3$ (deg/s)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_3$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
-        plot(rad2deg(Q3),Ur3-TorqueMonoSpring3-TorqueBiSpring13,'linewidth',2,'linestyle','-.')
+        plot(rad2deg(DtQ3),Ur3-TorqueMonoSpring3-TorqueBiSpring13,'linewidth',2,'linestyle','-.')
         hold off
         legend('u_d_3','u_r_3-u_m_3-u_b_1_3','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-
-
-
-        sh1=subplot(325);   
-        sp1=get(sh1,'position');
-        set(sh1,'position',[sp1(1)+.5*(ap(3)-sp1(3)),sp1(2:end)]); 
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(DtQ3(1:150:SwitchIndex)),Ur3(1:150:SwitchIndex)-TorqueBiSpring13(1:150:SwitchIndex)-TorqueMonoSpring3(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(DtQ3(SwitchIndex+1:75:end)),Ur3(SwitchIndex+1:75:end)-TorqueBiSpring13(SwitchIndex+1:75:end)-TorqueMonoSpring3(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('stance','Swing');
+        drawnow
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1],...
+                'fontweight','bold');
+        set(ax2,'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[],...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
+        % Bi-articular Spring
+        % Bi-articular Spring
+        % Bi-articular Spring
+        ax1=subplot(325);   
+        sp1=get(ax1,'position');
+        set(ax1,'position',[sp1(1)+.5*(ap(3)-sp1(3)),sp1(2:end)]); 
         plot(rad2deg(Q1+Q3),2*TorqueBiSpring13,'linewidth',3,'Color',[0.75 0 0.75])
-        xlabel('q_1+q_3 (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
-        ylabel('u_1+u_3 (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10');
+        xlabel('\boldmath$q_1+q_3$ (deg)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
+        ylabel('\boldmath$u_1+u_3$ (N.m)','FontWeight','bold','FontSize',14,'FontName','mwa_cmb10','interpret','latex');
         grid on
         set(gca,'YMinorGrid','on')
         hold on
@@ -322,6 +403,20 @@ if(Show)
         hold off
         legend('2\times u_b_1_3','u_r_1+u_r_3-u_m_1-u_m_3-u_d_1-u_d_3','Orientation','horizontal')
         set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+        ax2=axes('position',get(ax1,'position'),'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[]);
+        plot(rad2deg(Q1(1:150:SwitchIndex)+Q3(1:150:SwitchIndex)),Ur1(1:150:SwitchIndex)+Ur3(1:150:SwitchIndex)-TorqueMonoSpring1(1:150:SwitchIndex)-TorqueMonoSpring3(1:150:SwitchIndex)-TorqueDamper1(1:150:SwitchIndex)-TorqueDamper3(1:150:SwitchIndex),'linestyle','none','marker','o','markerfacecolor','b')
+        hold on
+        plot(rad2deg(Q1(SwitchIndex+1:75:end)+Q3(SwitchIndex+1:75:end)),Ur1(SwitchIndex+1:75:end)+Ur3(SwitchIndex+1:75:end)-TorqueMonoSpring1(SwitchIndex+1:75:end)-TorqueMonoSpring3(SwitchIndex+1:75:end)-TorqueDamper1(SwitchIndex+1:75:end)-TorqueDamper3(SwitchIndex+1:75:end),'linestyle','none','marker','^','markerfacecolor','b')        
+        L2=legend('Stance','Swing');
+        drawnow
+        set(L2,'Orientation','horizontal','Location','SouthWest','Color',[1 1 1],...
+                'fontweight','bold');
+        set(ax2,'visible','off','color','none',...
+                 'box','off','xtick',[],'ytick',[],...
+                 'xlim',get(ax1,'xlim'),'ylim',get(ax1,'ylim'),...
+                  'position',get(ax1,'position'));        
+        
 
 
     figure(22)

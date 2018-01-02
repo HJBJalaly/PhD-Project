@@ -114,8 +114,8 @@ Cneq=[ angl1-45;    % in deg
 %       -p_hip_y_plus;
       -V_tib2_plus(2); % vertical velocity of foot after the impact moment
       -F2(2);
-      -deltaZero; %stability condition
-       deltaZero-1'; %stability condition
+      -deltaZero^2; %stability condition
+       deltaZero^2-1'; %stability condition
        (deltaZero^2)/(1-deltaZero^2)*Vzero+VzeroMax; %stability condition
        Hdr(3,:)'+0.035;%knee joint
        Hdr(4,:)'+0.035; % knee joint

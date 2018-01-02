@@ -1,4 +1,4 @@
-function status=ForceTorqueCalculatorWithSpringDamper_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Alfa,Theta_plus,Theta_minus,Kp,Kd,rM,BetaOptimal,rD,EtaOptimal,rB,ThetaOptimal)
+function status=ForceTorqueCalculatorWithSpringDamper_5DoF(t,x,flag,L_fem, L_tib, L_torso, Lc_fem, Lc_tib, Lc_torso, M_fem, M_tib, M_torso, XX_fem, XX_tib, XX_torso, g,Sangle,Alfa,Theta_plus,Theta_minus,Ma,Kp,Kd,rM,BetaOptimal,rD,EtaOptimal,rB,ThetaOptimal)
 
 persistent Force;
 
@@ -53,8 +53,8 @@ Ud2=(dq2.^(2*rD+1:-2:1))*EtaOptimal(1:rD+1);
 Ud3=(dq3.^(2*rD+1:-2:1))*EtaOptimal(rD+2:2*(rD+1));
 Ud4=(dq4.^(2*rD+1:-2:1))*EtaOptimal(rD+2:2*(rD+1));
 
-Ub13=((q1+q3).^(rB:-1:0))*ThetaOptimal;
-Ub24=((q2+q4).^(rB:-1:0))*ThetaOptimal;
+Ub13=((q1+q3).^(rB:-1:0))*ThetaOptimal(1:rB+1);
+Ub24=((q2+q4).^(rB:-1:0))*ThetaOptimal(1:rB+1);
 
 Upassive=[Um1+Ud1+Ub13;
           Um2+Ud2+Ub24;
@@ -71,15 +71,15 @@ DQ=[dq1;dq2;dq3;dq4;dq5];
 c=[-1 0 -1/2 0 -1];
 H0=eye(4,5);
 Theta=c*Q;
-[Hd,DHd_s,D2Hd_s]= BezierFunction(Theta,Alfa,Theta_plus,Theta_minus);
+[Hd,DHd_s,D2Hd_s]= BezierFunction(Ma,Theta,Alfa,Theta_plus,Theta_minus);
 
-DH_theta=DHd_s/(Theta_minus-Theta_plus);
-DH_q=DH_theta*c;
-Lfg=(H0-DH_q)*(DD\B);
-L2f=[D2Hd_s*c*DQ*c/(Theta_minus-Theta_plus)^2 DH_q  ]* [DQ ;-DD^(-1)*(CC*DQ+GG-Upassive)] ;
+DHd_theta=DHd_s/(Theta_minus-Theta_plus);
+DHd_q=DHd_theta*c;
+Lfg=(H0-DHd_q)*(DD\B);
+L2f=[D2Hd_s*c*DQ*c/(Theta_minus-Theta_plus)^2 DHd_q  ]* [DQ ;-DD\(CC*DQ+GG-Upassive)] ;
 
 y=H0*Q-Hd;
-Dy_t=H0*DQ-DH_q*DQ;
+Dy_t=H0*DQ-DHd_q*DQ;
 
 v=-Kp*y-Kd*Dy_t;
 u=Lfg\(v-L2f)*1;

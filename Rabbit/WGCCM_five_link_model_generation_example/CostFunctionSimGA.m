@@ -90,7 +90,7 @@ DtQ1=[DtQ1;SolC(:,7)];
 DtQ3=SolC(:,8);
 DtQ3=[DtQ3;SolC(:,9)];
 
-Cost=OptimalParam([Tc ;Tc+Tc(end)],Q1,Q3,Qhat13,DtQ1,DtQ3,Ur1,Ur3,rM,rB,rD,Landa,Gamma,Weight,SampleRate,0,1);
+Cost=OptimalParam([Tc ;Tc+Tc(end)],Q1,Q3,Qhat13,DtQ1,DtQ3,Ur1,Ur3,rM,rB,rD,Landa,Gamma,Weight,SampleRate,[],0,1);
                 
 
 if( any( abs(Force(5,:))>(abs(Force(6,:))*mu))) % Ft> Fn*mu

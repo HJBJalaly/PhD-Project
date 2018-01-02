@@ -216,66 +216,73 @@ figure(10)
     hold off
     
 figure(11)
-    subplot(3,2,1)
-    plot(Qq(:,1),DQq(:,1))
+    subplot(1,3,1)
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    plot(Qq(:,1),DQq(:,1),'linewidth',2)
     grid on
     hold on
-    for i=1:length(T_impact)
+    for i=2:length(T_impact)
         index=find(Time==T_impact(i),1);
         plot(Qq(index,1),DQq(index,1),'color','r','linestyle','none','marker','*')
     end
     hold off
-    xlabel('q_1')
-    ylabel('dq_1')
+    xlabel('\boldmath$q_1$ (deg)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    ylabel('\boldmath$\dot{q}_1$ (deg/s)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
     
-    subplot(3,2,2)
-    plot(Qq(:,2),DQq(:,2))
+%     subplot(3,2,2)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(Qq(:,2),DQq(:,2),'linewidth',2)
+%     grid on
+%     hold on
+%     for i=2:length(T_impact)
+%         index=find(Time==T_impact(i),1);
+%         plot(Qq(index,2),DQq(index,2),'color','r','linestyle','none','marker','*')
+%     end
+%     hold off
+%     xlabel('\boldmath$q_2$ (deg)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+%     ylabel('\boldmath$\dot{q}_2$ (deg/s)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    
+    
+    subplot(1,3,2)
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    plot(Qq(:,3),DQq(:,3),'linewidth',2)
     grid on
     hold on
-    for i=1:length(T_impact)
-        index=find(Time==T_impact(i),1);
-        plot(Qq(index,2),DQq(index,2),'color','r','linestyle','none','marker','*')
-    end
-    hold off
-    xlabel('q_2')
-    ylabel('dq_2')
-    
-    
-    subplot(3,2,3)
-    plot(Qq(:,3),DQq(:,3))
-    grid on
-    hold on
-    for i=1:length(T_impact)
+    for i=2:length(T_impact)
         index=find(Time==T_impact(i),1);
         plot(Qq(index,3),DQq(index,3),'color','r','linestyle','none','marker','*')
     end
     hold off
-    xlabel('q_3')
-    ylabel('dq_3')
+    xlabel('\boldmath$q_3$ (deg)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    ylabel('\boldmath$\dot{q}_3$ (deg/s)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
     
-    subplot(3,2,4)
-    plot(Qq(:,4),DQq(:,4))
+%     subplot(3,2,4)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(Qq(:,4),DQq(:,4),'linewidth',2)
+%     grid on
+%     hold on
+%     for i=2:length(T_impact)
+%         index=find(Time==T_impact(i),1);
+%         plot(Qq(index,4),DQq(index,4),'color','r','linestyle','none','marker','*')
+%     end
+%     hold off
+%     xlabel('\boldmath$q_4$ (deg)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+%     ylabel('\boldmath$\dot{q}_4$ (deg/s)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    
+    
+    subplot(1,3,3)
+    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    plot(Qq(:,5),DQq(:,5),'linewidth',2)
     grid on
     hold on
-    for i=1:length(T_impact)
-        index=find(Time==T_impact(i),1);
-        plot(Qq(index,4),DQq(index,4),'color','r','linestyle','none','marker','*')
-    end
-    hold off
-    xlabel('q_4')
-    ylabel('dq_4')
-    
-    subplot(3,2,5)
-    plot(Qq(:,5),DQq(:,5))
-    grid on
-    hold on
-    for i=1:length(T_impact)
+    for i=2:length(T_impact)
         index=find(Time==T_impact(i),1);
         plot(Qq(index,5),DQq(index,5),'color','r','linestyle','none','marker','*')
     end
     hold off
-    xlabel('q_5')
-    ylabel('dq_5')
+    xlabel('\boldmath$q_5$ (deg)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    ylabel('\boldmath$\dot{q}_5$ (deg/s)','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    
 
 figure(12)
     
@@ -347,76 +354,91 @@ figure(12)
     subplot(3,2,6)
     hold off
 
-figure(13)    
+figure(13)
+    set(gcf,'position',[6 357 1266  195])
     i=length(T_impact)/2;
     indx1=find(Time==T_impact(2*(i)-2),1)+1;
     indx2=find(Time==T_impact(2*(i)-1),1);
     indx3=find(Time==T_impact(2*(i)-0),1);
     
-    subplot(3,2,1)
+    subplot(1,2,1)
     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(Qq(indx1:indx2,1)),MotionData(1,indx1:indx2),'linewidth',2)
+    % for legend
+    plot(rad2deg(Qq(indx1+100:indx1+100,1)),MotionData(1,indx1+100:indx1+100),'linewidth',2,'marker','o','markerfacecolor','b')
     hold on
-    plot(rad2deg(Qq(indx2+1:indx3,2)),MotionData(2,indx2+1:indx3),'r','linewidth',2)
-    plot(rad2deg(Qq(indx1,1)),MotionData(1,indx1),'marker','*')
-    plot(rad2deg(Qq(indx2+1,2)),MotionData(2,indx2+1),'r','marker','*')
-    grid on
-    hold off
-    xlabel('q_1 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_1 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    plot(rad2deg(Qq(indx2+1+100:indx2+1+100,2)),MotionData(2,indx2+1+100:indx2+1+100),'r','linewidth',2,'marker','^','markerfacecolor','r')
     legend('Stance','Swing','orientation','horizontal')
-    
-
-    subplot(3,2,2)
-    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(Qq(indx1:indx2  ,2)),MotionData(2,indx1:indx2),'linewidth',2)
-    hold on
-    plot(rad2deg(Qq(indx2+1:indx3,1)),MotionData(1,indx2+1:indx3),'r','linewidth',2)
-    plot(rad2deg(Qq(indx1  ,2)),MotionData(2,indx1),'marker','*')
-    plot(rad2deg(Qq(indx2+1,1)),MotionData(1,indx2+1),'r','marker','*')
+    %for marker
+    plot(rad2deg(Qq(indx1+100:200:indx2,1)),MotionData(1,indx1+100:200:indx2),'linestyle','none','marker','o','markersize',8,'markerfacecolor','b')
+    plot(rad2deg(Qq(indx2+1+100:200:indx3,2)),MotionData(2,indx2+1+100:200:indx3),'r','linestyle','none','marker','^','markersize',8,'markerfacecolor','r')
+    % for  lines
+    plot(rad2deg(Qq(indx1:indx2,1)),MotionData(1,indx1:indx2),'linewidth',2)
+    plot(rad2deg(Qq(indx2+1:indx3,2)),MotionData(2,indx2+1:indx3),'r','linewidth',2)
+    % for start point
+    plot(rad2deg(Qq(indx1,1)),MotionData(1,indx1),'marker','*','markersize',8)
+    plot(rad2deg(Qq(indx2+1,2)),MotionData(2,indx2+1),'r','marker','*','markersize',8)
     grid on
     hold off
-    xlabel('q_2 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_2 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    legend('Swing','Stance','orientation','horizontal')
+    xlabel('\boldmath$q_1$ (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    ylabel('\boldmath$u_1$ (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
     
-
-    subplot(3,2,3)
+%     subplot(3,2,2)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(rad2deg(Qq(indx1:indx2  ,2)),MotionData(2,indx1:indx2),'linewidth',2)
+%     hold on
+%     plot(rad2deg(Qq(indx2+1:indx3,1)),MotionData(1,indx2+1:indx3),'r','linewidth',2)
+%     plot(rad2deg(Qq(indx1  ,2)),MotionData(2,indx1),'marker','*')
+%     plot(rad2deg(Qq(indx2+1,1)),MotionData(1,indx2+1),'r','marker','*')
+%     grid on
+%     hold off
+%     xlabel('q_2 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     ylabel('u_2 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     legend('Swing','Stance','orientation','horizontal')
+    
+    subplot(1,2,2)
     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(Qq(indx1 ,3)),MotionData(3,indx1),'marker','*')
+    % for legend
+    plot(rad2deg(Qq(indx1+100:indx1+100,3)),MotionData(3,indx1+100:indx1+100),'linewidth',2,'marker','o','markerfacecolor','b')
     hold on
+    plot(rad2deg(Qq(indx2+1+100:indx2+1+100,4)),MotionData(4,indx2+1+100:indx2+1+100),'r','linewidth',2,'marker','^','markerfacecolor','r')
+    legend('Stance','Swing','orientation','horizontal')
+    %for marker
+    plot(rad2deg(Qq(indx1+100:200:indx2,3)),MotionData(3,indx1+100:200:indx2),'linestyle','none','marker','o','markersize',8,'markerfacecolor','b')
+    plot(rad2deg(Qq(indx2+1+100:200:indx3,4)),MotionData(4,indx2+1+100:200:indx3),'r','linestyle','none','marker','^','markersize',8,'markerfacecolor','r')
+    % for  lines
     plot(rad2deg(Qq(indx1:indx2  ,3)),MotionData(3,indx1:indx2),'linewidth',2)
-    plot(rad2deg(Qq(indx2+1,4)),MotionData(4,indx2+1),'r','marker','*')
     plot(rad2deg(Qq(indx2+1:indx3,4)),MotionData(4,indx2+1:indx3),'r','linewidth',2)
+    % for start point
+    plot(rad2deg(Qq(indx1 ,3)),MotionData(3,indx1),'marker','*','markersize',8)
+    plot(rad2deg(Qq(indx2+1,4)),MotionData(4,indx2+1),'r','marker','*','markersize',8)
     grid on
     hold off
-    xlabel('q_3 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_3 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+    xlabel('\boldmath$q_3$ (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
+    ylabel('\boldmath$u_3$ (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10','interpret','latex');
 
-    subplot(3,2,4)
-    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(Qq(indx1  ,4)),MotionData(4,indx1),'marker','*')
-    hold on
-    plot(rad2deg(Qq(indx1:indx2  ,4)),MotionData(4,indx1:indx2),'linewidth',2)
-    plot(rad2deg(Qq(indx2+1,3)),MotionData(3,indx2+1),'r','marker','*')
-    plot(rad2deg(Qq(indx2+1:indx3,3)),MotionData(3,indx2+1:indx3),'r','linewidth',2)
-    grid on
-    hold off
-    xlabel('q_4 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_4 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-
-    subplot(3,2,5)
-    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(Qq(indx1 ,5)),MotionData(5,indx1),'marker','*')
-    hold on
-    plot(rad2deg(Qq(indx1:indx2  ,5)),MotionData(5,indx1:indx2),'linewidth',2)
-    plot(rad2deg(Qq(indx2+1,5)),MotionData(5,indx2+1),'r','marker','*')
-    plot(rad2deg(Qq(indx2+1:indx3,5)),MotionData(5,indx2+1:indx3),'r','linewidth',2)
-    grid on
-    hold off
-    xlabel('q_5 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-
+%     subplot(3,2,4)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(rad2deg(Qq(indx1  ,4)),MotionData(4,indx1),'marker','*')
+%     hold on
+%     plot(rad2deg(Qq(indx1:indx2  ,4)),MotionData(4,indx1:indx2),'linewidth',2)
+%     plot(rad2deg(Qq(indx2+1,3)),MotionData(3,indx2+1),'r','marker','*')
+%     plot(rad2deg(Qq(indx2+1:indx3,3)),MotionData(3,indx2+1:indx3),'r','linewidth',2)
+%     grid on
+%     hold off
+%     xlabel('q_4 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     ylabel('u_4 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+% 
+%     subplot(3,2,5)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(rad2deg(Qq(indx1 ,5)),MotionData(5,indx1),'marker','*')
+%     hold on
+%     plot(rad2deg(Qq(indx1:indx2  ,5)),MotionData(5,indx1:indx2),'linewidth',2)
+%     plot(rad2deg(Qq(indx2+1,5)),MotionData(5,indx2+1),'r','marker','*')
+%     plot(rad2deg(Qq(indx2+1:indx3,5)),MotionData(5,indx2+1:indx3),'r','linewidth',2)
+%     grid on
+%     hold off
+%     xlabel('q_5 (deg)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
    
 figure(14)    
     i=length(T_impact)/2;
@@ -424,7 +446,7 @@ figure(14)
     indx2=find(Time==T_impact(2*(i)-1),1);
     indx3=find(Time==T_impact(2*(i)-0),1);
     
-    subplot(3,2,1)
+    subplot(1,2,1)
     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
     plot(rad2deg(DQq(indx1:indx2,1)),MotionData(1,indx1:indx2),'linewidth',2)
     hold on
@@ -437,22 +459,20 @@ figure(14)
     ylabel('u_1 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
     legend('Stance','Swing','orientation','horizontal')
 
-    subplot(3,2,2)
-    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(DQq(indx1:indx2  ,2)),MotionData(2,indx1:indx2),'linewidth',2)
-    hold on
-    plot(rad2deg(DQq(indx2+1:indx3,1)),MotionData(1,indx2+1:indx3),'r','linewidth',2)
-    plot(rad2deg(DQq(indx1  ,2)),MotionData(2,indx1),'marker','*')
-    plot(rad2deg(DQq(indx2+1,1)),MotionData(1,indx2+1),'r','marker','*')
-    grid on
-    hold off
-    xlabel('Dq_2 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_2 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    legend('Swing','Stance','orientation','horizontal')
+%     subplot(3,2,2)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(rad2deg(DQq(indx1:indx2  ,2)),MotionData(2,indx1:indx2),'linewidth',2)
+%     hold on
+%     plot(rad2deg(DQq(indx2+1:indx3,1)),MotionData(1,indx2+1:indx3),'r','linewidth',2)
+%     plot(rad2deg(DQq(indx1  ,2)),MotionData(2,indx1),'marker','*')
+%     plot(rad2deg(DQq(indx2+1,1)),MotionData(1,indx2+1),'r','marker','*')
+%     grid on
+%     hold off
+%     xlabel('Dq_2 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     ylabel('u_2 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     legend('Swing','Stance','orientation','horizontal')
     
-
-
-    subplot(3,2,3)
+    subplot(1,2,2)
     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
     plot(rad2deg(DQq(indx1 ,3)),MotionData(3,indx1),'marker','*')
     hold on
@@ -464,29 +484,29 @@ figure(14)
     xlabel('Dq_3 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
     ylabel('u_3 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
-    subplot(3,2,4)
-    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(DQq(indx1  ,4)),MotionData(4,indx1),'marker','*')
-    hold on
-    plot(rad2deg(DQq(indx1:indx2  ,4)),MotionData(4,indx1:indx2),'linewidth',2)
-    plot(rad2deg(DQq(indx2+1,3)),MotionData(3,indx2+1),'r','marker','*')
-    plot(rad2deg(DQq(indx2+1:indx3,3)),MotionData(3,indx2+1:indx3),'r','linewidth',2)
-    grid on
-    hold off
-    xlabel('Dq_4 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_4 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     subplot(3,2,4)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(rad2deg(DQq(indx1  ,4)),MotionData(4,indx1),'marker','*')
+%     hold on
+%     plot(rad2deg(DQq(indx1:indx2  ,4)),MotionData(4,indx1:indx2),'linewidth',2)
+%     plot(rad2deg(DQq(indx2+1,3)),MotionData(3,indx2+1),'r','marker','*')
+%     plot(rad2deg(DQq(indx2+1:indx3,3)),MotionData(3,indx2+1:indx3),'r','linewidth',2)
+%     grid on
+%     hold off
+%     xlabel('Dq_4 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     ylabel('u_4 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
-    subplot(3,2,5)
-    set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    plot(rad2deg(DQq(indx1 ,5)),MotionData(5,indx1),'marker','*')
-    hold on
-    plot(rad2deg(DQq(indx1:indx2  ,5)),MotionData(5,indx1:indx2),'linewidth',2)
-    plot(rad2deg(DQq(indx2+1,5)),MotionData(5,indx2+1),'r','marker','*')
-    plot(rad2deg(DQq(indx2+1:indx3,5)),MotionData(5,indx2+1:indx3),'r','linewidth',2)
-    grid on
-    hold off
-    xlabel('Dq_5 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
-    ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     subplot(3,2,5)
+%     set(gca,'FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     plot(rad2deg(DQq(indx1 ,5)),MotionData(5,indx1),'marker','*')
+%     hold on
+%     plot(rad2deg(DQq(indx1:indx2  ,5)),MotionData(5,indx1:indx2),'linewidth',2)
+%     plot(rad2deg(DQq(indx2+1,5)),MotionData(5,indx2+1),'r','marker','*')
+%     plot(rad2deg(DQq(indx2+1:indx3,5)),MotionData(5,indx2+1:indx3),'r','linewidth',2)
+%     grid on
+%     hold off
+%     xlabel('Dq_5 (deg/s)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
+%     ylabel('u_5 (N.m)','FontWeight','bold','FontSize',12,'FontName','mwa_cmb10');
 
     
 figure(15)
